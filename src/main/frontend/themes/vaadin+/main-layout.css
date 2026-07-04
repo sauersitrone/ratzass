@@ -1,0 +1,59 @@
+:root,
+:host {
+  --s-bg-primary: lightgray;
+  --s-bg-selected-color: #ffffff;
+  --s-bg-selected-bg: #283342;
+  --s-bg-contrast: #192434;
+}
+
+vaadin-scroller[slot="drawer"] {
+  padding: var(--lumo-space-s);
+  background-color: var(--s-bg-contrast);
+}
+
+vaadin-side-nav {
+  background-color: var(--s-bg-contrast);
+}
+
+vaadin-side-nav-item[current]::part(link) {
+  color: var(--s-bg-selected-color);
+  background-color: var(--s-bg-selected-bg);
+}
+
+vaadin-side-nav-item::part(content) {
+  background-color: var(--s-bg-contrast);
+}
+
+vaadin-side-nav-item > [slot="prefix"] {
+  color: var(--s-bg-primary);
+}
+
+vaadin-side-nav-item {
+  color: var(--s-bg-primary);
+}
+
+vaadin-side-nav-item::part(link):hover {
+  color: var(--s-bg-selected-color);
+  background-color: var(--s-bg-selected-bg);
+}
+
+vaadin-side-nav-item::part(toggle-button) {
+  color: var(--s-bg-primary);
+}
+
+
+[slot="drawer"]:is(header, footer) {
+  align-items: center;
+  box-sizing: border-box;
+  display: flex;
+  gap: var(--lumo-space-s);
+  min-height: var(--lumo-size-xl);
+  padding: var(--lumo-space-s) var(--lumo-space-m);
+  background-color: var(--s-bg-primary);
+}
+
+[slot="drawer"]:is(header, footer):is(:empty) {
+  display: none;
+  background-color: var(--s-bg-contrast);
+}
+

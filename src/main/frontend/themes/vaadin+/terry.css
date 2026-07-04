@@ -1,0 +1,185 @@
+/* class for actions components  */
+.movile-hover:hover {
+    background-color: var(--lumo-primary-color-10pct);
+    border-color: var(--lumo-primary-color);
+    cursor: pointer;
+}
+.channel-hover:hover {
+    background-color: var(--lumo-primary-color-10pct);
+    /* border-color: var(--lumo-primary-color); */
+    cursor: pointer;
+}
+
+/* reactive classes: movil devices*/
+@media screen and (orientation: portrait) {
+    .croppDialog-orientation {
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        position: fixed;
+    }
+        .codeDialog-orientation {
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        position: fixed;
+    }
+
+}
+
+/* reactive classes: desktop*/
+@media screen and (orientation: landscape) {
+    .croppDialog-orientation {
+        width: 550px;
+        height: 550px;
+    }
+
+    .codeDialog-orientation {
+        width: 950px;
+        height: 620px;
+    }
+}
+
+
+/* speech-bubble: https://projects.verou.me/bubbly/ */
+.speech-bubble {
+    position: relative;
+    background: #e6e6e6;
+    border-radius: .2em;
+}
+
+.speech-bubble:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border: 34px solid transparent;
+    border-bottom-color: #e6e6e6;
+    border-top: 0;
+    margin-left: -34px;
+    margin-top: -34px;
+}
+
+.speech-bubble-paragraph {
+    z-index: 2;
+    position: fixed;
+    top: 450px;
+    width: 80%;
+    padding: 4px;
+    border: 2px;
+}
+
+.message-speech-bubble {
+    position: relative;
+    background: #e6e6e6;
+    border-radius: .2em;
+}
+
+.message-speech-bubble:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border: 34px solid transparent;
+    border-bottom-color: #e6e6e6;
+    border-top: 0;
+    margin-left: -34px;
+    margin-top: -34px;
+}
+
+.message-speech-bubble-paragraph {
+    z-index: 2;
+    position: fixed;
+    top: 450px;
+    width: 80%;
+    padding: 4px;
+    border: 2px;
+}
+
+/* class to make a dark semitransparent backgroud for components like wait components */
+.sitrone-modal-background {
+    position: absolute;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.terryHasWrittenThis {
+  background: radial-gradient(
+    circle at 100%,
+    #b2a8fd,
+    #8678f9 50%,
+    #c7d2fe 75%,
+    #9a8dfd 75%
+  );
+  font-weight: 600;
+  background-size: 200% auto;
+  color: #000;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: terryHasWrittenThisAnimatedTextGradient 3s linear infinite;
+}
+
+@keyframes terryHasWrittenThisAnimatedTextGradient {
+  to {
+    background-position: 200% center;
+  }
+}
+
+/* Styles used by ChatView components */
+.new-chat-button {
+    position: fixed;
+    top: 0;
+    inset-inline-end: 0;
+    margin: calc((var(--lumo-size-xl) - var(--lumo-size-m)) / 2);
+    z-index: 1;
+}
+
+vaadin-message {
+    gap: var(--lumo-space-m);
+}
+
+vaadin-message.you {
+    margin-inline-start: auto;
+    flex-direction: row-reverse;
+}
+
+vaadin-message.you::part(content) {
+    background-color: var(--lumo-contrast-5pct);
+    padding: var(--lumo-space-s) var(--lumo-space-m);
+    border-radius: var(--lumo-border-radius-l);
+}
+
+vaadin-message p:last-child {
+    margin-bottom: 0.5em;
+}
+
+vaadin-message > vaadin-avatar {
+    margin: 0;
+}
+
+@media (max-width: 40rem) {
+    vaadin-message > vaadin-avatar {
+        display: none;
+    }
+}
+
+vaadin-message-input vaadin-text-area[focused]::part(input-field) {
+    box-shadow: 0 0 0 var(--vaadin-focus-ring-width, 2px) var(--vaadin-focus-ring-color, var(--lumo-primary-color-50pct));
+}
+

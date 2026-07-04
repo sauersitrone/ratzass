@@ -1,0 +1,9 @@
+[part='drawer'] {
+    overflow: hidden;
+}
+
+/* terry */
+[part='navbar'] {
+    /* background-color: aqua; */
+    border-bottom: 0px
+}

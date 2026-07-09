@@ -1,0 +1,3 @@
+(define (domain hello-world)
+
+)

@@ -1,7 +1,8 @@
 {
+    "editor.inlayHints.enabled": "offUnlessPressed",
     "java.compile.nullAnalysis.mode": "disabled",
-    "java.inlayHints.parameterNames.enabled": "none",
     "java.configuration.updateBuildConfiguration": "automatic",
-    "chat.disableAIFeatures": false,
-    "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx8G -Xms100m -Xlog:disable"
+    "files.watcherExclude": {
+        "**/target/**": true
+    }
 }

@@ -1,0 +1,628 @@
+;;; ============================================================
+;;; PDDL4J / HDDL domain for TerranVsRandom.scala
+;;; Translated from the Hierarchical Task Network embedded in
+;;; PurpleWave's GameplanImperative sub-class.
+;;;
+;;; Execution model (mirrors GameplanImperative.onUpdate):
+;;;   each "frame" the planner runs: execute-build → do-workers → execute-main
+;;;
+;;; Simplifications vs. the live bot:
+;;;  - Resources (minerals/gas/supply) are not modelled; build
+;;;    actions are assumed always affordable.
+;;;  - pump* tasks train exactly ONE unit per invocation; the
+;;;    caller (problem HTN or a wrapping loop) must re-invoke them.
+;;;  - pumpRatio (medic : marine = 0.2) is simplified to a hard
+;;;    cap of 3 medics total.
+;;; ============================================================
+
+(define (domain terran-vs-random)
+
+  (:requirements
+    :typing
+    :hierarchy
+    :method-preconditions
+    :numeric-fluents
+    :negative-preconditions
+    :disjunctive-preconditions)
+
+  ;; ── Types ──────────────────────────────────────────────────────────────
+
+  (:types unit upgrade - object)
+
+  ;; ── Constants ──────────────────────────────────────────────────────────
+  ;; Own units / buildings
+  ;; Enemy units used only as detection predicates (prefixed enemy-)
+
+  (:constants
+    scv marine medic siege-tank
+    barracks factory machine-shop academy refinery supply-depot comsat
+    - unit
+
+    ;; Enemy building types referenced in enemiesHaveComplete(...)
+    enemy-bunker enemy-sunken-colony enemy-photon-cannon enemy-factory
+    - unit
+
+    siege-mode stim marine-range - upgrade)
+
+  ;; ── Predicates ─────────────────────────────────────────────────────────
+
+  (:predicates
+    (have ?u - unit)                    ; we own at least one of this unit/building
+    (enemy-has ?u - unit)               ; enemy confirmed to have this building
+    (enemy-base-found)                  ; scouting has located the enemy main
+    (lurkers-likely)                    ; heuristic: enemy likely building lurkers
+    (dark-templar-likely)               ; heuristic: enemy likely building dark templar
+    (upgrade-researched ?up - upgrade)) ; upgrade is complete
+
+  ;; ── Numeric fluents ────────────────────────────────────────────────────
+
+  (:functions
+    (unit-count ?u - unit))             ; how many of this unit we currently have
+
+  ;; ════════════════════════════════════════════════════════════════════════
+  ;; PRIMITIVE ACTIONS
+  ;; ════════════════════════════════════════════════════════════════════════
+
+  (:action train-scv
+    :parameters ()
+    :precondition ()
+    :effect (and (have scv) (increase (unit-count scv) 1)))
+
+  (:action build-barracks
+    :parameters ()
+    :precondition ()
+    :effect (and (have barracks) (increase (unit-count barracks) 1)))
+
+  (:action build-supply-depot
+    :parameters ()
+    :precondition ()
+    :effect (have supply-depot))
+
+  (:action build-refinery
+    :parameters ()
+    :precondition ()
+    :effect (have refinery))
+
+  ;; Factory requires at least one barracks (standard Terran tech tree)
+  (:action build-factory
+    :parameters ()
+    :precondition (have barracks)
+    :effect (have factory))
+
+  ;; Machine Shop is an add-on that requires an existing Factory
+  (:action build-machine-shop
+    :parameters ()
+    :precondition (have factory)
+    :effect (have machine-shop))
+
+  (:action build-academy
+    :parameters ()
+    :precondition (have barracks)
+    :effect (have academy))
+
+  ;; Comsat Station is a Command-Centre add-on; requires Academy for unlock
+  (:action build-comsat
+    :parameters ()
+    :precondition (have academy)
+    :effect (have comsat))
+
+  (:action train-siege-tank
+    :parameters ()
+    :precondition (have factory)
+    :effect (and (have siege-tank) (increase (unit-count siege-tank) 1)))
+
+  (:action train-marine
+    :parameters ()
+    :precondition (have barracks)
+    :effect (and (have marine) (increase (unit-count marine) 1)))
+
+  (:action train-medic
+    :parameters ()
+    :precondition (and (have barracks) (have academy))
+    :effect (and (have medic) (increase (unit-count medic) 1)))
+
+  (:action research-siege-mode
+    :parameters ()
+    :precondition (have machine-shop)
+    :effect (upgrade-researched siege-mode))
+
+  (:action research-stim
+    :parameters ()
+    :precondition (have academy)
+    :effect (upgrade-researched stim))
+
+  (:action research-marine-range
+    :parameters ()
+    :precondition (have academy)
+    :effect (upgrade-researched marine-range))
+
+  ;; Scout: sends an SCV/marine to find the enemy base
+  (:action do-scout
+    :parameters ()
+    :precondition (not (enemy-base-found))
+    :effect (enemy-base-found))
+
+  ;; Attack: commit available army; no state change modelled here
+  (:action do-attack
+    :parameters ()
+    :precondition ()
+    :effect ())
+
+  ;; ════════════════════════════════════════════════════════════════════════
+  ;; ABSTRACT TASKS
+  ;; ════════════════════════════════════════════════════════════════════════
+
+  ;; Top-level phases (mirror GameplanImperative.onUpdate order)
+  (:task execute-build         :parameters ())
+  (:task do-workers            :parameters ())
+  (:task execute-main          :parameters ())
+
+  ;; Build-phase sub-tasks
+  (:task reach-8-scvs          :parameters ())
+  (:task reach-9-scvs          :parameters ())
+  (:task reach-10-scvs         :parameters ())
+  (:task build-2-barracks      :parameters ())
+  (:task maybe-scout           :parameters ())
+
+  ;; Main-phase conditional branches
+  (:task maybe-factory-tech    :parameters ())  ; if (have factory)
+  (:task maybe-anti-defensive  :parameters ())  ; if enemiesHaveComplete(bunker/sunken/cannon/factory)
+  (:task maybe-counter-cloaked :parameters ())  ; if lurkers-likely || dark-templar-likely
+  (:task maybe-all-in          :parameters ())  ; if dark-templar-likely && !have(comsat)
+
+  ;; Continuous production (pump) tasks — train one unit per call
+  (:task pump-siege-tanks      :parameters ())
+  (:task pump-marines          :parameters ())
+  (:task pump-medics           :parameters ())  ; capped at 3; simplified from pumpRatio
+  (:task pump-workers          :parameters ())  ; cap 22, no oversaturation
+
+  ;; Barracks expansion goals
+  (:task build-3-barracks      :parameters ())
+  (:task build-4-barracks      :parameters ())
+
+  ;; Idempotent "ensure we have exactly this" goals
+  (:task ensure-supply-depot   :parameters ())
+  (:task ensure-refinery       :parameters ())
+  (:task ensure-factory        :parameters ())
+  (:task ensure-machine-shop   :parameters ())
+  (:task ensure-academy        :parameters ())
+  (:task ensure-comsat         :parameters ())
+  (:task ensure-siege-tank     :parameters ())
+  (:task ensure-stim           :parameters ())
+  (:task ensure-marine-range   :parameters ())
+  (:task ensure-siege-mode     :parameters ())
+
+  ;; ════════════════════════════════════════════════════════════════════════
+  ;; METHODS
+  ;; ════════════════════════════════════════════════════════════════════════
+
+  ;; ─── execute-build ───────────────────────────────────────────────────
+  ;; Mirrors executeBuild():
+  ;;   once(8,SCV) → get(2,Barracks) → once(9,SCV) → get(SupplyDepot)
+  ;;   → once(10,SCV) → [scout when first barracks done]
+
+  (:method m-execute-build
+    :parameters ()
+    :task (execute-build)
+    :ordered-subtasks (and
+      (t1 (reach-8-scvs))
+      (t2 (build-2-barracks))
+      (t3 (reach-9-scvs))
+      (t4 (ensure-supply-depot))
+      (t5 (reach-10-scvs))
+      (t6 (maybe-scout))))
+
+  ;; ─── do-workers ──────────────────────────────────────────────────────
+  ;; Overridden to empty — worker production delegated to pump-workers in executeMain
+
+  (:method m-do-workers-noop
+    :parameters ()
+    :task (do-workers)
+    :subtasks ())
+
+  ;; ─── execute-main ────────────────────────────────────────────────────
+  ;; Mirrors executeMain() — preserves the exact top-to-bottom priority order
+  ;; of the original source.
+
+  (:method m-execute-main
+    :parameters ()
+    :task (execute-main)
+    :ordered-subtasks (and
+      (t1  (maybe-factory-tech))
+      (t2  (maybe-anti-defensive))
+      (t3  (maybe-counter-cloaked))
+      (t4  (pump-siege-tanks))
+      (t5  (pump-medics))
+      (t6  (pump-marines))
+      (t7  (pump-workers))
+      (t8  (ensure-refinery))
+      (t9  (ensure-factory))
+      (t10 (ensure-machine-shop))
+      (t11 (ensure-academy))
+      (t12 (ensure-stim))
+      (t13 (ensure-marine-range))
+      (t14 (build-3-barracks))
+      (t15 (ensure-comsat))
+      (t16 (build-4-barracks))
+      (t17 (maybe-all-in))
+      (t18 (do-attack))))
+
+  ;; ─── reach-N-scvs (recursive count-up) ──────────────────────────────
+
+  (:method m-8scvs-done
+    :parameters ()
+    :task (reach-8-scvs)
+    :precondition (>= (unit-count scv) 8)
+    :subtasks ())
+
+  (:method m-8scvs-recurse
+    :parameters ()
+    :task (reach-8-scvs)
+    :precondition (< (unit-count scv) 8)
+    :ordered-subtasks (and (t1 (train-scv)) (t2 (reach-8-scvs))))
+
+  (:method m-9scvs-done
+    :parameters ()
+    :task (reach-9-scvs)
+    :precondition (>= (unit-count scv) 9)
+    :subtasks ())
+
+  (:method m-9scvs-recurse
+    :parameters ()
+    :task (reach-9-scvs)
+    :precondition (< (unit-count scv) 9)
+    :ordered-subtasks (and (t1 (train-scv)) (t2 (reach-9-scvs))))
+
+  (:method m-10scvs-done
+    :parameters ()
+    :task (reach-10-scvs)
+    :precondition (>= (unit-count scv) 10)
+    :subtasks ())
+
+  (:method m-10scvs-recurse
+    :parameters ()
+    :task (reach-10-scvs)
+    :precondition (< (unit-count scv) 10)
+    :ordered-subtasks (and (t1 (train-scv)) (t2 (reach-10-scvs))))
+
+  ;; ─── build-N-barracks (recursive count-up) ───────────────────────────
+
+  (:method m-2barracks-done
+    :parameters ()
+    :task (build-2-barracks)
+    :precondition (>= (unit-count barracks) 2)
+    :subtasks ())
+
+  (:method m-2barracks-recurse
+    :parameters ()
+    :task (build-2-barracks)
+    :precondition (< (unit-count barracks) 2)
+    :ordered-subtasks (and (t1 (build-barracks)) (t2 (build-2-barracks))))
+
+  (:method m-3barracks-done
+    :parameters ()
+    :task (build-3-barracks)
+    :precondition (>= (unit-count barracks) 3)
+    :subtasks ())
+
+  (:method m-3barracks-recurse
+    :parameters ()
+    :task (build-3-barracks)
+    :precondition (< (unit-count barracks) 3)
+    :ordered-subtasks (and (t1 (build-barracks)) (t2 (build-3-barracks))))
+
+  (:method m-4barracks-done
+    :parameters ()
+    :task (build-4-barracks)
+    :precondition (>= (unit-count barracks) 4)
+    :subtasks ())
+
+  (:method m-4barracks-recurse
+    :parameters ()
+    :task (build-4-barracks)
+    :precondition (< (unit-count barracks) 4)
+    :ordered-subtasks (and (t1 (build-barracks)) (t2 (build-4-barracks))))
+
+  ;; ─── maybe-scout ─────────────────────────────────────────────────────
+  ;; scoutOn(u => Barracks(u) && u.complete) — trigger scouting once
+  ;; the first barracks finishes, but only if base not yet found.
+
+  (:method m-scout-not-needed
+    :parameters ()
+    :task (maybe-scout)
+    :precondition (enemy-base-found)
+    :subtasks ())
+
+  (:method m-scout-needed
+    :parameters ()
+    :task (maybe-scout)
+    :precondition (not (enemy-base-found))
+    :subtasks ((t1 (do-scout))))
+
+  ;; ─── maybe-factory-tech ──────────────────────────────────────────────
+  ;; if (have(Factory)) { once(MachineShop); once(SiegeTank); get(SiegeMode) }
+
+  (:method m-factory-tech-active
+    :parameters ()
+    :task (maybe-factory-tech)
+    :precondition (have factory)
+    :ordered-subtasks (and
+      (t1 (ensure-machine-shop))
+      (t2 (ensure-siege-tank))
+      (t3 (ensure-siege-mode))))
+
+  (:method m-factory-tech-inactive
+    :parameters ()
+    :task (maybe-factory-tech)
+    :precondition (not (have factory))
+    :subtasks ())
+
+  ;; ─── maybe-anti-defensive ────────────────────────────────────────────
+  ;; if enemiesHaveComplete(Bunker, SunkenColony, PhotonCannon, Factory)
+  ;; → get(Refinery); get(Factory)
+
+  (:method m-anti-def-triggered
+    :parameters ()
+    :task (maybe-anti-defensive)
+    :precondition (or
+      (enemy-has enemy-bunker)
+      (enemy-has enemy-sunken-colony)
+      (enemy-has enemy-photon-cannon)
+      (enemy-has enemy-factory))
+    :ordered-subtasks (and
+      (t1 (ensure-refinery))
+      (t2 (ensure-factory))))
+
+  (:method m-anti-def-clear
+    :parameters ()
+    :task (maybe-anti-defensive)
+    :precondition (and
+      (not (enemy-has enemy-bunker))
+      (not (enemy-has enemy-sunken-colony))
+      (not (enemy-has enemy-photon-cannon))
+      (not (enemy-has enemy-factory)))
+    :subtasks ())
+
+  ;; ─── maybe-counter-cloaked ───────────────────────────────────────────
+  ;; if (enemyLurkersLikely || enemyDarkTemplarLikely)
+  ;; → get(Academy); get(Comsat)
+
+  (:method m-cloaked-threat-active
+    :parameters ()
+    :task (maybe-counter-cloaked)
+    :precondition (or (lurkers-likely) (dark-templar-likely))
+    :ordered-subtasks (and
+      (t1 (ensure-academy))
+      (t2 (ensure-comsat))))
+
+  (:method m-cloaked-threat-clear
+    :parameters ()
+    :task (maybe-counter-cloaked)
+    :precondition (and (not (lurkers-likely)) (not (dark-templar-likely)))
+    :subtasks ())
+
+  ;; ─── pump-siege-tanks ────────────────────────────────────────────────
+  ;; pump(SiegeTankUnsieged) — train one tank if factory is available
+
+  (:method m-pump-tanks-ready
+    :parameters ()
+    :task (pump-siege-tanks)
+    :precondition (have factory)
+    :subtasks ((t1 (train-siege-tank))))
+
+  (:method m-pump-tanks-not-ready
+    :parameters ()
+    :task (pump-siege-tanks)
+    :precondition (not (have factory))
+    :subtasks ())
+
+  ;; ─── pump-marines ────────────────────────────────────────────────────
+  ;; pump(Marine)
+
+  (:method m-pump-marines-ready
+    :parameters ()
+    :task (pump-marines)
+    :precondition (have barracks)
+    :subtasks ((t1 (train-marine))))
+
+  (:method m-pump-marines-not-ready
+    :parameters ()
+    :task (pump-marines)
+    :precondition (not (have barracks))
+    :subtasks ())
+
+  ;; ─── pump-medics ─────────────────────────────────────────────────────
+  ;; pumpRatio(Medic, min=0, max=3, Seq(Friendly(Marine, 0.2)))
+  ;; Simplified: train a Medic if academy exists and count < 3
+
+  (:method m-pump-medics-capped
+    :parameters ()
+    :task (pump-medics)
+    :precondition (>= (unit-count medic) 3)
+    :subtasks ())
+
+  (:method m-pump-medics-no-academy
+    :parameters ()
+    :task (pump-medics)
+    :precondition (not (have academy))
+    :subtasks ())
+
+  (:method m-pump-medics-train
+    :parameters ()
+    :task (pump-medics)
+    :precondition (and (have academy) (< (unit-count medic) 3))
+    :subtasks ((t1 (train-medic))))
+
+  ;; ─── pump-workers ────────────────────────────────────────────────────
+  ;; pumpWorkers(oversaturate=false, maximumTotal=22)
+
+  (:method m-pump-workers-at-max
+    :parameters ()
+    :task (pump-workers)
+    :precondition (>= (unit-count scv) 22)
+    :subtasks ())
+
+  (:method m-pump-workers-train
+    :parameters ()
+    :task (pump-workers)
+    :precondition (< (unit-count scv) 22)
+    :subtasks ((t1 (train-scv))))
+
+  ;; ─── ensure-supply-depot ─────────────────────────────────────────────
+
+  (:method m-supply-depot-exists
+    :parameters ()
+    :task (ensure-supply-depot)
+    :precondition (have supply-depot)
+    :subtasks ())
+
+  (:method m-supply-depot-build
+    :parameters ()
+    :task (ensure-supply-depot)
+    :precondition (not (have supply-depot))
+    :subtasks ((t1 (build-supply-depot))))
+
+  ;; ─── ensure-refinery ─────────────────────────────────────────────────
+
+  (:method m-refinery-exists
+    :parameters ()
+    :task (ensure-refinery)
+    :precondition (have refinery)
+    :subtasks ())
+
+  (:method m-refinery-build
+    :parameters ()
+    :task (ensure-refinery)
+    :precondition (not (have refinery))
+    :subtasks ((t1 (build-refinery))))
+
+  ;; ─── ensure-factory ──────────────────────────────────────────────────
+
+  (:method m-factory-exists
+    :parameters ()
+    :task (ensure-factory)
+    :precondition (have factory)
+    :subtasks ())
+
+  (:method m-factory-build
+    :parameters ()
+    :task (ensure-factory)
+    :precondition (not (have factory))
+    :subtasks ((t1 (build-factory))))
+
+  ;; ─── ensure-machine-shop ─────────────────────────────────────────────
+
+  (:method m-machine-shop-exists
+    :parameters ()
+    :task (ensure-machine-shop)
+    :precondition (have machine-shop)
+    :subtasks ())
+
+  (:method m-machine-shop-build
+    :parameters ()
+    :task (ensure-machine-shop)
+    :precondition (not (have machine-shop))
+    :subtasks ((t1 (build-machine-shop))))
+
+  ;; ─── ensure-academy ──────────────────────────────────────────────────
+
+  (:method m-academy-exists
+    :parameters ()
+    :task (ensure-academy)
+    :precondition (have academy)
+    :subtasks ())
+
+  (:method m-academy-build
+    :parameters ()
+    :task (ensure-academy)
+    :precondition (not (have academy))
+    :subtasks ((t1 (build-academy))))
+
+  ;; ─── ensure-comsat ───────────────────────────────────────────────────
+
+  (:method m-comsat-exists
+    :parameters ()
+    :task (ensure-comsat)
+    :precondition (have comsat)
+    :subtasks ())
+
+  (:method m-comsat-build
+    :parameters ()
+    :task (ensure-comsat)
+    :precondition (not (have comsat))
+    :subtasks ((t1 (build-comsat))))
+
+  ;; ─── ensure-siege-tank ───────────────────────────────────────────────
+
+  (:method m-siege-tank-exists
+    :parameters ()
+    :task (ensure-siege-tank)
+    :precondition (have siege-tank)
+    :subtasks ())
+
+  (:method m-siege-tank-train
+    :parameters ()
+    :task (ensure-siege-tank)
+    :precondition (not (have siege-tank))
+    :subtasks ((t1 (train-siege-tank))))
+
+  ;; ─── ensure-stim ─────────────────────────────────────────────────────
+
+  (:method m-stim-done
+    :parameters ()
+    :task (ensure-stim)
+    :precondition (upgrade-researched stim)
+    :subtasks ())
+
+  (:method m-stim-research
+    :parameters ()
+    :task (ensure-stim)
+    :precondition (not (upgrade-researched stim))
+    :subtasks ((t1 (research-stim))))
+
+  ;; ─── ensure-marine-range ─────────────────────────────────────────────
+
+  (:method m-marine-range-done
+    :parameters ()
+    :task (ensure-marine-range)
+    :precondition (upgrade-researched marine-range)
+    :subtasks ())
+
+  (:method m-marine-range-research
+    :parameters ()
+    :task (ensure-marine-range)
+    :precondition (not (upgrade-researched marine-range))
+    :subtasks ((t1 (research-marine-range))))
+
+  ;; ─── ensure-siege-mode ───────────────────────────────────────────────
+
+  (:method m-siege-mode-done
+    :parameters ()
+    :task (ensure-siege-mode)
+    :precondition (upgrade-researched siege-mode)
+    :subtasks ())
+
+  (:method m-siege-mode-research
+    :parameters ()
+    :task (ensure-siege-mode)
+    :precondition (not (upgrade-researched siege-mode))
+    :subtasks ((t1 (research-siege-mode))))
+
+  ;; ─── maybe-all-in ────────────────────────────────────────────────────
+  ;; if (enemyDarkTemplarLikely && !have(Comsat)) { aggression(1e10) }
+  ;; aggression(1e10) means "attack right now at maximum priority"
+  ;; → modelled here as an immediate do-attack with no further tech goals
+
+  (:method m-all-in-triggered
+    :parameters ()
+    :task (maybe-all-in)
+    :precondition (and (dark-templar-likely) (not (have comsat)))
+    :subtasks ((t1 (do-attack))))
+
+  (:method m-all-in-clear
+    :parameters ()
+    :task (maybe-all-in)
+    :precondition (or (not (dark-templar-likely)) (have comsat))
+    :subtasks ())
+
+)

@@ -1,0 +1,72 @@
+;;; ============================================================
+;;; PDDL4J / HDDL problem for TerranVsRandom.scala
+;;;
+;;; Represents the game state at the point TerranVsRandom
+;;; activates: enemy race is Unknown (Random pick), standard
+;;; Terran opening with Command Centre + 7 SCVs + 1 Barracks.
+;;;
+;;; The top-level task network mirrors GameplanImperative.onUpdate:
+;;;   execute-build → do-workers → execute-main
+;;; ============================================================
+
+(define (problem tvr-standard-opening)
+  (:domain terran-vs-random)
+
+  ;; ── Initial state ───────────────────────────────────────────────────
+  ;; Standard Terran start: 1 barracks (partially built or complete),
+  ;; 7 SCVs, no gas, no enemy information yet.
+
+  (:init
+    ;; Own buildings
+    (have barracks)
+    (= (unit-count barracks) 1)
+
+    ;; Worker pool at game start
+    (= (unit-count scv) 7)
+    (have scv)
+
+    ;; No military units yet
+    (= (unit-count marine)      0)
+    (= (unit-count medic)       0)
+    (= (unit-count siege-tank)  0)
+
+    ;; No enemy information known
+    ;; (enemy-base-found)        — commented out: base not yet scouted
+    ;; (lurkers-likely)          — commented out: no threat intel yet
+    ;; (dark-templar-likely)     — commented out: no threat intel yet
+
+    ;; No upgrades researched
+    ;; (upgrade-researched stim)          — not done
+    ;; (upgrade-researched marine-range)  — not done
+    ;; (upgrade-researched siege-mode)    — not done
+
+    ;; ── Scenario variants ───────────────────────────────────────────
+    ;; To test specific branches uncomment the relevant lines below:
+    ;;
+    ;; Enemy turned out to be Terran (has a bunker / factory):
+    ;;   (enemy-has enemy-bunker)
+    ;;   (enemy-has enemy-factory)
+    ;;
+    ;; Enemy turned out to be Zerg:
+    ;;   (enemy-has enemy-sunken-colony)
+    ;;   (lurkers-likely)
+    ;;
+    ;; Enemy turned out to be Protoss with Dark Templar:
+    ;;   (enemy-has enemy-photon-cannon)
+    ;;   (dark-templar-likely)
+  )
+
+  ;; ── Initial task network ────────────────────────────────────────────
+  ;; Ordered to reflect GameplanImperative.onUpdate():
+  ;;   1. executeBuild  — establish infrastructure and supply
+  ;;   2. doWorkers     — no-op (overridden to empty in TerranVsRandom)
+  ;;   3. executeMain   — ongoing production and tech decisions
+
+  (:htn
+    :parameters ()
+    :ordered-subtasks (and
+      (t1 (execute-build))
+      (t2 (do-workers))
+      (t3 (execute-main))))
+
+)

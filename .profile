@@ -1,1 +1,0 @@
-echo ${GOOGLE_CREDENTIALS} > /app/application_default_credentials.json

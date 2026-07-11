@@ -15,6 +15,6 @@ public class Train extends StarCraftAction {
         Unit target = Ratzass.bwClient.getGame().getUnit(targetUnitID);
         Unit unit = Ratzass.bwClient.getGame().getUnit(unitID);
         boolean status = unit.train(target.getType());
-        setStatus(status);
+        setSuccess(status);
     }
 }

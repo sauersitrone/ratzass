@@ -1,11 +1,17 @@
-package de.simone.game.actions;
+package de.simone.game.planning;
 
 import bwapi.Unit;
+import bwapi.UnitType;
 import de.simone.Ratzass;
+import de.simone.game.actions.StarCraftAction;
 
-public class Follow extends StarCraftAction {
+public class Build extends StarCraftAction {
 
-    public Follow(int unitID, int targetUnitID) {
+    public Build(UnitType unitType) {
+        this.unitType = unitType;
+    }
+
+    public Build(int unitID, int targetUnitID) {
         this.unitID = unitID;
         this.targetUnitID = targetUnitID;
     }

@@ -4,5 +4,6 @@
     "java.configuration.updateBuildConfiguration": "automatic",
     "files.watcherExclude": {
         "**/target/**": true
-    }
+    },
+    "java.debug.settings.onBuildFailureProceed": true
 }

@@ -1,6 +1,5 @@
-package de.simone;
+package de.simone.game;
 
-import fr.uga.pddl4j.planners.Planner;
 import fr.uga.pddl4j.planners.statespace.HSP;
 
 public class CommandCenter {

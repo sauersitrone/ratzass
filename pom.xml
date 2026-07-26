@@ -37,7 +37,22 @@
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
+        <repository>
+            <id>sonatype</id>
+            <name>Sonatype</name>
+            <url>https://oss.sonatype.org/content/repositories/releases</url>
+        </repository>
     </repositories>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>2.0.17</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
 
@@ -114,24 +129,74 @@
             <scope>compile</scope>
         </dependency>
 
-        <!-- Automated Planning based on PDDL language (Planning Domain Description Language). -->
+        <!-- annotations to simplify Java development by automating the generation of code -->
         <dependency>
-            <groupId>com.github.pellierd</groupId>
-            <artifactId>pddl4j</artifactId>
-            <version>v4.0.0.0</version>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.44</version>
             <scope>compile</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.logging.log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
+        <!-- Global keyboard and mouse listeners for Java. -->
+        <dependency>
+            <groupId>com.github.kwhat</groupId>
+            <artifactId>jnativehook</artifactId>
+            <version>2.2.2</version>
+            <scope>compile</scope>
+        </dependency>
 
+        <!-- Expressive Numeric Heuristic Planner. -->
+        <dependency>
+            <groupId>hstairs.github.com</groupId>
+            <artifactId>enhsp</artifactId>
+            <version>20-0.21.0</version>
+        </dependency>
 
+        <!--  lightweight, embeddable planning engine -->
+        <dependency>
+            <groupId>ai.timefold.solver</groupId>
+            <artifactId>timefold-solver-core</artifactId>
+            <version>2.3.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <!-- Implementation of the SLF4J API for Logback,  -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.5.38</version>
+            <scope>compile</scope>
+        </dependency>
 
-        
+        <!-- An artificial intelligence framework, for game development with libGDX. -->
+        <dependency>
+            <groupId>com.badlogicgames.gdx</groupId>
+            <artifactId>gdx-ai</artifactId>
+            <version>1.8.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.esotericsoftware</groupId>
+            <artifactId>kryo</artifactId>
+            <version>5.6.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.badlogicgames.gdx</groupId>
+            <artifactId>gdx-bullet</artifactId>
+            <version>1.14.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.badlogicgames.gdx</groupId>
+            <artifactId>gdx-box2d</artifactId>
+            <version>3.1.0-0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.badlogicgames.gdx</groupId>
+            <artifactId>gdx</artifactId>
+            <version>1.14.0</version>
+            <scope>compile</scope>
+        </dependency>
+
 
         <!-- Test Müll -->
         <dependency>
@@ -207,6 +272,14 @@
                     <artifactId>maven-project-info-reports-plugin</artifactId>
                     <version>3.0.0</version>
                 </plugin>
+                <!-- <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>3.6.3</version>
+                    <configuration>
+                        <mainClass>org.acme.schooltimetabling.TimetableApp</mainClass>
+                    </configuration>
+                </plugin> -->
             </plugins>
         </pluginManagement>
     </build>

@@ -1,9 +1,17 @@
 package de.simone;
 
+import java.util.Map;
+import java.util.TreeMap;
+
+import bwapi.Position;
+import bwapi.Unit;
 import tech.tablesaw.aggregate.AggregateFunctions;
 import tech.tablesaw.api.Table;
 
 public class RUtils {
+
+    private static Map<String, Integer> errorTimestamps = new TreeMap<>();
+    private static Map<String, Integer> errors = new TreeMap<>();
 
     public static void printEndOfGameStats() {
         if (Ratzass.game == null) {
@@ -51,4 +59,65 @@ public class RUtils {
             err.printStackTrace();
         }
     }
+
+    public static String getResourceFile(String fileName) {
+        ClassLoader classLoader = RUtils.class.getClassLoader();
+        String fileName2 = classLoader.getResource(fileName).getFile();
+
+        fileName2 = fileName2.substring(1);
+        fileName2 = fileName2.replace("%20", " ");
+        return fileName2;
+    }
+
+    public static void printMaxOncePerMinutePlusPrintStackTrace(String message) {
+        if (!theSameErrorWasLoggedLessThanMinuteAgo(message)) {
+            System.out.println(message);
+            Thread.dumpStack();
+        }
+
+        increaseErrorCount(message);
+    }
+
+    private static boolean theSameErrorWasLoggedLessThanMinuteAgo(String message) {
+
+        return errorTimestamps.containsKey(message) && (Ratzass._secondsNow - errorTimestamps.get(message) < 60);
+    }
+
+    private static void increaseErrorCount(String message) {
+        int currentCount = errors.getOrDefault(message, 0);
+        errors.put(message, currentCount + 1);
+    }
+
+    public static void printMaxOncePerMinute(String message) {
+        if (!theSameErrorWasLoggedLessThanMinuteAgo(message)) {
+            System.out.println(message);
+        }
+
+        increaseErrorCount(message);
+    }
+
+    public static Position translateByPixels(Unit unit, int pixelDX, int pixelDY) {
+        return new Position(unit.getX() + pixelDX, unit.getY() + pixelDY);
+    }
+
+    
+    public static void exitGame() {
+        if (!Env.isTesting)
+            RUtils.printEndOfGameStats();
+
+        killProcesses();
+    }
+
+    
+    private static void killProcesses() {
+        System.out.println("Killing StarCraft process... ");
+        RUtils.killStarcraftProcess();
+
+        System.out.println("Killing Chaoslauncher process... ");
+        RUtils.killChaosLauncherProcess();
+
+        System.out.println("Exit...");
+        System.exit(0);
+    }
+
 }

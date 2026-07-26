@@ -1,0 +1,15 @@
+mvn install:install-file "-Dfile=libs/enhsp.jar"  "-DgroupId=hstairs.github.com"  "-DartifactId=enhsp"  "-Dversion=20-0.21.0"  "-Dpackaging=jar"  "-DgeneratePom=true"
+
+
+mvn install:install-file "-Dfile=libs/antlr-3.4-complete.jar"  "-DgroupId=org.antlr"  "-DartifactId=antlr"  "-Dversion=3.4"  "-Dpackaging=jar"  "-DgeneratePom=true"
+mvn install:install-file "-Dfile=libs/commons-cli-1.4.jar"  "-DgroupId=commons-cli"  "-DartifactId=commons-cli"  "-Dversion=1.4"  "-Dpackaging=jar"  "-DgeneratePom=true"
+mvn install:install-file "-Dfile=libs/commons-collections4-4.3.jar"  "-DgroupId=org.apache.commons"  "-DartifactId=commons-collections4"  "-Dversion=4.3"  "-Dpackaging=jar"  "-DgeneratePom=true"
+mvn install:install-file "-Dfile=libs/commons-lang3-3.8.1.jar"  "-DgroupId=org.apache.commons"  "-DartifactId=commons-lang3"  "-Dversion=3.8.1"  "-Dpackaging=jar"  "-DgeneratePom=true"
+mvn install:install-file "-Dfile=libs/fastutil-8.3.1.jar"  "-DgroupId=it.unimi.dsi"  "-DartifactId=fastutil"  "-Dversion=8.3.1"  "-Dpackaging=jar"  "-DgeneratePom=true"
+mvn install:install-file "-Dfile=libs/guava-26.0-jre.jar"  "-DgroupId=com.google.guava"  "-DartifactId=guava"  "-Dversion=26.0-jre"  "-Dpackaging=jar"  "-DgeneratePom=true"
+mvn install:install-file "-Dfile=libs/hamcrest-core-1.3.jar"  "-DgroupId=org.hamcrest"  "-DartifactId=hamcrest-core"  "-Dversion=1.3"  "-Dpackaging=jar"  "-DgeneratePom=true"
+mvn install:install-file "-Dfile=libs/hppc-0.8.0-SNAPSHOT.jar"  "-DgroupId=com.carrotsearch"  "-DartifactId=hppc"  "-Dversion=0.8.0-SNAPSHOT"  "-Dpackaging=jar"  "-DgeneratePom=true"
+mvn install:install-file "-Dfile=libs/ia_math.jar"  "-DgroupId=local"  "-DartifactId=ia_math"  "-Dversion=1.0"  "-Dpackaging=jar"  "-DgeneratePom=true"
+mvn install:install-file "-Dfile=libs/jgrapht-core-1.3.0.jar"  "-DgroupId=org.jgrapht"  "-DartifactId=jgrapht-core"  "-Dversion=1.3.0"  "-Dpackaging=jar"  "-DgeneratePom=true"
+mvn install:install-file "-Dfile=libs/JPddl_.jar"  "-DgroupId=local"  "-DartifactId=JPddl"  "-Dversion=1.0"  "-Dpackaging=jar"  "-DgeneratePom=true"
+mvn install:install-file "-Dfile=libs/json-simple-1.1.1.jar"  "-DgroupId=com.googlecode.json-simple"  "-DartifactId=json-simple"  "-Dversion=1.1.1"  "-Dpackaging=jar"  "-DgeneratePom=true"

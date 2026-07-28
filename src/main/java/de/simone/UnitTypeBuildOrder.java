@@ -1,14 +1,16 @@
 package de.simone;
 
-import bwapi.*;
-
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import bwapi.Pair;
+import bwapi.Race;
+import bwapi.TechType;
+import bwapi.UnitType;
+import bwapi.UpgradeType;
 
 public class UnitTypeBuildOrder {
 

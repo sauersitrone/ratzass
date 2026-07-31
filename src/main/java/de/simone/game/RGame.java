@@ -15,24 +15,6 @@ import de.simone.Ratzass;
 public class RGame {
     private static boolean umsMode = false; // Should be set to `true` on UMS (custom) maps
 
-    /**
-     * Quits the game gently, killing all processes and cleaning up.
-     */
-    public static void exit() {
-        Ratzass.instance.onEnd(false);
-    }
-
-    public static void quit() {
-        exit();
-    }
-
-    /**
-     * Quits the game gently, killing all processes and cleaning up.
-     */
-    public static void exit(String message) {
-        System.out.println(message);
-        Ratzass.instance.exitGame();
-    }
 
     public static void changeDisableUI(boolean disableUI) {
         Env.DISABLE_GUI = disableUI;

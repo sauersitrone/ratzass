@@ -2,8 +2,8 @@ package de.simone;
 
 import org.junit.jupiter.api.Test;
 
-import de.simone.mcts.ActionNode;
-import de.simone.mcts.GenericSolver;
+import de.simone.test.mcts.ActionNode;
+import de.simone.test.mcts.GenericSolver;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

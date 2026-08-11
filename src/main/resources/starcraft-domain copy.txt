@@ -1,0 +1,546 @@
+(define (domain starcraftx)
+
+    (:requirements :strips :typing :numeric-fluents :fluents)
+
+    (:types
+        unit_type quantity resources - object
+        gas mineral - resources
+        terran_command_center terran_marine terran_scv terran_ghost terran_vulture terran_goliath terran_goliath_turret terran_siege_tank_tank_mode terran_siege_tank_tank_mode_turret terran_scv terran_wraith terran_science_vessel hero_gui_montag terran_dropship terran_battlecruiser terran_vulture_spider_mine terran_nuclear_missile terran_civilian hero_sarah_kerrigan hero_alan_schezar hero_alan_schezar_turret hero_jim_raynor_vulture hero_jim_raynor_marine hero_tom_kazansky hero_magellan hero_edmund_duke_tank_mode hero_edmund_duke_tank_mode_turret hero_edmund_duke_siege_mode hero_edmund_duke_siege_mode_turret hero_arcturus_mengsk hero_hyperion hero_norad_ii terran_siege_tank_siege_mode terran_siege_tank_siege_mode_turret terran_firebat spell_scanner_sweep terran_medic terran_valkyrie hero_samir_duran hero_alexei_stukov hero_gerard_dugalle terran_command_center terran_comsat_station terran_nuclear_silo terran_supply_depot terran_refinery terran_barracks terran_academy terran_factory terran_starport terran_control_tower terran_science_facility terran_covert_ops terran_physics_lab unused_terran1 terran_machine_shop unused_terran2 terran_engineering_bay terran_armory terran_missile_turret terran_bunker special_crashed_norad_ii special_ion_cannon special_psi_disrupter unused_terran_marker special_terran_beacon special_terran_flag_beacon special_power_generator - unit_type
+    )
+
+    ; (:constants
+    ;     gas mineral - resources
+    ;     terran_command_center terran_marine terran_scv terran_academy terran_barracks terran_refinery - unit_type
+    ;     ; terran_physics_lab terran_covert_ops terran_factory terran_armory terran_machine_shop terran_command_center terran_starport terran_control_tower terran_science_facility terran_nuclear_silo terran_engineering_bay - unit_type
+    ; )
+
+    (:predicates
+        (has_unit ?unit - unit_type)
+    )
+
+    (:functions
+        (mineral_quantity)
+        (gas_quantity)
+        (terran_command_center_quantity)
+        (terran_scv_quantity)
+        (terran_marine_quantity)
+        (terran_barracks_quantity)
+        (terran_refinery_quantity)
+        (terran_ghost_quantity)
+        (terran_vulture_quantity)
+        (terran_goliath_quantity)
+        (terran_goliath_turret_quantity)
+        (terran_siege_tank_tank_mode_quantity)
+        (terran_siege_tank_tank_mode_turret_quantity)
+        (terran_wraith_quantity)
+        (terran_science_vessel_quantity)
+        (hero_gui_montag_quantity)
+        (terran_dropship_quantity)
+        (terran_battlecruiser_quantity)
+        (terran_vulture_spider_mine_quantity)
+        (terran_nuclear_missile_quantity)
+        (terran_civilian_quantity)
+        (hero_sarah_kerrigan_quantity)
+        (hero_alan_schezar_quantity)
+        (hero_alan_schezar_turret_quantity)
+        (hero_jim_raynor_vulture_quantity)
+        (hero_jim_raynor_marine_quantity)
+        (hero_tom_kazansky_quantity)
+        (hero_magellan_quantity)
+        (hero_edmund_duke_tank_mode_quantity)
+        (hero_edmund_duke_tank_mode_turret_quantity)
+        (hero_edmund_duke_siege_mode_quantity)
+        (hero_edmund_duke_siege_mode_turret_quantity)
+        (hero_arcturus_mengsk_quantity)
+        (hero_hyperion_quantity)
+        (hero_norad_ii_quantity)
+        (terran_siege_tank_siege_mode_quantity)
+        (terran_siege_tank_siege_mode_turret_quantity)
+        (terran_firebat_quantity)
+        (spell_scanner_sweep_quantity)
+        (terran_medic_quantity)
+        (terran_valkyrie_quantity)
+        (hero_samir_duran_quantity)
+        (hero_alexei_stukov_quantity)
+        (hero_gerard_dugalle_quantity)
+        (terran_comsat_station_quantity)
+        (terran_nuclear_silo_quantity)
+        (terran_supply_depot_quantity)
+        (terran_academy_quantity)
+        (terran_factory_quantity)
+        (terran_starport_quantity)
+        (terran_control_tower_quantity)
+        (terran_science_facility_quantity)
+        (terran_covert_ops_quantity)
+        (terran_physics_lab_quantity)
+        (unused_terran1_quantity)
+        (terran_machine_shop_quantity)
+        (unused_terran2_quantity)
+        (terran_engineering_bay_quantity)
+        (terran_armory_quantity)
+        (terran_missile_turret_quantity)
+        (terran_bunker_quantity)
+        (special_crashed_norad_ii_quantity)
+        (special_ion_cannon_quantity)
+        (special_psi_disrupter_quantity)
+        (unused_terran_marker_quantity)
+        (special_terran_beacon_quantity)
+        (special_terran_flag_beacon_quantity)
+        (special_power_generator_quantity)
+    )
+
+    (:action gather-mineral
+        :parameters ()
+        :precondition (and (>= (terran_scv_quantity) 1) (>= (terran_command_center_quantity) 1))
+        :effect (and (increase (mineral_quantity) 5)
+        )
+    )
+
+    (:action gather-gas
+        :parameters ()
+        :precondition (and (>= (terran_scv_quantity) 1) (>= (terran_refinery_quantity) 1))
+        :effect (and (increase (gas_quantity) 4)
+        )
+    )
+
+    (:action build-terran-scv
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 50) (>= (terran_command_center_quantity) 1))
+        :effect (and (increase (terran_scv_quantity) 1))
+    )
+
+    (:action build-terran-marine
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 50) (>= (terran_barracks_quantity) 1))
+        :effect (and (increase (terran_marine_quantity) 1))
+    )
+
+    (:action build-terran-barracks
+        :parameters ()
+        :precondition (and
+            (>= (mineral_quantity) 150)
+            (>= (terran_scv_quantity) 1)
+            (>= (terran_command_center_quantity) 1)
+        )
+        :effect (and (decrease (mineral_quantity) 150) (increase (terran_barracks_quantity) 1))
+    )
+
+    (:action build-terran-refinery
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 100) (>= (terran_scv_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 100) (increase (terran_refinery_quantity) 1))
+    )
+
+    (:action build-terran-ghost
+        :parameters ()
+        :precondition (and
+            (>= (mineral_quantity) 25)
+            (>= (gas_quantity) 75)
+            (>= (terran_academy_quantity) 1)
+            (>= (terran_covert_ops_quantity) 1)
+            (>= (terran_barracks_quantity) 1)
+        )
+        :effect (and (decrease (mineral_quantity) 25) (decrease (gas_quantity) 75) (increase (terran_ghost_quantity) 1))
+    )
+
+    (:action build-terran-vulture
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 75) (>= (terran_factory_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 75) (increase (terran_vulture_quantity) 1))
+    )
+
+    (:action build-terran-goliath
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 100) (>= (gas_quantity) 50) (>= (terran_factory_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 100) (decrease (gas_quantity) 50) (increase (terran_goliath_quantity) 1))
+    )
+
+    (:action build-terran-goliath-turret
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 1) (>= (gas_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 1) (decrease (gas_quantity) 1) (increase (terran_goliath_turret_quantity) 1))
+    )
+
+    (:action build-terran-siege-tank-tank-mode
+        :parameters ()
+        :precondition (and
+            (>= (mineral_quantity) 150)
+            (>= (gas_quantity) 100)
+            (>= (terran_factory_quantity) 1)
+        )
+        :effect (and
+            (decrease (mineral_quantity) 150)
+            (decrease (gas_quantity) 100)
+            (increase
+                (terran_siege_tank_tank_mode_quantity)
+                1))
+    )
+
+    (:action build-terran-siege-tank-tank-mode-turret
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 1) (>= (gas_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 1) (decrease (gas_quantity) 1) (increase
+                (terran_siege_tank_tank_mode_turret_quantity)
+                1))
+    )
+
+    (:action build-terran-wraith
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 150) (>= (gas_quantity) 100) (>= (terran_starport_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 150) (decrease (gas_quantity) 100) (increase (terran_wraith_quantity) 1))
+    )
+
+    (:action build-terran-science-vessel
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 100) (>= (gas_quantity) 225) (>= (terran_starport_quantity) 1) (>= (terran_control_tower_quantity) 1) (>= (terran_science_facility_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 100) (decrease (gas_quantity) 225) (increase (terran_science_vessel_quantity) 1))
+    )
+
+    (:action build-hero-gui-montag
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 100) (>= (gas_quantity) 50))
+        :effect (and (decrease (mineral_quantity) 100) (decrease (gas_quantity) 50) (increase (hero_gui_montag_quantity) 1))
+    )
+
+    (:action build-terran-dropship
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 100) (>= (gas_quantity) 100) (>= (terran_starport_quantity) 1) (>= (terran_control_tower_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 100) (decrease (gas_quantity) 100) (increase (terran_dropship_quantity) 1))
+    )
+
+    (:action build-terran-battlecruiser
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 400) (>= (gas_quantity) 300) (>= (terran_starport_quantity) 1) (>= (terran_control_tower_quantity) 1) (>= (terran_physics_lab_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 400) (decrease (gas_quantity) 300) (increase (terran_battlecruiser_quantity) 1))
+    )
+
+    (:action build-terran-vulture-spider-mine
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 1) (increase (terran_vulture_spider_mine_quantity) 1))
+    )
+
+    (:action build-terran-nuclear-missile
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 200) (>= (gas_quantity) 200) (>= (terran_nuclear_silo_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 200) (decrease (gas_quantity) 200) (increase (terran_nuclear_missile_quantity) 1))
+    )
+
+    (:action build-terran-civilian
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 0))
+        :effect (and (decrease (mineral_quantity) 0) (increase (terran_civilian_quantity) 1))
+    )
+
+    (:action build-hero-sarah-kerrigan
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 50) (>= (gas_quantity) 150))
+        :effect (and (decrease (mineral_quantity) 50) (decrease (gas_quantity) 150) (increase (hero_sarah_kerrigan_quantity) 1))
+    )
+
+    (:action build-hero-alan-schezar
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 200) (>= (gas_quantity) 100))
+        :effect (and (decrease (mineral_quantity) 200) (decrease (gas_quantity) 100) (increase (hero_alan_schezar_quantity) 1))
+    )
+
+    (:action build-hero-alan-schezar-turret
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 1) (>= (gas_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 1) (decrease (gas_quantity) 1) (increase
+                (hero_alan_schezar_turret_quantity)
+                1))
+    )
+
+    (:action build-hero-jim-raynor-vulture
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 150))
+        :effect (and (decrease (mineral_quantity) 150) (increase (hero_jim_raynor_vulture_quantity) 1))
+    )
+
+    (:action build-hero-jim-raynor-marine
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 50))
+        :effect (and (decrease (mineral_quantity) 50) (increase (hero_jim_raynor_marine_quantity) 1))
+    )
+
+    (:action build-hero-tom-kazansky
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 400) (>= (gas_quantity) 200))
+        :effect (and (decrease (mineral_quantity) 400) (decrease (gas_quantity) 200) (increase (hero_tom_kazansky_quantity) 1))
+    )
+
+    (:action build-hero-magellan
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 50) (>= (gas_quantity) 600))
+        :effect (and (decrease (mineral_quantity) 50) (decrease (gas_quantity) 600) (increase (hero_magellan_quantity) 1))
+    )
+
+    (:action build-hero-edmund-duke-tank-mode
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 300) (>= (gas_quantity) 200))
+        :effect (and (decrease (mineral_quantity) 300) (decrease (gas_quantity) 200) (increase (hero_edmund_duke_tank_mode_quantity) 1))
+    )
+
+    (:action build-hero-edmund-duke-tank-mode-turret
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 1) (>= (gas_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 1) (decrease (gas_quantity) 1) (increase
+                (hero_edmund_duke_tank_mode_turret_quantity)
+                1))
+    )
+
+    (:action build-hero-edmund-duke-siege-mode
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 300) (>= (gas_quantity) 200))
+        :effect (and (decrease (mineral_quantity) 300) (decrease (gas_quantity) 200) (increase
+                (hero_edmund_duke_siege_mode_quantity)
+                1))
+    )
+
+    (:action build-hero-edmund-duke-siege-mode-turret
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 1) (>= (gas_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 1) (decrease (gas_quantity) 1) (increase
+                (hero_edmund_duke_siege_mode_turret_quantity)
+                1))
+    )
+
+    (:action build-hero-arcturus-mengsk
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 800) (>= (gas_quantity) 600))
+        :effect (and (decrease (mineral_quantity) 800) (decrease (gas_quantity) 600) (increase (hero_arcturus_mengsk_quantity) 1))
+    )
+
+    (:action build-hero-hyperion
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 800) (>= (gas_quantity) 600))
+        :effect (and (decrease (mineral_quantity) 800) (decrease (gas_quantity) 600) (increase (hero_hyperion_quantity) 1))
+    )
+
+    (:action build-hero-norad-ii
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 800) (>= (gas_quantity) 600))
+        :effect (and (decrease (mineral_quantity) 800) (decrease (gas_quantity) 600) (increase (hero_norad_ii_quantity) 1))
+    )
+
+    (:action build-terran-siege-tank-siege-mode
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 150) (>= (gas_quantity) 100) (>= (terran_factory_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 150) (decrease (gas_quantity) 100) (increase
+                (terran_siege_tank_siege_mode_quantity)
+                1))
+    )
+
+    (:action build-terran-siege-tank-siege-mode-turret
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 1) (>= (gas_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 1) (decrease (gas_quantity) 1) (increase
+                (terran_siege_tank_siege_mode_turret_quantity)
+                1))
+    )
+
+    (:action build-terran-firebat
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 50) (>= (gas_quantity) 25) (>= (terran_academy_quantity) 1) (>= (terran_barracks_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 50) (decrease (gas_quantity) 25) (increase (terran_firebat_quantity) 1))
+    )
+
+    (:action build-spell-scanner-sweep
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 0))
+        :effect (and (decrease (mineral_quantity) 0) (increase (spell_scanner_sweep_quantity) 1))
+    )
+
+    (:action build-terran-medic
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 50) (>= (gas_quantity) 25) (>= (terran_academy_quantity) 1) (>= (terran_barracks_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 50) (decrease (gas_quantity) 25) (increase (terran_medic_quantity) 1))
+    )
+
+    (:action build-terran-valkyrie
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 250) (>= (gas_quantity) 125) (>= (terran_starport_quantity) 1) (>= (terran_control_tower_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 250) (decrease (gas_quantity) 125) (increase (terran_valkyrie_quantity) 1))
+    )
+
+    (:action build-hero-samir-duran
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 200) (>= (gas_quantity) 75))
+        :effect (and (decrease (mineral_quantity) 200) (decrease (gas_quantity) 75) (increase (hero_samir_duran_quantity) 1))
+    )
+
+    (:action build-hero-alexei-stukov
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 200) (>= (gas_quantity) 75))
+        :effect (and (decrease (mineral_quantity) 200) (decrease (gas_quantity) 75) (increase (hero_alexei_stukov_quantity) 1))
+    )
+
+    (:action build-hero-gerard-dugalle
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 800) (>= (gas_quantity) 600))
+        :effect (and (decrease (mineral_quantity) 800) (decrease (gas_quantity) 600) (increase (hero_gerard_dugalle_quantity) 1))
+    )
+
+    (:action build-terran-command-center
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 400) (>= (terran_scv_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 400) (increase (terran_command_center_quantity) 1))
+    )
+
+    (:action build-terran-comsat-station
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 50) (>= (gas_quantity) 50) (>= (terran_academy_quantity) 1) (>= (terran_command_center_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 50) (decrease (gas_quantity) 50) (increase (terran_comsat_station_quantity) 1))
+    )
+
+    (:action build-terran-nuclear-silo
+        :parameters ()
+        :precondition (and
+            (>= (mineral_quantity) 100)
+            (>= (gas_quantity) 100)
+            (>= (terran_covert_ops_quantity) 1)
+            (>= (terran_command_center_quantity) 1)
+            (>= (terran_science_facility_quantity) 1)
+        )
+        :effect (and (decrease (mineral_quantity) 100) (decrease (gas_quantity) 100) (increase (terran_nuclear_silo_quantity) 1))
+    )
+
+    (:action build-terran-supply-depot
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 100) (>= (terran_scv_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 100) (increase (terran_supply_depot_quantity) 1))
+    )
+
+    (:action build-terran-academy
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 150) (>= (terran_barracks_quantity) 1) (>= (terran_scv_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 150) (increase (terran_academy_quantity) 1))
+    )
+
+    (:action build-terran-factory
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 200) (>= (gas_quantity) 100) (>= (terran_barracks_quantity) 1) (>= (terran_scv_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 200) (decrease (gas_quantity) 100) (increase (terran_factory_quantity) 1))
+    )
+
+    (:action build-terran-starport
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 150) (>= (gas_quantity) 100) (>= (terran_scv_quantity) 1) (>= (terran_factory_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 150) (decrease (gas_quantity) 100) (increase (terran_starport_quantity) 1))
+    )
+
+    (:action build-terran-control-tower
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 50) (>= (gas_quantity) 50) (>= (terran_starport_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 50) (decrease (gas_quantity) 50) (increase (terran_control_tower_quantity) 1))
+    )
+
+    (:action build-terran-science-facility
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 100) (>= (gas_quantity) 150) (>= (terran_starport_quantity) 1) (>= (terran_scv_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 100) (decrease (gas_quantity) 150) (increase (terran_science_facility_quantity) 1))
+    )
+
+    (:action build-terran-covert-ops
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 50) (>= (gas_quantity) 50) (>= (terran_science_facility_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 50) (decrease (gas_quantity) 50) (increase (terran_covert_ops_quantity) 1))
+    )
+
+    (:action build-terran-physics-lab
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 50) (>= (gas_quantity) 50) (>= (terran_science_facility_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 50) (decrease (gas_quantity) 50) (increase (terran_physics_lab_quantity) 1))
+    )
+
+    (:action build-unused-terran1
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 1) (>= (gas_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 1) (decrease (gas_quantity) 1) (increase (unused_terran1_quantity) 1))
+    )
+
+    (:action build-terran-machine-shop
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 50) (>= (gas_quantity) 50) (>= (terran_factory_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 50) (decrease (gas_quantity) 50) (increase (terran_machine_shop_quantity) 1))
+    )
+
+    (:action build-unused-terran2
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 1) (>= (gas_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 1) (decrease (gas_quantity) 1) (increase (unused_terran2_quantity) 1))
+    )
+
+    (:action build-terran-engineering-bay
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 125) (>= (terran_scv_quantity) 1) (>= (terran_command_center_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 125) (increase (terran_engineering_bay_quantity) 1))
+    )
+
+    (:action build-terran-armory
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 100) (>= (gas_quantity) 50) (>= (terran_scv_quantity) 1) (>= (terran_factory_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 100) (decrease (gas_quantity) 50) (increase (terran_armory_quantity) 1))
+    )
+
+    (:action build-terran-missile-turret
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 75) (>= (terran_engineering_bay_quantity) 1) (>= (terran_scv_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 75) (increase (terran_missile_turret_quantity) 1))
+    )
+
+    (:action build-terran-bunker
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 100) (>= (terran_barracks_quantity) 1) (>= (terran_scv_quantity) 1))
+        :effect (and (decrease (mineral_quantity) 100) (increase (terran_bunker_quantity) 1))
+    )
+
+    (:action build-special-crashed-norad-ii
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 800) (>= (gas_quantity) 600))
+        :effect (and (decrease (mineral_quantity) 800) (decrease (gas_quantity) 600) (increase
+                (special_crashed_norad_ii_quantity)
+                1))
+    )
+
+    (:action build-special-ion-cannon
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 200))
+        :effect (and (decrease (mineral_quantity) 200) (increase (special_ion_cannon_quantity) 1))
+    )
+
+    (:action build-special-psi-disrupter
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 1000) (>= (gas_quantity) 400))
+        :effect (and (decrease (mineral_quantity) 1000) (decrease (gas_quantity) 400) (increase (special_psi_disrupter_quantity) 1))
+    )
+
+    (:action build-unused-terran-marker
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 50) (>= (gas_quantity) 50))
+        :effect (and (decrease (mineral_quantity) 50) (decrease (gas_quantity) 50) (increase (unused_terran_marker_quantity) 1))
+    )
+
+    (:action build-special-terran-beacon
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 50) (>= (gas_quantity) 50))
+        :effect (and (decrease (mineral_quantity) 50) (decrease (gas_quantity) 50) (increase (special_terran_beacon_quantity) 1))
+    )
+
+    (:action build-special-terran-flag-beacon
+        :parameters ()
+        :precondition (and (>= (mineral_quantity) 50) (>= (gas_quantity) 50))
+        :effect (and (decrease (mineral_quantity) 50) (decrease (gas_quantity) 50) (increase (special_terran_flag_beacon_quantity) 1))
+    )
+
+    (:action build-special-power-generator
+        :parameters (?unit - special_power_generator ?mineral - mineral ?gas - gas)
+        :precondition (and (>= (mineral_quantity) 200) (>= (gas_quantity) 50))
+        :effect (and
+            (decrease (mineral_quantity) 200)
+            (decrease (gas_quantity) 50)
+            (increase (special_power_generator_quantity) 1)
+        )
+    )
+)

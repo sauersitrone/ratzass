@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import de.simone.mcts.MDP;
+import de.simone.test.mcts.MDP;
 
 public class TestStochasticMDP extends MDP<TestStochasticState, TestStochasticAction> {
 

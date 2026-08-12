@@ -1,98 +1,49 @@
 package de.simone;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 
-import bwapi.BWClient;
-import bwapi.DefaultBWListener;
-import bwapi.Game;
-import bwapi.Player;
-import bwapi.Unit;
-import bwem.BWEM;
-import tech.tablesaw.api.Table;
+import de.simone.command.RBehaviorTreeListener;
 
-public class Ratzass extends DefaultBWListener {
+public class Ratzass {
+    private static Ratzass instance;
 
-    public static Ratzass instance;
-    public static BWClient bwClient;
-    public static Game game;
-    public static LocalDateTime startTime;
-    public static BWEM bwem;
+    private ArrayList<RBehaviorTreeListener> listeners = new ArrayList<>();
+    private boolean isRunning = false;
 
-    // Store the current units status
-    public static Table unitEventsTable;
-
-    // second computed from frames
-    public static double _secondsNow;
-
-    // Cached current frames count
-    public static int _framesNow;
-
-    // Has game been started
-    private boolean _isStarted = false;
-
-    // Is game currently paused
-    private boolean _isPaused = false;
-
-    @Override
-    public void onStart() {
-        game = bwClient.getGame();
-        startTime = LocalDateTime.now();
-        game.setRevealAll(!Env.fogOfWar);
-        bwem = new BWEM(game);
-        bwem.initialize();
-        bwem.getMap().assignStartingLocationsToSuitableBases();
+    private Ratzass() {
+        //
     }
 
-    @Override
-    public void onFrame() {
-        Player player = game.self();
-
-        _secondsNow = game.getFrameCount() / 23.81;
-        _framesNow = game.getFrameCount();
-
-        // register units statistics
-        for (Unit unit : game.getAllUnits()) {
-            UnitEvent unitEvent = new UnitEvent(unit);
-
-            if (unit.getPlayer().equals(player)) {
-                // do something with my units
-            }
+    public static Ratzass getInstance() {
+        if (instance == null) {
+            instance = new Ratzass();
         }
+        return instance;
     }
 
-    @Override
-    public void onUnitComplete(Unit unit) {
-        UnitEvent unitEvent = new UnitEvent(unit);
-        unitEvent.status = UnitEvent.EventType.CREATED;
-        unitEventsTable.addColumns(unitEvent.toColumns());
+    public void start() {
+
     }
 
-    @Override
-    public void onUnitDestroy(Unit unit) {
-        UnitEvent unitEvent = new UnitEvent(unit);
-        unitEvent.status = UnitEvent.EventType.DESTROYED;
-        unitEventsTable.addColumns(unitEvent.toColumns());
+    public void stop() {
+        // destroy the Ratzass instance and set it to null
+        isRunning = false;
     }
 
-    @Override
-    public void onUnitDiscover(Unit unit) {
-        if (game.self().isEnemy(unit.getPlayer())) {
-            UnitEvent unitEvent = new UnitEvent(unit);
-            unitEvent.isEnemy = true;
-            unitEventsTable.addColumns(unitEvent.toColumns());
-        }
+    public boolean isRunning() {
+        return this.isRunning;
     }
 
-    void run() {
-        instance = this;
-        unitEventsTable = Table.create("Unit Events");
-        if (!_isStarted) {
-            _isPaused = false;
-            _isStarted = true;
+    public void resume() {
+        isRunning = true;
+    }
+    
+    public void pause() {
+        isRunning = false;
+    }
 
-            bwClient = new BWClient(this);
-            bwClient.startGame();
-        }
+    public void addTaskListener(RBehaviorTreeListener listener) {
+        this.listeners.add(listener);
     }
 
 }

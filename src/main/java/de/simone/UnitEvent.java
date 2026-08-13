@@ -14,9 +14,6 @@ public class UnitEvent {
 
     public static enum EventType {
         CREATED,
-        OPERATIVE,
-        HEALED,
-        DAMAGED,
         DESTROYED
     }
 
@@ -25,7 +22,7 @@ public class UnitEvent {
     public String name;
     public int hitPoints;
     public int killCount;
-    public EventType status = EventType.OPERATIVE;
+    public EventType status = EventType.CREATED;
     public boolean isEnemy = false;
     public int gasResources = 0;
     public int mineralResources = 0;

@@ -14,14 +14,14 @@ public class RUtils {
     private static Map<String, Integer> errors = new TreeMap<>();
 
     public static void printEndOfGameStats() {
-        if (Ratzass.game == null) {
+        if (RBWListener.game == null) {
             return;
         }
 
         System.out.println("Game statistics:");
-        System.out.printf("%-20s %-20s", "Total time:", Ratzass._secondsNow + " seconds");
+        System.out.printf("%-20s %-20s", "Total time:", RBWListener._secondsNow + " seconds");
 
-        Table summaryTable = Ratzass.unitEventsTable.summarize("totalResources", AggregateFunctions.sum).by("type");
+        Table summaryTable = RBWListener.unitEventsTable.summarize("totalResources", AggregateFunctions.sum).by("type");
         System.out.println("Total Resources by Unit Type:");
         System.out.println(summaryTable.print());
     }
@@ -80,7 +80,7 @@ public class RUtils {
 
     private static boolean theSameErrorWasLoggedLessThanMinuteAgo(String message) {
 
-        return errorTimestamps.containsKey(message) && (Ratzass._secondsNow - errorTimestamps.get(message) < 60);
+        return errorTimestamps.containsKey(message) && (RBWListener._secondsNow - errorTimestamps.get(message) < 60);
     }
 
     private static void increaseErrorCount(String message) {
@@ -100,15 +100,10 @@ public class RUtils {
         return new Position(unit.getX() + pixelDX, unit.getY() + pixelDY);
     }
 
-    
     public static void exitGame() {
-        if (!Env.isTesting)
-            RUtils.printEndOfGameStats();
-
         killProcesses();
     }
 
-    
     private static void killProcesses() {
         System.out.println("Killing StarCraft process... ");
         RUtils.killStarcraftProcess();

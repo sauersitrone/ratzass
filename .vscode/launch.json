@@ -1,0 +1,119 @@
+{
+    // Verwendet IntelliSense zum Ermitteln möglicher Attribute.
+    // Zeigen Sie auf vorhandene Attribute, um die zugehörigen Beschreibungen anzuzeigen.
+    // Weitere Informationen finden Sie unter https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "MigLayoutDemo",
+            "request": "launch",
+            "mainClass": "de.simone.ui.MigLayoutDemo",
+            "projectName": "ratzass"
+        },
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "de.simone.Main",
+            "projectName": "ratzass"
+        },
+        {
+            "type": "java",
+            "name": "UnitTypeExporter",
+            "request": "launch",
+            "mainClass": "de.simone.UnitTypeExporter",
+            "projectName": "ratzass"
+        },
+        {
+            "type": "java",
+            "name": "WeaponTypeExporter",
+            "request": "launch",
+            "mainClass": "de.simone.WeaponTypeExporter",
+            "projectName": "ratzass"
+        },
+        {
+            "type": "java",
+            "name": "LogisticCenter",
+            "request": "launch",
+            "mainClass": "de.simone.command.LogisticCenter",
+            "projectName": "ratzass"
+        },
+        {
+            "type": "java",
+            "name": "JeneticsHelloWold",
+            "request": "launch",
+            "mainClass": "de.simone.test.ga.JeneticsHelloWold",
+            "projectName": "ratzass"
+        },
+        {
+            "type": "java",
+            "name": "JeneticsHelloWold2",
+            "request": "launch",
+            "mainClass": "de.simone.test.ga.JeneticsHelloWold2",
+            "projectName": "ratzass"
+        },
+        {
+            "type": "java",
+            "name": "JeneticsStarCraft",
+            "request": "launch",
+            "mainClass": "de.simone.test.ga.JeneticsStarCraft",
+            "projectName": "ratzass"
+        },
+        {
+            "type": "java",
+            "name": "TicTacToe",
+            "request": "launch",
+            "mainClass": "de.simone.test.ga.TicTacToe",
+            "projectName": "ratzass"
+        },
+        {
+            "type": "java",
+            "name": "TicTacToeOrg",
+            "request": "launch",
+            "mainClass": "de.simone.test.ga.TicTacToeOrg",
+            "projectName": "ratzass"
+        },
+        {
+            "type": "java",
+            "name": "TicTacToe(1)",
+            "request": "launch",
+            "mainClass": "de.simone.test.mcts.tictactoe.TicTacToe",
+            "projectName": "ratzass"
+        },
+        {
+            "type": "java",
+            "name": "ENHSPTest",
+            "request": "launch",
+            "mainClass": "de.simone.test.pddl.ENHSPTest",
+            "projectName": "ratzass"
+        },
+        {
+            "type": "java",
+            "name": "TimetableApp",
+            "request": "launch",
+            "mainClass": "de.simone.test.timefold.TimetableApp",
+            "projectName": "ratzass"
+        },
+        {
+            "type": "java",
+            "name": "Demo",
+            "request": "launch",
+            "mainClass": "de.simone.ui.Demo",
+            "projectName": "ratzass"
+        },
+        {
+            "type": "java",
+            "name": "SwingDemo",
+            "request": "launch",
+            "mainClass": "de.simone.ui.SwingDemo",
+            "projectName": "ratzass"
+        }
+    ]
+}

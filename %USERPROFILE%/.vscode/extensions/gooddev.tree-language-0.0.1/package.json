@@ -1,0 +1,35 @@
+{
+    "name": "tree-language",
+    "displayName": "Behavior Tree (.tree)",
+    "description": "Syntax highlighting for behavior tree (.tree) files",
+    "version": "0.0.1",
+    "publisher": "Terry",
+    "engines": {
+        "vscode": "^1.75.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "tree",
+                "aliases": [
+                    "Behavior Tree",
+                    "tree"
+                ],
+                "extensions": [
+                    ".tree"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "tree",
+                "scopeName": "source.tree",
+                "path": "./syntaxes/tree.tmLanguage.json"
+            }
+        ]
+    }
+}

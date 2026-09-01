@@ -1,20 +1,19 @@
 package de.simone.command;
 
 import java.util.ArrayList;
+import java.util.List;
 
-import com.badlogic.gdx.ai.btree.Task.Status;
-
-import bwapi.Color;
-import bwapi.CoordinateType;
 import bwapi.Game;
 import bwapi.Position;
 import bwapi.TechType;
 import bwapi.TilePosition;
 import bwapi.Unit;
 import bwapi.UnitCommandType;
+import bwapi.UnitFilter;
 import bwapi.UnitType;
 import bwapi.UpgradeType;
 import de.simone.RBWListener;
+import de.simone.command.StarCraftConstants.OrderStatus;
 import lombok.extern.java.Log;
 
 /**
@@ -25,8 +24,8 @@ import lombok.extern.java.Log;
 public class CommandQueue {
 
     public enum ResourceType {
-        MINERAL,
-        GAS
+        Mineral,
+        Gas
     }
 
     private static CommandQueue instance = null;
@@ -53,11 +52,11 @@ public class CommandQueue {
         commandQueue.clear();
     }
 
-    public void addCommandListener(CommandQueueListener listener) {
+    public void addListener(CommandQueueListener listener) {
         listeners.add(listener);
     }
 
-    public synchronized void processCommands() {
+    public void dispatchCommands() {
         Game bwapi = RBWListener.bwClient.getGame();
 
         for (Command command : commandQueue) {
@@ -71,10 +70,6 @@ public class CommandQueue {
             if (command.targetId != -1)
                 targetUnit = bwapi.getUnit(command.targetId);
 
-            int px = command.position.getX() * 32;
-            int py = command.position.getY() * 32;
-            TilePosition tilePosition = new TilePosition(px, py);
-
             switch (command.order) {
                 case None:
                     break;
@@ -85,8 +80,7 @@ public class CommandQueue {
                     success = unit.attack(targetUnit);
                     break;
                 case UnitCommandType.Build:
-                    bwapi.drawBox(CoordinateType.Map, px, py, px + 96, py + 64, Color.Cyan, false);
-                    success = unit.build(command.unitType, tilePosition);
+                    success = unit.build(command.unitType, command.tilePosition);
 
                     // ERROR with valid building placement
                     if (!success) {
@@ -157,7 +151,7 @@ public class CommandQueue {
                     success = unit.lift();
                     break;
                 case UnitCommandType.Land:
-                    success = unit.land(tilePosition);
+                    success = unit.land(command.tilePosition);
                     break;
                 case UnitCommandType.Load:
                     success = unit.load(targetUnit);
@@ -214,8 +208,11 @@ public class CommandQueue {
                     success = unit.useTech(command.techType, targetUnit);
                     break;
             }
+            log.info(String.format("Command: %s, Unit: %d, Target: %d, Position: %s, Success: %b", command.order,
+                    command.unitId, command.targetId, command.position, success));
             if (!success) {
-                logFail(command, "Starcraft API failed to execute command");
+                command.status = OrderStatus.Error;
+                command.message = "Starcraft API failed to execute command";
                 listeners.forEach(listener -> listener.event(command));
             }
         }
@@ -242,11 +239,21 @@ public class CommandQueue {
     public Command gather(ResourceType resourceType) {
         Command command = new Command(UnitCommandType.Gather, -1, -1, null);
 
-        RUnit rUnit = UnitsCenter.getInstance().getUnit(UnitType.Terran_SCV);
+        // select idle SCV
+        Unit rUnit = UnitsCenter.getInstance().getFreeTerranSCV();
         if (rUnit == null) {
             return logFail(command, "No SCV available to gather resources.");
         }
-        return addCommand(UnitCommandType.Gather, rUnit.unitID, -1, null);
+
+        // select closest resource
+        Unit resourceUnit = null;
+        if (resourceType == ResourceType.Mineral) {
+            resourceUnit = RBWListener.game.getClosestUnit(rUnit.getPosition(), UnitFilter.IsMineralField);
+        } else {
+            resourceUnit = RBWListener.game.getClosestUnit(rUnit.getPosition(), UnitFilter.IsRefinery);
+        }
+
+        return addCommand(UnitCommandType.Gather, rUnit.getID(), resourceUnit.getID(), null);
     }
 
     public void gather(int unitID, int targetID) {
@@ -288,28 +295,62 @@ public class CommandQueue {
     }
 
     public Command train(UnitType unitType) {
-        RUnit rtrainer = StaffUtils.resolveTrainer(unitType);
-        Command command = new Command(UnitCommandType.Train, -1, -1, null);
+        Command trainCommand = new Command(UnitCommandType.Train, -1, -1, null);
+        trainCommand.unitType = unitType;
 
-        if (rtrainer == null) {
-            return logFail(command, "No building available to train unit: " + unitType);
+        // resolve facility
+        RUnit rUnit = UnitsCenter.resolveTrainer(unitType);
+        if (rUnit == null) {
+            logFail(trainCommand, "No Facility available to train " + unitType);
+            return trainCommand;
         }
-        return addCommand(UnitCommandType.Train, rtrainer.unitID, -1, null);
+
+        trainCommand.unitType = unitType;
+        addCommand(trainCommand);
+        return trainCommand;
     }
 
-    public void train(int unitID, UnitType unitType) {
-        Command command = addCommand(UnitCommandType.Train, unitID, -1, null);
+    public Command build(UnitType unitType) {
+        Command command = addCommand(UnitCommandType.Build, -1, -1, null);
         command.unitType = unitType;
-    }
 
-    public Position getBuildPosition(UnitType unitType) {
-        Position position = new Position(0, 0);
-        return position;
-    }
+        // look for a free SCV to build the unit
+        RUnit rUnit = UnitsCenter.getInstance().getUnit(UnitType.Terran_SCV);
+        if (rUnit == null) {
+            logFail(command, "No SCV available to build " + command.unitType);
+            return command;
+        }
+        command.unitId = rUnit.unitID;
 
-    public void build(int unitID, UnitType unitType, Position position) {
-        Command command = addCommand(UnitCommandType.Build, unitID, -1, position);
-        command.unitType = unitType;
+        // if the unit to build is a refinery, find the closest geyser
+        if (unitType == UnitType.Terran_Refinery) {
+            List<Unit> geysers = RBWListener.game.getGeysers();
+            Unit closestGeyser = null;
+            for (Unit geyser : geysers) {
+                if (closestGeyser == null
+                        || geyser.getDistance(rUnit.position) < closestGeyser.getDistance(rUnit.position)) {
+                    closestGeyser = geyser;
+                }
+            }
+
+            if (closestGeyser == null) {
+                logFail(command, "No Geyser available to build " + command.unitType);
+                return command;
+            }
+
+            command.tilePosition = closestGeyser.getTilePosition();
+            addCommand(command);
+
+            return command;
+        }
+
+        // if the unit to build is a building, find a suitable location
+        TilePosition tilePosition = RBWListener.game.self().getStartLocation();
+        tilePosition = RBWListener.game.getBuildLocation(command.unitType, tilePosition);
+        command.tilePosition = tilePosition;
+        addCommand(command);
+
+        return command;
     }
 
     /**
@@ -356,17 +397,18 @@ public class CommandQueue {
         addCommand(UnitCommandType.Hold_Position, unitID, -1, null);
     }
 
-    public Command patrol(Position position) {
-        Command command = new Command(UnitCommandType.Patrol, -1, -1, position);
+    // public Command patrol(Position position) {
+    // Command command = new Command(UnitCommandType.Patrol, -1, -1, position);
 
-        // select a unit to patrol
-        RUnit rUnit = UnitsCenter.getInstance().getUnit(UnitType.Terran_Marine, UnitType.Terran_Wraith);
-        if (rUnit == null)
-            return logFail(command, "No unit available to patrol.");
+    // // select a squad to patrol
+    // Squad squad = UnitsCenter.getInstance().getSquads(3);
+    // if (squad == null)
+    // return logFail(command, "No squad available to patrol.");
 
-        command.unitId = rUnit.unitID;
-        return addCommand(command);
-    }
+    // RUnit rUnit = squad.getUnits().get(0);
+    // command.unitId = rUnit.unitID;
+    // return addCommand(command);
+    // }
 
     public void patrol(int unitID, Position position) {
         addCommand(UnitCommandType.Patrol, unitID, -1, position);
@@ -634,14 +676,14 @@ public class CommandQueue {
 
     public Command logSuccess(Command command, String message) {
         log.info("SUCCEEDED: " + message);
-        command.status = Status.SUCCEEDED;
+        command.status = OrderStatus.Completed;
         command.message = message;
         return command;
     }
 
     public static Command logFail(Command command, String message) {
         log.info("FAILED: " + message);
-        command.status = Status.FAILED;
+        command.status = OrderStatus.Error;
         command.message = message;
         return command;
     }

@@ -1,0 +1,47 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "Behavior Tree",
+    "scopeName": "source.tree",
+    "patterns": [
+        {
+            "include": "#comment"
+        },
+        {
+            "include": "#string"
+        },
+        {
+            "include": "#keyword"
+        }
+    ],
+    "repository": {
+        "comment": {
+            "name": "comment.line.number-sign.tree",
+            "match": "#.*$"
+        },
+        "string": {
+            "name": "string.quoted.double.tree",
+            "begin": "\"",
+            "end": "\"|$",
+            "beginCaptures": {
+                "0": {
+                    "name": "punctuation.definition.string.begin.tree"
+                }
+            },
+            "endCaptures": {
+                "0": {
+                    "name": "punctuation.definition.string.end.tree"
+                }
+            },
+            "patterns": [
+                {
+                    "name": "constant.character.escape.tree",
+                    "match": "\\\\."
+                }
+            ]
+        },
+        "keyword": {
+            "name": "keyword.control.tree",
+            "match": "\\b(?:import|subtree|root|sequence|selector|randomSequence|randomSelector|parallel|invert|repeat|alwaysFail|alwaysSucceed|untilFail|untilSuccess|random|semaphoreGuard|include|wait|failure|success|dynamicGuardSelector)\\b"
+        }
+    }
+}

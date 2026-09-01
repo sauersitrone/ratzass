@@ -123,7 +123,14 @@ public class PddlProblem {
         return problemFile.getAbsolutePath();
     }
 
-    private void resolveObjects(UnitType unitType, int quantity) {
+    /**
+     * fill the object list with the unitType and quantity. This is used to generate
+     * the PDDL problem file.
+     * 
+     * @param unitType - the type of the unit
+     * @param quantity - the quantity of the unit
+     */
+    private void updateObjectList(UnitType unitType, int quantity) {
         if (unitType == null || !unitType.toString().startsWith("Terran_") || quantity <= 0) {
             return;
         }
@@ -137,6 +144,13 @@ public class PddlProblem {
         this.objects.add(objs);
     }
 
+    /**
+     * Resolve the problem by filling the object list and init list.
+     * - If isTest is true, it will use the unitsTest list to fill the object list
+     * and init list.
+     * - Otherwise, it will use the UnitsCenter to get the current units and their
+     * quantities.
+     */
     private void resolve() {
         if (isTest) {
             resolveTest();
@@ -156,7 +170,7 @@ public class PddlProblem {
                         .findFirst()
                         .orElse(new Pair<>(unitType, 0));
                 int count = unitTest.getValue();
-                resolveObjects(unitType, count);
+                updateObjectList(unitType, count);
                 init.add(new Pair<String, Integer>(unitType.toString(), count));
             }
         }
@@ -171,7 +185,7 @@ public class PddlProblem {
                     || unitType == UnitType.Resource_Mineral_Field
                     || unitType == UnitType.Resource_Vespene_Geyser) {
                 int count = unitsCenter.getUnitCount(unitType);
-                resolveObjects(unitType, count);
+                updateObjectList(unitType, count);
                 init.add(new Pair<String, Integer>(unitType.toString(), count));
             }
         }

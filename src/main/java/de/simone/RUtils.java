@@ -1,62 +1,35 @@
 package de.simone;
 
-import java.util.Map;
-import java.util.TreeMap;
+import java.io.InputStream;
+import java.util.logging.Level;
 
-import bwapi.Position;
-import bwapi.Unit;
-import tech.tablesaw.aggregate.AggregateFunctions;
-import tech.tablesaw.api.Table;
+import com.badlogic.gdx.ai.btree.BehaviorTree;
+import com.badlogic.gdx.ai.btree.utils.BehaviorTreeParser;
 
+import lombok.extern.java.Log;
+
+@Log
 public class RUtils {
 
-    private static Map<String, Integer> errorTimestamps = new TreeMap<>();
-    private static Map<String, Integer> errors = new TreeMap<>();
-
-    public static void printEndOfGameStats() {
-        if (RBWListener.game == null) {
-            return;
-        }
-
-        System.out.println("Game statistics:");
-        System.out.printf("%-20s %-20s", "Total time:", RBWListener._secondsNow + " seconds");
-
-        Table summaryTable = RBWListener.unitEventsTable.summarize("totalResources", AggregateFunctions.sum).by("type");
-        System.out.println("Total Resources by Unit Type:");
-        System.out.println(summaryTable.print());
+    public static void startStarcraftProcess() {
+        endStarcraftProcess();
+        // Make sure Chaoslauncher -> Settings -> "Run Starcraft on Startup" is checked
+        executeInCommandLine(Env.chaosLauncherPath);
     }
 
-    public static void killStarcraftProcess() {
+    
+    public static void endStarcraftProcess() {
         executeInCommandLine("taskkill /IM StarCraft.exe /T /F");
-        // destroyInCommandLine("taskkill /IM StarCraft.exe /T /F");
-    }
-
-    public static void killChaosLauncherProcess() {
-        // destroyInCommandLine("taskkill /IM Chaoslauncher.exe /T /F");
         executeInCommandLine("taskkill /IM Chaoslauncher.exe /T /F");
-        // executeInCommandLine("taskkill /IM Chaoslauncher - MultiInstance.exe /T /F");
-    }
-
-    /**
-     * Autostart Chaoslauncher
-     * Combined with Chaoslauncher -> Settings -> Run Starcraft on Startup
-     * SC will be autostarted at this moment
-     */
-    public static void startChaosLauncherProcess() {
-        try {
-            Thread.sleep(150);
-            String command = "cmd /c " + Env.chaosLauncherPath;
-
-            executeInCommandLine(command);
-        } catch (InterruptedException ignored) {
-        }
     }
 
     private static void executeInCommandLine(String command) {
         try {
-            Process process = Runtime.getRuntime().exec(command);
-        } catch (Exception err) {
-            err.printStackTrace();
+            Thread.sleep(150);
+            Runtime.getRuntime().exec(command);
+            Thread.sleep(150);
+        } catch (Exception e) {
+            log.log(Level.SEVERE, "", e);
         }
     }
 
@@ -69,50 +42,44 @@ public class RUtils {
         return fileName2;
     }
 
-    public static void printMaxOncePerMinutePlusPrintStackTrace(String message) {
-        if (!theSameErrorWasLoggedLessThanMinuteAgo(message)) {
-            System.out.println(message);
-            Thread.dumpStack();
+    /**
+     * Parses a behavior tree file and returns the corresponding BehaviorTree
+     * instance.
+     *
+     * @param <E>        - the type of the blackboard
+     * @param treeFile   - the file name
+     * @param blackboard - the blackboard
+     * @return the parsed BehaviorTree instance, or null if parsing fails
+     */
+    public static <E> BehaviorTree<E> parseFile(String treeFile, E blackboard) {
+        try (InputStream inputStream = RUtils.class.getResourceAsStream("/" + treeFile)) {
+            BehaviorTreeParser<E> parser = new BehaviorTreeParser<E>(BehaviorTreeParser.DEBUG_HIGH);
+            BehaviorTree<E> behaviorTree = parser.parse(inputStream, blackboard);
+            return behaviorTree;
+        } catch (Exception e) {
+            log.log(Level.SEVERE, "", e);
         }
-
-        increaseErrorCount(message);
+        return null;
     }
 
-    private static boolean theSameErrorWasLoggedLessThanMinuteAgo(String message) {
-
-        return errorTimestamps.containsKey(message) && (RBWListener._secondsNow - errorTimestamps.get(message) < 60);
-    }
-
-    private static void increaseErrorCount(String message) {
-        int currentCount = errors.getOrDefault(message, 0);
-        errors.put(message, currentCount + 1);
-    }
-
-    public static void printMaxOncePerMinute(String message) {
-        if (!theSameErrorWasLoggedLessThanMinuteAgo(message)) {
-            System.out.println(message);
+    /**
+     * Steps the behavior tree based on the current status of the environment. If
+     * the environment status is Running, the behavior tree will be stepped
+     * 
+     * @param behaviorTree - the tree
+     */
+    public static void step(BehaviorTree<?> behaviorTree) {
+        if (Env.treeStatus == Env.BehaviorTreeStatus.Running) {
+            behaviorTree.step();
+        } else if (Env.treeStatus == Env.BehaviorTreeStatus.Stepping) {
+            behaviorTree.step();
+            Env.treeStatus = Env.BehaviorTreeStatus.Suspended;
+        } else {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                log.severe(e.toString());
+            }
         }
-
-        increaseErrorCount(message);
     }
-
-    public static Position translateByPixels(Unit unit, int pixelDX, int pixelDY) {
-        return new Position(unit.getX() + pixelDX, unit.getY() + pixelDY);
-    }
-
-    public static void exitGame() {
-        killProcesses();
-    }
-
-    private static void killProcesses() {
-        System.out.println("Killing StarCraft process... ");
-        RUtils.killStarcraftProcess();
-
-        System.out.println("Killing Chaoslauncher process... ");
-        RUtils.killChaosLauncherProcess();
-
-        System.out.println("Exit...");
-        System.exit(0);
-    }
-
 }

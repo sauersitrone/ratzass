@@ -11,7 +11,10 @@ import com.formdev.flatlaf.util.FontUtils;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
+import de.simone.command.CombatCenter;
 import de.simone.command.CommandQueue;
 import de.simone.command.UnitsCenter;
 import de.simone.ui.Demo;
@@ -26,29 +29,29 @@ public class Main extends JFrame {
     public static final String DEMO_VERSION = "2.6.2-SNAPSHOT";
 
     public Main() {
-
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent windowEvent) {
+                RUtils.endStarcraftProcess();
+            }
+        });
         getRootPane().putClientProperty(FlatClientProperties.FULL_WINDOW_CONTENT, true);
         Drawer.installDrawer(this, MyDrawerBuilder.getInstance());
         FormManager.install(this);
-        setSize(new Dimension(1366, 768));
+        setSize(new Dimension(1366, 800));
         setLocationRelativeTo(null);
     }
 
     public static void main(String[] args) {
-        // initializeEsper();
         Env.init();
+        RUtils.startStarcraftProcess();
+
         CommandQueue.init();
         UnitsCenter.init();
         LogisticCenter.init();
-        RBWListener listener = new RBWListener();
+        CombatCenter.init();
 
-        RUtils.killStarcraftProcess();
-        RUtils.killChaosLauncherProcess();
-        // Make sure Chaoslauncher -> Settings -> "Run Starcraft on Startup" is checked
-        RUtils.startChaosLauncherProcess();
-
-        // gui
         DemoPreferences.init();
         FlatRobotoFont.install();
         FlatLaf.registerCustomDefaultsSource("ui.icons.themes");
@@ -56,6 +59,7 @@ public class Main extends JFrame {
         DemoPreferences.setupLaf();
         EventQueue.invokeLater(() -> new Demo().setVisible(true));
 
-        listener.run();
+        RBWListener.init();
+
     }
 }

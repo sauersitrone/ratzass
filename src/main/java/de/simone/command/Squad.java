@@ -5,15 +5,23 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.badlogic.gdx.ai.btree.BehaviorTree;
+
 import bwapi.Color;
 import bwapi.CoordinateType;
+import bwapi.Position;
 import bwapi.UnitCommandType;
 import bwapi.UnitType;
 import de.simone.RBWListener;
+import de.simone.RUtils;
 
 public class Squad {
     public enum SquadStatus {
-        BUILDING, IDLE, ATTACK, REGROUP, RETREAT
+        Building, Idle, Attack, Regroup, Retreat
+    }
+
+    public enum SquadType {
+        Patrol, Strike, Combat
     }
 
     public static List<String> coolSquadNames = new ArrayList<String>();
@@ -48,54 +56,70 @@ public class Squad {
 
     public String squadID;
     public UnitCommandType currentCommand = UnitCommandType.Unknown;
-    public SquadStatus status = SquadStatus.IDLE;
+    public SquadStatus status = SquadStatus.Building;
+    public SquadType type = SquadType.Patrol;
+    public BehaviorTree<Squad> behaviorTree;
+
     private int regroupTime = 0;
     private CommandQueue commandQueue;
     private UnitsCenter unitsCenter;
-    private int maxSquadSize = 8;
+    private List<UnitType> members = new ArrayList<>();
 
-    public Squad() {
+    public Squad(SquadType type, List<UnitType> members) {
+        this.behaviorTree = RUtils.parseFile("squad.tree", this);
+        this.type = type;
+        this.members = members;
         Collections.shuffle(coolSquadNames);
         this.squadID = coolSquadNames.remove(0);
         this.unitsCenter = UnitsCenter.getInstance();
         this.commandQueue = CommandQueue.getInstance();
     }
 
+    // public int getSize() {
+    // return members.size();
+    // }
+
+    public List<RUnit> getAliveMembers() {
+        List<RUnit> units = unitsCenter.getSquadUnits(squadID);
+        units.removeIf(u -> !u.isAlive);
+        return units;
+    }
+
     /**
-     * TODO: btree task: this method will be invoqued by commandQueue to form the
-     * squad with the
-     * units that are not in any squad yet. It will select the units that can attack
-     * and at least one medic if possible.
+     * Recruit members for the squad based on the predefined list of unit types.
      */
     public void recruitMembers() {
-        this.status = SquadStatus.BUILDING;
-        List<RUnit> units = unitsCenter.getUnits();
-        units.removeIf(u -> !"".equals(u.squadID));
-        boolean hasMedic = units.stream()
-                .anyMatch(u -> u.squadID.equals(squadID) && u.unitType == UnitType.Terran_Medic);
-
-        if (units.size() == maxSquadSize) {
-            status = SquadStatus.IDLE;
-            return;
+        List<UnitType> requiredUnits = getRequiredUnits();
+        for (UnitType unitType : requiredUnits) {
+            RUnit unit = unitsCenter.getUnit(unitType);
+            if (unit != null) {
+                unit.squadID = squadID;
+            }
         }
 
-        int max = Math.min(maxSquadSize, units.size());
-        for (int i = 0; i < max; i++) {
-            RUnit unit = units.get(i);
-
-            // at least select a medic
-            if (unit.unitType == UnitType.Terran_Medic && !hasMedic) {
-                unit.squadID = squadID;
-                hasMedic = true;
-                continue;
-            }
-
-            // if you can fight, wellcome to the squad
-            if (unit.unitType.canAttack())
-                unit.squadID = squadID;
+        if (getRequiredUnits().isEmpty()) {
+            status = SquadStatus.Idle;
         }
 
         regroup(true);
+    }
+
+    /**
+     * returna a list of unit types that are required for this squad based on the
+     * predefined list of members and the current units in the squad.
+     * 
+     * @return - the needed unit types.
+     */
+    public List<UnitType> getRequiredUnits() {
+        List<RUnit> freeUnits = unitsCenter.getUnits();
+        freeUnits.removeIf(u -> !"".equals(u.squadID));
+
+        List<UnitType> myUnits = unitsCenter.getSquadUnits(squadID).stream().map(u -> u.unitType).toList();
+
+        List<UnitType> requiredUnits = new ArrayList<>(members);
+        requiredUnits.removeAll(myUnits);
+
+        return requiredUnits;
     }
 
     // terry
@@ -132,8 +156,14 @@ public class Squad {
                 }
             }
         }
-
         return bestSquad;
+    }
+
+    public void patrol(Position position) {
+        List<RUnit> units = unitsCenter.getSquadUnits(squadID);
+        for (RUnit unit : units) {
+            commandQueue.patrol(unit.unitID, position);
+        }
     }
 
     public void retreat() {
@@ -150,11 +180,11 @@ public class Squad {
 
     public void setRegrouping(boolean regrouping) {
         regroupTime = RBWListener.game.getFrameCount();
-        this.status = regrouping ? SquadStatus.REGROUP : SquadStatus.IDLE;
+        this.status = regrouping ? SquadStatus.Regroup : SquadStatus.Idle;
     }
 
     public void stopRetreat() {
-        this.status = SquadStatus.IDLE;
+        this.status = SquadStatus.Idle;
         regroup(false);
     }
 
@@ -198,20 +228,20 @@ public class Squad {
     }
 
     /**
-     * return the center of this squad, either in real coordinates or in tile
-     * coordinates
+     * Get the center point of the squad. If `real` is true, returns the center in
+     * real coordinates; otherwise, returns the center in tile coordinates.
      * 
-     * @param real
-     * @return
+     * @param real - real coordinateos or tile coordinates
+     * @return the center
      */
     public Point getCenter(boolean real) {
-        int count = 0;
         int x = 0;
         int y = 0;
-
         List<RUnit> units = unitsCenter.getSquadUnits(squadID);
+        if (units.isEmpty())
+            return null;
+
         for (RUnit unit : units) {
-            count++;
             if (real) {
                 x += unit.position.x;
                 y += unit.position.y;
@@ -221,11 +251,7 @@ public class Squad {
             }
         }
 
-        if (count == 0) {
-            return null;
-        } else {
-            return new Point(x / count, y / count);
-        }
+        return new Point(x / units.size(), y / units.size());
     }
 
     /**
@@ -328,6 +354,72 @@ public class Squad {
         }
 
         return threat / 2;
+    }
+
+    /**
+     * Line Formation (Frontal Assault / Defense)
+     * Tactical Use: Maximizes firepower to the front.
+     * Logic: Units spread out evenly perpendicular to the heading vector (left and
+     * right of the leader).
+     * 
+     * @param squad - the squad to form
+     * @param angle - the angle
+     * @return the line
+     */
+    public static List<Position> calculateLine(Squad squad, double angle) {
+        List<Position> line = new ArrayList<>();
+        List<RUnit> units = squad.getAliveMembers();
+        if (units.isEmpty())
+            return line;
+
+        Position leader = units.get(0).position;
+        int space = 32;
+
+        // perpendicular line
+        double perpx = -Math.sin(angle);
+        double perpy = Math.cos(angle);
+
+        for (int i = 0; i < units.size(); i++) {
+            double offset = i * space;
+            double x = leader.x + perpx * offset;
+            double y = leader.y + perpy * offset;
+            line.add(new Position((int) x, (int) y));
+        }
+
+        return line;
+    }
+
+    /**
+     * Column Formation (Single File Segment)
+     * Logic: Constructs a column path where the first unit stands at the startPoint
+     * and the last unit stands at the endPoint. The direction of the column is
+     * defined entirely by the vector between your two points.
+     * 
+     * @param squad - the squad
+     * @param angle - the direction
+     * @return the formation
+     */
+    public static List<Position> calculateColumn(Squad squad, double angle) {
+        List<Position> line = new ArrayList<>();
+        List<RUnit> units = squad.getAliveMembers();
+        if (units.isEmpty())
+            return line;
+
+        Position leader = units.get(0).position;
+        int space = 32;
+
+        // perpendicular line
+        double dirx = Math.cos(angle);
+        double diry = Math.sin(angle);
+
+        for (int i = 0; i < units.size(); i++) {
+            double offset = i * space;
+            double x = leader.x + dirx * offset;
+            double y = leader.y + diry * offset;
+            line.add(new Position((int) x, (int) y));
+        }
+
+        return line;
     }
 
 }

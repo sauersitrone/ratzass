@@ -3,12 +3,11 @@ package de.simone.command;
 import java.awt.Point;
 import java.util.List;
 
-import bwapi.Pair;
 import bwapi.UnitType;
 
 public class StaffUtils {
 
-    // terry: i donw nknow how to wor with map. commentent for now implement laerr
+    // terry: i donw nknow how to work with map. commentent for now implement laerr
     public static Point getRallyPoint(int x, int y) {
 
         List<RUnit> expos = UnitsCenter.getInstance().getUnits(UnitType.Terran_Command_Center);
@@ -36,14 +35,5 @@ public class StaffUtils {
         }
 
         return nearest;
-    }
-
-    public static RUnit resolveTrainer(UnitType unitType) {
-        for (UnitType unitType2 : UnitType.values()) {
-            Pair<UnitType, Integer> whatBuilds = unitType2.whatBuilds();
-            if (whatBuilds.getKey() == unitType)
-                return UnitsCenter.getInstance().getUnit(whatBuilds.getKey());
-        }
-        return null;
     }
 }

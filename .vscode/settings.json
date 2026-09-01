@@ -5,5 +5,21 @@
     "files.watcherExclude": {
         "**/target/**": true
     },
-    "java.debug.settings.onBuildFailureProceed": true
+    "java.debug.settings.onBuildFailureProceed": true,
+    "editor.tokenColorCustomizations": {
+        "textMateRules": [
+            {
+                "scope": "keyword.control.tree",
+                "settings": {
+                    "foreground": "blue"
+                }
+            },
+            {
+                "scope": "string.quoted.double.tree",
+                "settings": {
+                    "foreground": "brown"
+                }
+            }
+        ]
+    }
 }

@@ -1,6 +1,8 @@
 package de.simone.command;
 
+import java.util.List;
+
 public interface CommandQueueListener {
 
-	public void event(Command command);
+	public void update(List<Command> command);
 }

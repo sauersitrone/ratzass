@@ -38,6 +38,7 @@ public class PddlProblem {
     private List<Pair<String, Integer>> goal = new ArrayList<>();
 
     public boolean isTest = false;
+    public boolean printProblem = false;
     public List<Pair<UnitType, Integer>> unitsTest = new ArrayList<>();
 
     @SafeVarargs
@@ -115,7 +116,7 @@ public class PddlProblem {
             e.printStackTrace();
         }
 
-        if (isTest) {
+        if (printProblem) {
             System.out.println("PDDL Problem ----------------------\n" + template);
             System.out.println("PDDL Problem path -----------------\n" + problemFile.getAbsolutePath());
         }
@@ -160,6 +161,7 @@ public class PddlProblem {
     }
 
     private void resolveTest() {
+        printProblem = true;
         for (UnitType unitType : UnitType.values()) {
             if (unitType.toString().startsWith("Terran_")
                     || unitType == UnitType.Resource_Mineral_Field
@@ -184,7 +186,7 @@ public class PddlProblem {
             if (unitType.toString().startsWith("Terran_")
                     || unitType == UnitType.Resource_Mineral_Field
                     || unitType == UnitType.Resource_Vespene_Geyser) {
-                int count = unitsCenter.getUnitCount(unitType);
+                int count = UnitsCenter.getUnitCount(unitType);
                 updateObjectList(unitType, count);
                 init.add(new Pair<String, Integer>(unitType.toString(), count));
             }

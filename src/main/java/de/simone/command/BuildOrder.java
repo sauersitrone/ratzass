@@ -4,27 +4,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 import bwapi.UnitType;
+import de.simone.command.StarCraftConstants.OrderPriority;
+import de.simone.command.StarCraftConstants.OrderStatus;
 
 public class BuildOrder {
-    public enum BuildStatus {
-        ERROR,
-        PENDING,
-        COMPLETED
-    }
 
     public enum BuildActionName {
         gather_Mineral,
         gather_Gas,
-        train_Unit,
-        build_Unit,
+        train,
+        build,
     }
+
+    // only used for the build order, not for the build actions. should used only by
+    // LogisticCenter to sort the build orders by priority
+    public OrderPriority priority = OrderPriority.Normal;
 
     public String remitent;
     public UnitType unitType;
     public int quantity;
-
-    public BuildStatus status;
-    public String message;
+    public OrderStatus status;
+    public String message = "";
 
     private List<BuildAction> buildActions = new ArrayList<>();
 
@@ -32,15 +32,24 @@ public class BuildOrder {
         this.remitent = remitent;
         this.unitType = unitType;
         this.quantity = quantity;
-        this.status = BuildStatus.PENDING;
+        this.status = OrderStatus.Pending;
     }
 
     public List<BuildAction> getBuildActions() {
         return buildActions;
     }
 
+    /**
+     * Set the build actions for this build order based on the provided plan. This
+     * method processes the plan to create BuildAction objects for gathering
+     * resources and training/building units. It consolidates multiple gather
+     * actions into a single BuildAction with the correct quantity.
+     * 
+     * @param plan - the plan
+     */
     public void setBuildActions(List<String> plan) {
         List<String> plan2 = new ArrayList<>(plan);
+
         // check the gatherTask_mineral and gatherTask_gas actions and convert them to
         // one BuildAction with the correct quantity
         int mineralCount = plan2.stream().filter(action -> action.equals("gather-Mineral")).toList().size();

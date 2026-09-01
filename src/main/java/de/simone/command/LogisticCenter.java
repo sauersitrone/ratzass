@@ -166,7 +166,8 @@ public class LogisticCenter {
         // check if the min number of scv
         List<Unit> scvs = units.stream().filter(u -> u.getType() == UnitType.Terran_SCV).toList();
         if (scvs.size() < terranMinSCV) {
-            BuildOrder buildOrder = new BuildOrder(getClass().getSimpleName(), UnitType.Terran_SCV, 1);
+            int tot = terranMinSCV - scvs.size();
+            BuildOrder buildOrder = new BuildOrder(getClass().getSimpleName(), UnitType.Terran_SCV, tot);
             buildOrder.priority = OrderPriority.High;
             addBuildOrder(buildOrder);
         }
@@ -209,13 +210,18 @@ public class LogisticCenter {
         // to avoid creating the same build order, check if the remitent already has a
         // pending build order.
         Optional<BuildOrder> optional = buildOrders.stream()
-                .filter(bo -> bo.remitent.equals(buildOrder.remitent) && bo.status == OrderStatus.Pending).findFirst();
+                .filter(bo -> bo.remitent.equals(buildOrder.remitent) && bo.unitType == buildOrder.unitType
+                        && bo.status == OrderStatus.Pending)
+                .findFirst();
         if (optional.isPresent()) {
             return;
         }
 
+        // the goal muss expre the toal units (e.g if i want to build 1 SCV, and i
+        // already have 1, the goal must be 2, not 1)
         Pair<UnitType, Integer> pair = new Pair<>(buildOrder.unitType, buildOrder.quantity);
         PddlProblem pddlProblem = new PddlProblem(pair);
+        pddlProblem.printProblem = true;
         this.problem = pddlProblem.getPDDLProblem();
 
         List<String> plan = solve();
@@ -265,15 +271,16 @@ public class LogisticCenter {
     }
 
     // public static void main(String[] args) {
-    //     LogisticCenter logistics = new LogisticCenter();
+    // LogisticCenter logistics = new LogisticCenter();
 
-    //     PddlProblem pddlProblem = new PddlProblem(new Pair<>(UnitType.Terran_Marine, 1));
-    //     pddlProblem.isTest = true;
-    //     pddlProblem.unitsTest.add(new Pair<>(UnitType.Resource_Mineral_Field, 10));
-    //     pddlProblem.unitsTest.add(new Pair<>(UnitType.Resource_Vespene_Geyser, 0));
-    //     pddlProblem.unitsTest.add(new Pair<>(UnitType.Terran_Command_Center, 1));
-    //     pddlProblem.unitsTest.add(new Pair<>(UnitType.Terran_SCV, 1));
-    //     logistics.problem = pddlProblem.getPDDLProblem();
-    //     logistics.solve();
+    // PddlProblem pddlProblem = new PddlProblem(new Pair<>(UnitType.Terran_SCV,
+    // 2));
+    // pddlProblem.isTest = true;
+    // pddlProblem.unitsTest.add(new Pair<>(UnitType.Resource_Mineral_Field, 1));
+    // pddlProblem.unitsTest.add(new Pair<>(UnitType.Resource_Vespene_Geyser, 1));
+    // pddlProblem.unitsTest.add(new Pair<>(UnitType.Terran_Command_Center, 1));
+    // pddlProblem.unitsTest.add(new Pair<>(UnitType.Terran_SCV, 1));
+    // logistics.problem = pddlProblem.getPDDLProblem();
+    // logistics.solve();
     // }
 }

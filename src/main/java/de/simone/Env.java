@@ -24,8 +24,12 @@ import lombok.extern.java.Log;
  */
 @Log
 public class Env extends Properties {
+    public enum BehaviorTreeStatus {
+        Running, Suspended, Stepping;
+    }
 
     public static String chaosLauncherPath;
+    public static BehaviorTreeStatus treeStatus = BehaviorTreeStatus.Suspended;
 
     private long lastCameraUpdate = 0;
     private int drawBuildLocations = 0;
@@ -34,17 +38,16 @@ public class Env extends Properties {
     private int quitFrame = 0;
 
     // game settings
-    public static boolean IgnoreBases = false; // for micro scenarios
-    public static boolean showGUI = true;
     public static boolean autoRestart = false;
     public static boolean useManners = false;
-    public static int speed = 67; // 42 = fastest, 67 = normal, 167 = slowest
+    public static int speed = 0; // 42 = fastest, 67 = normal, 167 = slowest
     public static boolean userInput = true;
     public static boolean fogOfWar = false;
     public static boolean quitOnGameEnd = false;
     public static boolean autoCamera = false;
-
+    
     // StarCraft map drawing settings
+    public static boolean ignoreBases = false; // for micro scenarios
     public static boolean drawIDs = true;
     public static boolean drawPings = false;
     public static boolean drawPlayerUnits = true;
@@ -56,8 +59,8 @@ public class Env extends Properties {
     public static boolean fillRegions = false;
     public static boolean drawChokepoints = true;
 
+    // behavior tree settings
     public static boolean scrollToExecutingNode = true;
-    public static boolean pauseBehaviorTree = false;
 
     private Env() {
         //
@@ -70,10 +73,9 @@ public class Env extends Properties {
 
     private void loadStarCraftProperties() {
         try {
-            load(Env.class.getClassLoader().getResourceAsStream("./config.properties"));
+            load(Env.class.getResourceAsStream("/config.properties"));
             chaosLauncherPath = getProperty("GameSettings.chaosLauncherPath");
-            IgnoreBases = Boolean.parseBoolean(getProperty("GameSettings.IgnoreBases"));
-            showGUI = Boolean.parseBoolean(getProperty("GameSettings.ShowGUI"));
+            ignoreBases = Boolean.parseBoolean(getProperty("GameSettings.IgnoreBases"));
             autoRestart = Boolean.parseBoolean(getProperty("GameSettings.AutoRestart"));
             useManners = Boolean.parseBoolean(getProperty("GameSettings.UseManners"));
             speed = Integer.parseInt(getProperty("GameSettings.speed"));
@@ -93,33 +95,7 @@ public class Env extends Properties {
             fillRegions = Boolean.parseBoolean(getProperty("GameSettings.map.fillRegions"));
             drawChokepoints = Boolean.parseBoolean(getProperty("GameSettings.map.drawChokepoints"));
 
-            scrollToExecutingNode = Boolean.parseBoolean(getProperty("GameSettings.behaviorTree.scrollToExecutingNode"));
-            pauseBehaviorTree = Boolean.parseBoolean(getProperty("GameSettings.behaviorTree.pauseBehaviorTree"));
-
-            // configuration summary
-            log.info("Configuration");
-            log.info(" " + ((char) 186) + " Game Settings");
-            log.info("   - Ignore terrain: " + IgnoreBases);
-            log.info("   - Show GUI: " + showGUI);
-            log.info("   - Auto restart: " + autoRestart);
-            log.info("   - Use manners: " + useManners);
-            log.info("   - Fastest: " + speed);
-            log.info("   - User input: " + userInput);
-            log.info("   - Quit on game end: " + quitOnGameEnd);
-            log.info("   - Auto camera: " + autoCamera);
-            log.info("   - Fog of war: " + fogOfWar);
-
-            log.info(" " + ((char) 186) + " Map Drawing Settings");
-            log.info("   - Draw IDs: " + drawIDs);
-            log.info("   - Draw Pings: " + drawPings);
-            log.info("   - Draw Player Units: " + drawPlayerUnits);
-            log.info("   - Draw Enemy Units: " + drawEnemyUnits);
-            log.info("   - Draw Neutral Units: " + drawNeutralUnits);
-            log.info("   - Draw Resources: " + drawResources);
-            log.info("   - Draw Start Spots: " + drawStartSpots);
-            log.info("   - Draw Regions: " + drawRegions);
-            log.info("   - Fill Regions: " + fillRegions);
-            log.info("   - Draw Chokepoints: " + drawChokepoints);
+            scrollToExecutingNode = Boolean.parseBoolean(getProperty("BehaviorTree.scrollToExecutingNode"));
 
         } catch (Exception e) {
             e.printStackTrace();

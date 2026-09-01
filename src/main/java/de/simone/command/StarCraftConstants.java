@@ -23,8 +23,16 @@ public interface StarCraftConstants {
     public static int DISTANCE_ARRIVED = 3; // TODO: Tune this...
     public static int FARM_SUPPLY = 8;
 
-    public enum TrainUnitStatus {
-        Request, SentCommand, Training
+    // general status of a order (eg. buildOrder or combatOrder)
+    public enum OrderStatus {
+        Error,
+        Pending,
+        Completed
+    }
+
+        public enum OrderPriority {
+        Normal,
+        High
     }
 
     // reasons for construction a pylon

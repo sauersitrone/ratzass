@@ -2,6 +2,7 @@ package de.simone.command;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import bwapi.Game;
 import bwapi.Position;
@@ -48,8 +49,8 @@ public class CommandQueue {
         getInstance();
     }
 
-    public void clear() {
-        commandQueue.clear();
+    public List<Command> getCommands() {
+        return commandQueue;
     }
 
     public void addListener(CommandQueueListener listener) {
@@ -60,6 +61,9 @@ public class CommandQueue {
         Game bwapi = RBWListener.bwClient.getGame();
 
         for (Command command : commandQueue) {
+            if (command.status != OrderStatus.Pending)
+                continue;
+
             boolean success = true;
 
             Unit unit = null;
@@ -208,39 +212,34 @@ public class CommandQueue {
                     success = unit.useTech(command.techType, targetUnit);
                     break;
             }
-            log.info(String.format("Command: %s, Unit: %d, Target: %d, Position: %s, Success: %b", command.order,
-                    command.unitId, command.targetId, command.position, success));
-            if (!success) {
-                command.status = OrderStatus.Error;
-                command.message = "Starcraft API failed to execute command";
-                listeners.forEach(listener -> listener.event(command));
-            }
-        }
 
-        commandQueue.clear();
+            command.status = success ? OrderStatus.Completed : OrderStatus.Error;
+            listeners.forEach(listener -> listener.update(commandQueue));
+        }
     }
 
-    private synchronized Command addCommand(UnitCommandType command, int unitID, int targetUnit, Position position) {
-        Command order = new Command(command, unitID, targetUnit, position);
-        return addCommand(order);
+    private Command addCommand(UnitCommandType command, int unitID, int targetUnit, Position position) {
+        Command command2 = new Command(command, unitID, targetUnit, position);
+        addCommand(command2);
+        return command2;
     }
 
-    private synchronized Command addCommand(Command command) {
-        if (!commandQueue.contains(command)) {
-            commandQueue.add(command);
+    private void addCommand(Command command) {
+        // iff exist the same command with status pending, return silently
+        Optional<Command> optional = commandQueue.stream()
+                .filter(c -> c.order == command.order && c.status == OrderStatus.Pending).findFirst();
+        if (optional.isPresent())
+            return;
 
-            for (CommandQueueListener listener : listeners) {
-                listener.event(command);
-            }
-        }
-        return command;
+        commandQueue.add(command);
+        listeners.forEach(listener -> listener.update(commandQueue));
     }
 
     public Command gather(ResourceType resourceType) {
         Command command = new Command(UnitCommandType.Gather, -1, -1, null);
 
         // select idle SCV
-        Unit rUnit = UnitsCenter.getInstance().getFreeTerranSCV();
+        Unit rUnit = UnitsCenter.getIdleTerranSCV();
         if (rUnit == null) {
             return logFail(command, "No SCV available to gather resources.");
         }
@@ -315,12 +314,12 @@ public class CommandQueue {
         command.unitType = unitType;
 
         // look for a free SCV to build the unit
-        RUnit rUnit = UnitsCenter.getInstance().getUnit(UnitType.Terran_SCV);
-        if (rUnit == null) {
+        Unit unit = UnitsCenter.getFreeTerranSCV();
+        if (unit == null) {
             logFail(command, "No SCV available to build " + command.unitType);
             return command;
         }
-        command.unitId = rUnit.unitID;
+        command.unitId = unit.getID();
 
         // if the unit to build is a refinery, find the closest geyser
         if (unitType == UnitType.Terran_Refinery) {
@@ -328,7 +327,7 @@ public class CommandQueue {
             Unit closestGeyser = null;
             for (Unit geyser : geysers) {
                 if (closestGeyser == null
-                        || geyser.getDistance(rUnit.position) < closestGeyser.getDistance(rUnit.position)) {
+                        || geyser.getDistance(unit.getPosition()) < closestGeyser.getDistance(unit.getPosition())) {
                     closestGeyser = geyser;
                 }
             }

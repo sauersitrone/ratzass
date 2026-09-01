@@ -58,11 +58,9 @@ public class RBWListener extends DefaultBWListener {
 
     @Override
     public void onStart() {
-        isRunning = true;
         game = bwClient.getGame();
         startTime = LocalDateTime.now();
         game.setRevealAll(!Env.fogOfWar);
-        game.setLocalSpeed(Env.speed);
         bwem = new BWEM(game);
         bwem.initialize();
         bwem.getMap().assignStartingLocationsToSuitableBases();
@@ -72,7 +70,9 @@ public class RBWListener extends DefaultBWListener {
     @Override
     public void onFrame() {
         Player self = game.self();
-        game.drawTextScreen(10, 15, "Playing as " + self.getName() + " - " + self.getRace());
+        game.setLocalSpeed(Env.speed);
+        // System.out.println("RBWListener.onFrame() " + game.getFrameCount() + " - " + Env.speed);
+        // game.drawTextScreen(10, 15, "Playing as " + self.getName() + " - " + self.getRace());
 
         gameSeconds = game.getFrameCount() / 23.81;
 

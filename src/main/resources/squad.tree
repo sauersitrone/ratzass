@@ -1,0 +1,67 @@
+import isDangerous:"de.simone.btree.IsDangerousCondition"
+import retrivePosition:"de.simone.btree.RetrivePositionTask"
+import move:"de.simone.btree.MoveTask"
+import isEnemyDetected:"de.simone.btree.IsEnemyDetectedCondition"
+import attackMove:"de.simone.btree.AttackMoveTask"
+import isThereACallForHelp:"de.simone.btree.IsThereACallForHelpCondition"
+import isSquadInBadShape:"de.simone.btree.IsSquadInBadShapeCondition"
+import mergeSquads:"de.simone.btree.MergeSquadsTask"
+
+# a idea of random position is to create a raious with center on the command center, patrol the area and increase radious if the are is visible
+subtree name:"patrol"
+    #selector can be used to check the behaviors from highest to lowest priority.
+    selector
+        #execute a series of conditions and actions in a specific order. It succeeds only when all its children succeed.
+        # survival
+        sequence
+            isDangerous
+            retrivePosition position:"RetreatArea"
+            move
+        # answer for help
+        sequence
+            isThereACallForHelp
+            retrivePosition position:"HelpCall"
+            move
+        # combat
+        sequence
+            isEnemyDetected
+            retrivePosition position:"LastKnownEnemyPosition"
+            attackMove
+        #patrol
+        sequence    
+            retrivePosition position:"Random"
+            attackMove
+
+subtree name:"attack"
+    selector
+        # survival
+        sequence
+            isDangerous
+            retrivePosition position:"RetreatArea"
+            move
+        # if the squad is in bad shape, merge with another squad
+        sequence
+            isSquadInBadShape
+            retrivePosition position:"ClosestSquad"
+            move
+            mergeSquads
+        # combat
+        sequence
+            isEnemyDetected
+            retrivePosition position:"LastKnownEnemyPosition"
+            attackMove
+        # answer for help
+        sequence
+            isThereACallForHelp
+            retrivePosition position:"HelpCall"
+            move
+        # search for enemy
+        sequence    
+            retrivePosition position:"SearchArea"
+            attackMove
+
+# Tree definition 
+root
+    dynamicGuardSelector
+        (isPatrolSquad) $patrol
+        (isAttackSquad) $attack

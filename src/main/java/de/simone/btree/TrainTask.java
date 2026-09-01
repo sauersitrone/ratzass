@@ -1,23 +1,37 @@
 package de.simone.btree;
 
-import com.badlogic.gdx.ai.btree.Task;
+import com.badlogic.gdx.ai.btree.annotation.TaskAttribute;
 
 import bwapi.UnitType;
-import de.simone.command.Command;
-import de.simone.command.CommandQueue;
+import de.simone.command.BuildOrder;
+import de.simone.command.LogisticCenter;
 
 public class TrainTask extends RTask {
 
+    @TaskAttribute(required = true)
+    public UnitType unitType;
+
+    @TaskAttribute(required = true)
+    public int count;
+
+    private BuildOrder currentBuildOrder;
+
     @Override
     public Status execute() {
-        CommandQueue commandQueue = getObject();
-        Command command = commandQueue.train(UnitType.Terran_SCV);
-        return command.status;
+        LogisticCenter logisticCenter = LogisticCenter.getInstance();
+
+        if (getStatus() == Status.RUNNING)
+            return getBuildOrderStatus(currentBuildOrder);
+
+        // no previous, create a new build order
+        currentBuildOrder = new BuildOrder(getName(), unitType, count);
+        logisticCenter.addBuildOrder(currentBuildOrder);
+
+        return Status.RUNNING;
     }
 
     @Override
-    protected Task<CommandQueue> copyTo(Task<CommandQueue> task) {
-        return task;
+    public String getName() {
+        return getClass().getSimpleName() + " " + unitType + " count:" + count;
     }
-
 }

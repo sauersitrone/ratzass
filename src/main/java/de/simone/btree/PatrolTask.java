@@ -1,32 +1,41 @@
 package de.simone.btree;
 
-import com.badlogic.gdx.ai.btree.Task;
+import com.badlogic.gdx.ai.btree.annotation.TaskAttribute;
 
 import bwapi.Position;
-import de.simone.command.Command;
-import de.simone.command.CommandQueue;
-import lombok.extern.java.Log;
+import de.simone.command.Squad;
+import de.simone.command.UnitsCenter;
 
-@Log
 public class PatrolTask extends RTask {
 
-    // @TaskAttribute
-    // public UnitType unitType;
+    // x,y position to patrol
+    @TaskAttribute(required = true)
+    public String position;
 
     @Override
-    public Status execute() {
-       CommandQueue commandQueue = getObject();
+    public Status execute() {        
+        Position patrolPosition = null;
 
-       // check if is there a chokpoint or a point of interest to patrol
-        Position patrolPosition = new Position(0, 0);
-        Command command = commandQueue.patrol(patrolPosition);
+        if ("Random".equalsIgnoreCase(position)) {
+            // TODO: check if is there a chokpoint or a point of interest to patrol
+            // TODO: implement random patrol position logic
+            patrolPosition = new Position(0, 0);
+        }
 
-        return command.status;
+        // postion coordinates
+        if (position.contains(",")) {
+            String[] coords = position.split(",");
+            int x = Integer.parseInt(coords[0].trim());
+            int y = Integer.parseInt(coords[1].trim());
+            patrolPosition = new Position(x, y);
+        }
+         
+        Squad squad = UnitsCenter.getInstance().getSquads(3);
+        if (squad == null) {
+            return Status.FAILED;
+        }
+        squad.patrol(patrolPosition);
+
+        return Status.SUCCEEDED;
     }
-
-    @Override
-    protected Task<CommandQueue> copyTo(Task<CommandQueue> task) {
-        return task;
-    }
-
 }

@@ -24,7 +24,7 @@ public class TrainTask extends RTask {
             return getBuildOrderStatus(currentBuildOrder);
 
         // no previous, create a new build order
-        currentBuildOrder = new BuildOrder(getName(), unitType, count);
+        currentBuildOrder = new BuildOrder(super.getName(), unitType, count);
         logisticCenter.addBuildOrder(currentBuildOrder);
 
         return Status.RUNNING;
@@ -32,6 +32,7 @@ public class TrainTask extends RTask {
 
     @Override
     public String getName() {
-        return getClass().getSimpleName() + " " + unitType + " count:" + count;
+        String name = super.getName();
+        return name + " " + unitType + " count:" + count;
     }
 }

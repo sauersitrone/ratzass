@@ -28,7 +28,8 @@ public class LogisticCenterView extends Form implements LogisticCenterListener {
     @Override
     public void updated(List<BuildOrder> buildOrders) {
         textArea.setText("");
-        for (BuildOrder buildOrder : buildOrders) {
+        for (int i = buildOrders.size()-1; i >= 0; i--) {
+            BuildOrder buildOrder = buildOrders.get(i);
             String message = String.format("%s, %s, %d, %s, %s", buildOrder.remitent,
                     buildOrder.unitType.toString(), buildOrder.quantity, buildOrder.status.toString(),
                     buildOrder.message);

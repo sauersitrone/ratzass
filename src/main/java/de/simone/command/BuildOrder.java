@@ -9,13 +9,6 @@ import de.simone.command.StarCraftConstants.OrderStatus;
 
 public class BuildOrder {
 
-    public enum BuildActionName {
-        gather_Mineral,
-        gather_Gas,
-        train,
-        build,
-    }
-
     // only used for the build order, not for the build actions. should used only by
     // LogisticCenter to sort the build orders by priority
     public OrderPriority priority = OrderPriority.Normal;
@@ -60,11 +53,11 @@ public class BuildOrder {
 
         if (mineralCount > 0) {
             buildActions.add(
-                    new BuildAction(this, BuildActionName.gather_Mineral, null, mineralCount));
+                    new BuildAction(this, StarCraftConstants.BuildActionName.gather_Mineral, null, mineralCount));
             plan2.removeIf(action -> action.equals("gather-Mineral"));
         }
         if (gasCount > 0) {
-            buildActions.add(new BuildAction(this, BuildActionName.gather_Gas, null, gasCount));
+            buildActions.add(new BuildAction(this, StarCraftConstants.BuildActionName.gather_Gas, null, gasCount));
             plan2.removeIf(action -> action.equals("gather-Gas"));
         }
 
@@ -72,7 +65,7 @@ public class BuildOrder {
         for (String action : plan2) {
             String[] action_UnitName = action.split("-");
             buildActions.add(
-                    new BuildAction(this, BuildActionName.valueOf(action_UnitName[0]),
+                    new BuildAction(this, StarCraftConstants.BuildActionName.valueOf(action_UnitName[0]),
                             UnitType.valueOf(action_UnitName[1]), 1));
         }
     }

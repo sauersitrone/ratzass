@@ -29,11 +29,16 @@ public class Main extends JFrame {
     public static final String DEMO_VERSION = "2.6.2-SNAPSHOT";
 
     public Main() {
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        Thread printingHook = new Thread(() -> System.out.println("In the middle of a shutdown"));
+        Runtime.getRuntime().addShutdownHook(printingHook);
+
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent windowEvent) {
                 RUtils.endStarcraftProcess();
+                System.out.println("Main.Main().new WindowAdapter() {...}.windowClosed()");
+                System.exit(0);
             }
         });
         getRootPane().putClientProperty(FlatClientProperties.FULL_WINDOW_CONTENT, true);

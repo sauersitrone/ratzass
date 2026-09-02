@@ -16,8 +16,8 @@ import bwapi.Unit;
 import bwapi.UnitType;
 import de.simone.RBWListener;
 import de.simone.RUtils;
-import de.simone.command.BuildOrder.BuildActionName;
 import de.simone.command.CommandQueue.ResourceType;
+import de.simone.command.StarCraftConstants.BuildActionName;
 import de.simone.command.StarCraftConstants.OrderPriority;
 import de.simone.command.StarCraftConstants.OrderStatus;
 
@@ -28,11 +28,6 @@ import de.simone.command.StarCraftConstants.OrderStatus;
  * 
  */
 public class LogisticCenter {
-
-    private static final int terranMinSupply = 5;
-    private static final int terranMinSCV = 6;
-    private static final int scvGatheringMinerals = 4;
-    private static final int scvGatheringGas = 2;
 
     private static LogisticCenter instance;
     private String domain;
@@ -104,17 +99,7 @@ public class LogisticCenter {
      * - notify the listeners about the updated buildOrders
      */
     public void update() {
-        List<Unit> units = new ArrayList<>(RBWListener.game.getAllUnits());
-
-        // ---------------------
-        List<Unit> idleSCVs2 = units.stream().filter(u -> u.getType() == UnitType.Terran_SCV && u.isIdle()).toList();
-        if (!idleSCVs2.isEmpty()) {
-            int gMinerals = (int) idleSCVs2.stream().filter(u -> u.getOrder() == Order.MiningMinerals).count();
-            if (gMinerals < scvGatheringMinerals) {
-                CommandQueue.getInstance().gather(ResourceType.Mineral);
-            }
-        }
-        // ---------------------
+        List<Unit> units = UnitsCenter.getUnits();
 
         // first day order: build a refinery if not already built
         List<Unit> refineries = units.stream().filter(u -> u.getType() == UnitType.Terran_Refinery).toList();
@@ -127,7 +112,7 @@ public class LogisticCenter {
         // if is there enough minerals, change the status of the pending gathering
         // actions
         Optional<BuildAction> optional = buildActions.stream()
-                .filter(ba -> ba.action == BuildActionName.gather_Mineral && ba.status == OrderStatus.Pending
+                .filter(ba -> ba.action == StarCraftConstants.BuildActionName.gather_Mineral && ba.status == OrderStatus.Pending
                         && RBWListener.currentMinerals >= ba.quantity)
                 .findFirst();
         if (optional.isPresent()) {
@@ -136,7 +121,7 @@ public class LogisticCenter {
 
         // if is there enough gas, change the status of the pending gathering actions
         optional = buildActions.stream()
-                .filter(ba -> ba.action == BuildActionName.gather_Gas && ba.status == OrderStatus.Pending
+                .filter(ba -> ba.action == StarCraftConstants.BuildActionName.gather_Gas && ba.status == OrderStatus.Pending
                         && RBWListener.currentGas >= ba.quantity)
                 .findFirst();
         if (optional.isPresent()) {
@@ -145,19 +130,19 @@ public class LogisticCenter {
 
         // check if the next buildAction can be started
         optional = buildActions.stream()
-                .filter(ba -> (ba.action == BuildActionName.build || ba.action == BuildActionName.train)
+                .filter(ba -> (ba.action == StarCraftConstants.BuildActionName.build || ba.action == StarCraftConstants.BuildActionName.train)
                         && ba.status == OrderStatus.Pending)
                 .findFirst();
         if (optional.isPresent()) {
             BuildAction buildAction = optional.get();
             // train
-            if (buildAction.action == BuildActionName.train) {
+            if (buildAction.action == StarCraftConstants.BuildActionName.train) {
                 Command trainCommand = CommandQueue.getInstance().train(buildAction.unitType);
                 buildAction.message = trainCommand.message;
             }
 
             // build
-            if (buildAction.action == BuildActionName.build) {
+            if (buildAction.action == StarCraftConstants.BuildActionName.build) {
                 Command command = CommandQueue.getInstance().build(buildAction.unitType);
                 buildAction.message = command.message;
             }
@@ -165,9 +150,8 @@ public class LogisticCenter {
 
         // check if the min number of scv
         List<Unit> scvs = units.stream().filter(u -> u.getType() == UnitType.Terran_SCV).toList();
-        if (scvs.size() < terranMinSCV) {
-            int tot = terranMinSCV - scvs.size();
-            BuildOrder buildOrder = new BuildOrder(getClass().getSimpleName(), UnitType.Terran_SCV, tot);
+        if (scvs.size() < StarCraftConstants.TERRAN_MIN_SCV) {
+            BuildOrder buildOrder = new BuildOrder(getClass().getSimpleName(), UnitType.Terran_SCV, StarCraftConstants.TERRAN_MIN_SCV);
             buildOrder.priority = OrderPriority.High;
             addBuildOrder(buildOrder);
         }
@@ -176,21 +160,30 @@ public class LogisticCenter {
         List<Unit> idleSCVs = units.stream().filter(u -> u.getType() == UnitType.Terran_SCV && u.isIdle()).toList();
         if (!idleSCVs.isEmpty()) {
             int gGas = (int) idleSCVs.stream().filter(u -> u.getOrder() == Order.HarvestGas).count();
-            if (gGas < scvGatheringGas) {
+            if (gGas < StarCraftConstants.SCV_GATHERING_GAS) {
                 // CommandQueue.getInstance().gather(ResourceType.Gas);
             }
 
             int gMinerals = (int) idleSCVs.stream().filter(u -> u.getOrder() == Order.MiningMinerals).count();
-            if (gMinerals < scvGatheringMinerals) {
+            if (gMinerals < StarCraftConstants.SCV_GATHERING_MINERALS) {
                 CommandQueue.getInstance().gather(ResourceType.Mineral);
             }
         }
 
         // check the supply. if the supply is low, create a build order for supply
-        if (RBWListener.currentSupplyTotal - RBWListener.currentSupplyUsed < terranMinSupply) {
+        if (RBWListener.currentSupplyTotal - RBWListener.currentSupplyUsed < StarCraftConstants.TERRAN_MIN_SUPPLY) {
             BuildOrder buildOrder = new BuildOrder(getClass().getSimpleName(), UnitType.Terran_Supply_Depot, 1);
             buildOrder.priority = OrderPriority.High;
             addBuildOrder(buildOrder);
+        }
+
+        
+        List<Unit> idleSCVs2 = units.stream().filter(u -> u.getType() == UnitType.Terran_SCV && u.isIdle()).toList();
+        if (!idleSCVs2.isEmpty()) {
+            int gMinerals = (int) idleSCVs2.stream().filter(u -> u.getOrder() == Order.MiningMinerals).count();
+            if (gMinerals < StarCraftConstants.SCV_GATHERING_MINERALS) {
+                CommandQueue.getInstance().gather(ResourceType.Mineral);
+            }
         }
 
         for (LogisticCenterListener listener : listeners) {
@@ -211,13 +204,13 @@ public class LogisticCenter {
         // pending build order.
         Optional<BuildOrder> optional = buildOrders.stream()
                 .filter(bo -> bo.remitent.equals(buildOrder.remitent) && bo.unitType == buildOrder.unitType
-                        && bo.status == OrderStatus.Pending)
+                        && (bo.status == OrderStatus.Pending  || bo.status == OrderStatus.Running))
                 .findFirst();
         if (optional.isPresent()) {
             return;
         }
 
-        // the goal muss expre the toal units (e.g if i want to build 1 SCV, and i
+        // the goal muss express the total units (e.g if i want to build 1 SCV, and i
         // already have 1, the goal must be 2, not 1)
         Pair<UnitType, Integer> pair = new Pair<>(buildOrder.unitType, buildOrder.quantity);
         PddlProblem pddlProblem = new PddlProblem(pair);

@@ -21,7 +21,10 @@ public abstract class RTask extends LeafTask<CombatCenter> {
     }
 
     public String getName() {
-        return this.getClass().getSimpleName();
+        String name = this.getClass().getSimpleName();
+        name = name.replace("Task", "");
+        name = name.replace("Condition", "");
+        return name;
     }
 
     /**

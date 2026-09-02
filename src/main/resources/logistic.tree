@@ -1,51 +1,23 @@
+import isUnitNeeded:"de.simone.btree.IsUnitNeededCondition"
 import train:"de.simone.btree.TrainTask"
-import createSquad:"de.simone.btree.CreateSquadTask"
-import trainForceTo:"de.simone.btree.TrainForceToTask"
-import isSquadNeeded:"de.simone.btree.IsSquadNeededCondition"
+import isUnitInStatus:"de.simone.btree.IsUnitInStatusCondition"
+import ensureCsvAreWorking:"de.simone.btree.EnsureCsvAreWorkingTask"
+import isResourceNeeded:"de.simone.btree.IsResourceNeededTask"
 
 root
     selector
+        # build at leas a refinery
         sequence
-            trainForceTo level:1
-            isSquadNeeded type:"Patrol" count:3
-            train unitType:"Terran_Marine" count:3
-            createSquad type:"Patrol" members:"Terran_Marine,Terran_Marine,Terran_Marine"
+            isUnitNeeded unitType:"Terran_Refinery" count:1
+            train unitType:"Terran_Refinery" count:1
+        # ensure minimum number of SCVs
         sequence
-            trainForceTo level:2
-            isSquadNeeded type:"Strike" count:3
-            train unitType:"Terran_Marine" count:4
-            train unitType:"Terran_Medic" count:1
-            train unitType:"Terran_Firebat" count:3
-            createSquad type:"Strike" members:"Terran_Medic,Terran_Firebat,Terran_Firebat,Terran_Firebat,Terran_Marine,Terran_Marine,Terran_Marine,Terran_Marine"
+            isUnitNeeded unitType:"Terran_SCV" count:6
+            train unitType:"Terran_SCV" count:6
+        # ensure supply depot 
         sequence
-            trainForceTo level:3
-            isSquadNeeded type:"Combat" count:3
-            train unitType:"Terran_SCV" count:1
-            train unitType:"Terran_Marine" count:4
-            train unitType:"Terran_Medic" count:1
-            train unitType:"Terran_Firebat" count:2
-            train unitType:"Terran_Goliath" count:4
-            createSquad type:"Combat" members:"Terran_SCV,Terran_Medic,Terran_Firebat,Terran_Firebat,Terran_Goliath,Terran_Goliath,Terran_Goliath,Terran_Goliath,Terran_Marine,Terran_Marine,Terran_Marine,Terran_Marine"
-
-
-# Level 1: Basic Infantry & Scouting: This level covers the opening minutes of the match. It focuses on securing your main base, starting your economy, and building a basic defense against early rushes.
-#     Required Structures: Command Center, Supply Depot, Barracks, Refinery.
-#     Units Available: SCV, Marine.
-#     Strategic Focus: Scouting the enemy, walling off your ramp, and establishing your first gas income.
-# Level 2: Advanced Biological Utility: This level introduces specialized infantry and essential medical support. It allows Terran to field the powerful biological army core known as "Bio."
-#     Required Structures: Academy.
-#     Units Available: Medic, Firebat, Ghost (requires Academy, but rarely used this early).Key Upgrades: Stimpack, Shell Shock (Marine range), Caduceus Reactor (Medic energy).
-#     Strategic Focus: Securing a natural expansion, defending against early Zerg aggression, or executing early Marine/Medic pressure.
-# Level 3: Mechanical Core & Siege Warfare: This level marks the transition into "Mech" or provides heavy fire support for biological forces. It unlocks the most iconic defensive and offensive tool in the Terran arsenal.
-#     Required Structures: Factory, Machine Shop (Factory Add-on), Armory.
-#     Units Available: Vulture, Siege Tank, Goliath.Key Upgrades: Siege Mode, Spider Mines, Ion Thrusters (Vulture speed), Charon Boosters (Goliath air range).
-#     Strategic Focus: Establishing strong defensive lines with Siege Tanks, map control via Vulture mines, and beginning Vehicle attack/armor upgrades at the Armory.
-# Level 4: Aviation & Tactical Mobility: This level unlocks control of the skies. It provides Terran with crucial scouting information, air defense, and the ability to bypass terrain to harass enemy bases.
-#     Required Structures: Starport, Control Tower (Starport Add-on).
-#     Units Available: Wraith, Dropship, Valkyrie.Key Upgrades: Apollo Reactor (Wraith energy), Cloaking Field.
-#     Strategic Focus: Executing Dropship harassment, counteracting enemy air units (like Zerg Mutalisks), and gaining map vision.
-# Level 5: High-Tech Science & Capital Ships: The final level represents the absolute pinnacle of Terran technology. It utilizes powerful spellcasters to neutralize enemy high-tier threats and massive capital ships to break stalemates.
-#     Required Structures: Science Facility, Physics Lab (Add-on), Covert Ops (Add-on).
-#     Units Available: Science Vessel, Battlecruiser, Ghost (with Nuclear Strike capability).
-#     Key Upgrades: Irradiate, EMP Shockwave, Yamato Gun, Cloaking Field (Ghost), Ocular Implants.
-#     Strategic Focus: Using Science Vessels to counter Zerg Lurkers/Defilers or Protoss shields, and transitioning into a maxed-out Battlecruiser fleet in ultra-late game scenarios.
+            isResourceNeeded
+            train unitType:"Terran_Supply_Depot" count:1
+        # standar day to day operations
+        sequence
+        ensureCsvAreWorking

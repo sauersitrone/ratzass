@@ -87,11 +87,6 @@ public class UnitsCenter {
         return unit;
     }
 
-    public static int getUnitCount(UnitType unitType) {
-       return (int) RBWListener.game.getAllUnits().stream()
-                .filter(u -> !RBWListener.game.self().isEnemy(u.getPlayer()) && u.getType() == unitType).count();
-    }
-
     public int getEnemyUnitCount(UnitType unitType) {
         return (int) currentUnits.values().stream().filter(u -> u.isEnemy && u.unitType == unitType).count();
     }
@@ -104,27 +99,33 @@ public class UnitsCenter {
         return currentUnits.values().stream().filter(u -> u.isEnemy && u.unitType == unitType).toList();
     }
 
-    public List<RUnit> getUnits() {
-        List<RUnit> units = currentUnits.values().stream().filter(u -> !u.isEnemy).toList();
-        return units;
-    }
-
     public List<RUnit> getEnemyUnits() {
         List<RUnit> units = currentUnits.values().stream().filter(u -> u.isEnemy).toList();
         return units;
     }
 
+    public static List<Unit> getUnits() {
+        boolean isAlly = !RBWListener.game.self().isEnemy(RBWListener.game.self());
+        List<Unit> units = RBWListener.game.getAllUnits().stream().filter(u -> isAlly).toList();
+        return units;
+    }
+
     public static Unit getIdleTerranSCV() {
-        Unit unit = RBWListener.game.getAllUnits().stream()
+        Unit unit = getUnits().stream()
                 .filter(u -> u.getType() == UnitType.Terran_SCV && u.isIdle()).findFirst().orElse(null);
         return unit;
     }
 
     public static Unit getFreeTerranSCV() {
-        Unit unit = RBWListener.game.getAllUnits().stream()
-                .filter(u -> u.getType() == UnitType.Terran_SCV && (u.isGatheringGas() || u.isGatheringMinerals()))
+        Unit unit = getUnits().stream()
+                .filter(u -> u.getType() == UnitType.Terran_SCV && (u.isGatheringGas() || u.isGatheringMinerals() || u.isIdle()))
                 .findFirst().orElse(null);
         return unit;
+    }
+
+    public static int getUnitCount(UnitType unitType) {
+        int count = (int) getUnits().stream().filter(u -> u.getType() == unitType).count();
+        return count;
     }
 
     public void addSquad(Squad squad) {

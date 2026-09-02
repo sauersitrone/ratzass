@@ -3,7 +3,6 @@ package de.simone.command;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.TreeMap;
 
 import bwapi.Pair;
@@ -40,13 +39,20 @@ public class UnitsCenter {
         getInstance();
     }
 
-    public static RUnit resolveTrainer(UnitType unitType) {
-        for (UnitType unitType2 : UnitType.values()) {
-            Pair<UnitType, Integer> whatBuilds = unitType2.whatBuilds();
-            if (whatBuilds.getKey() == unitType)
-                return UnitsCenter.getInstance().getUnit(whatBuilds.getKey());
-        }
-        return null;
+    public static Unit resolveTrainer(UnitType unitType) {
+        Pair<UnitType, Integer> whatBuilds = unitType.whatBuilds();
+        Unit trainer = UnitsCenter.getUnit(whatBuilds.getKey());
+        System.out.println("resolveTrainer: " + unitType + " trainer: " + trainer.getType());
+        return trainer;
+
+        // for (UnitType unitType2 : UnitType.values()) {
+        // Pair<UnitType, Integer> whatBuilds = unitType2.whatBuilds();
+        // if (whatBuilds.getKey() == unitType) {
+        // Unit trainer = UnitsCenter.getUnit(whatBuilds.getKey());
+        // return trainer;
+        // }
+        // }
+        // return null;
     }
 
     public void onUnitComplete(Unit unit) {
@@ -69,24 +75,6 @@ public class UnitsCenter {
         currentUnitCounts.put(rUnit.unitType, count - 1);
     }
 
-    public RUnit getUnit(UnitType... unitTypes) {
-        for (UnitType unitType : unitTypes) {
-            RUnit unit = getUnit(unitType);
-            if (unit != null)
-                return unit;
-        }
-        return null;
-    }
-
-    public RUnit getUnit(UnitType unitType) {
-        int count = currentUnitCounts.getOrDefault(unitType, 0);
-        if (count == 0)
-            return null;
-
-        RUnit unit = currentUnits.values().stream().filter(u -> !u.isEnemy && u.unitType == unitType).findFirst().get();
-        return unit;
-    }
-
     public int getEnemyUnitCount(UnitType unitType) {
         return (int) currentUnits.values().stream().filter(u -> u.isEnemy && u.unitType == unitType).count();
     }
@@ -104,6 +92,21 @@ public class UnitsCenter {
         return units;
     }
 
+    public static Unit getUnit(UnitType... unitTypes) {
+        for (UnitType unitType : unitTypes) {
+            Unit unit = getUnit(unitType);
+            if (unit != null)
+                return unit;
+        }
+        return null;
+    }
+
+    public static Unit getUnit(UnitType unitType) {
+        List<Unit> units = getUnits();
+        Unit unit = units.stream().filter(u -> u.getType() == unitType).findFirst().orElse(null);
+        return unit;
+    }
+
     public static List<Unit> getUnits() {
         boolean isAlly = !RBWListener.game.self().isEnemy(RBWListener.game.self());
         List<Unit> units = RBWListener.game.getAllUnits().stream().filter(u -> isAlly).toList();
@@ -118,7 +121,8 @@ public class UnitsCenter {
 
     public static Unit getFreeTerranSCV() {
         Unit unit = getUnits().stream()
-                .filter(u -> u.getType() == UnitType.Terran_SCV && (u.isGatheringGas() || u.isGatheringMinerals() || u.isIdle()))
+                .filter(u -> u.getType() == UnitType.Terran_SCV
+                        && (u.isGatheringGas() || u.isGatheringMinerals() || u.isIdle()))
                 .findFirst().orElse(null);
         return unit;
     }

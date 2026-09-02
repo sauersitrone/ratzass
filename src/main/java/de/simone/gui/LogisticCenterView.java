@@ -5,7 +5,6 @@ import java.util.List;
 
 import javax.swing.JTextArea;
 
-import de.simone.command.BuildAction;
 import de.simone.command.BuildOrder;
 import de.simone.command.LogisticCenter;
 import de.simone.command.LogisticCenterListener;
@@ -28,18 +27,10 @@ public class LogisticCenterView extends Form implements LogisticCenterListener {
     @Override
     public void updated(List<BuildOrder> buildOrders) {
         textArea.setText("");
-        for (int i = buildOrders.size()-1; i >= 0; i--) {
-            BuildOrder buildOrder = buildOrders.get(i);
-            String message = String.format("%s, %s, %d, %s, %s", buildOrder.remitent,
-                    buildOrder.unitType.toString(), buildOrder.quantity, buildOrder.status.toString(),
-                    buildOrder.message);
+        for (BuildOrder buildOrder : buildOrders) {
+            // String message = buildOrder.toString().replace(",", "\n\t");
+            String message = buildOrder.toString();
             textArea.append(message + "\n");
-            for (BuildAction action : buildOrder.getBuildActions()) {
-                String ut = action.unitType == null ? "None" : action.unitType.toString();
-                message = String.format("\t %s, %s, %d, %s, %s", action.action.toString(),
-                        ut, action.quantity, action.status.toString(), action.message);
-                textArea.append(message + "\n");
-            }
         }
 
         // textArea.setText(AsciiTable.getTable(buildOrders, Arrays.asList(

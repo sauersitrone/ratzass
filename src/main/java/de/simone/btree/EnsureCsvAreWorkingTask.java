@@ -12,10 +12,11 @@ public class EnsureCsvAreWorkingTask extends RTask {
     @Override
     public Status execute() {
         Unit unit = UnitsCenter.getIdleTerranSCV();
+        Unit refinery = UnitsCenter.getUnits().stream().filter(u-> u.getType() == UnitType.Terran_Refinery).findFirst().orElse(null);
         if (unit != null) {
             int gGas = (int) UnitsCenter.getUnits().stream()
                     .filter(u -> u.getType() == UnitType.Terran_SCV && u.isGatheringGas()).count();
-            if (gGas < StarCraftConstants.SCV_GATHERING_GAS) {
+            if (gGas < StarCraftConstants.SCV_GATHERING_GAS && refinery != null) {
                 CommandQueue.getInstance().gather(ResourceType.Gas);
             }
 

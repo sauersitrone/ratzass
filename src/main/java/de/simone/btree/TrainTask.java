@@ -1,5 +1,7 @@
 package de.simone.btree;
 
+import java.util.List;
+
 import com.badlogic.gdx.ai.btree.annotation.TaskAttribute;
 
 import bwapi.UnitType;
@@ -14,18 +16,25 @@ public class TrainTask extends RTask {
     @TaskAttribute(required = true)
     public int count;
 
-    private BuildOrder currentBuildOrder;
+    private String remitent;
+    private int voucher;
 
     @Override
     public Status execute() {
         LogisticCenter logisticCenter = LogisticCenter.getInstance();
 
-        if (getStatus() == Status.RUNNING)
-            return getBuildOrderStatus(currentBuildOrder);
+        if (getStatus() == Status.RUNNING) {
+            boolean ready = logisticCenter.areMyOrdersReady(remitent, voucher);
+            return ready ? Status.SUCCEEDED : Status.RUNNING;
+        }
+
+        set an id to the leaf so the task can check where he is now working on 
 
         // no previous, create a new build order
-        currentBuildOrder = new BuildOrder(super.getName(), unitType, count);
-        logisticCenter.addBuildOrder(currentBuildOrder);
+        BuildOrder order = new BuildOrder(super.getName(), unitType, count);
+        this.remitent = order.remitent;
+        this.voucher = order.voucher;
+        logisticCenter.addBuildOrder(order);
 
         return Status.RUNNING;
     }

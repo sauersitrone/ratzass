@@ -29,7 +29,7 @@ public class EnvView extends Form {
         fogOfWar = GuiUtils.getCheckBox("Fog of War", Env.fogOfWar, e -> Env.fogOfWar = fogOfWar.isSelected());
         quitOnGameEnd = GuiUtils.getCheckBox("Quit on Game End", Env.quitOnGameEnd, e -> Env.quitOnGameEnd = quitOnGameEnd.isSelected());
         autoCamera = GuiUtils.getCheckBox("Auto Camera", Env.autoCamera, e -> Env.autoCamera = autoCamera.isSelected());
-        speed = GuiUtils.getSlider(42, 167, Env.speed, e -> Env.speed = speed.getValue());
+        speed = GuiUtils.getSlider(0, 100, Env.speed, e -> Env.speed = speed.getValue());
         speed.setBorder(new TitledBorder("Game Speed"));
 
         JPanel controls = GuiUtils.getInVerticalPanel(autoRestart, useManners, fogOfWar, quitOnGameEnd, autoCamera, speed);

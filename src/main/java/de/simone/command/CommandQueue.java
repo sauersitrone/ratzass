@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import bwapi.Game;
+import bwapi.Pair;
 import bwapi.Position;
 import bwapi.TechType;
 import bwapi.TilePosition;
@@ -294,24 +295,36 @@ public class CommandQueue {
     }
 
     public Command train(UnitType unitType) {
-        Command trainCommand = new Command(UnitCommandType.Train, -1, -1, null);
-        trainCommand.unitType = unitType;
+        Command command = new Command(UnitCommandType.Train, -1, -1, null);
+        command.unitType = unitType;
 
-        // resolve facility
-        RUnit rUnit = UnitsCenter.resolveTrainer(unitType);
-        if (rUnit == null) {
-            logFail(trainCommand, "No Facility available to train " + unitType);
-            return trainCommand;
+        // fail save to forece the corrent pddl domain action
+        if (unitType.isBuilding()) {
+            logFail(command, "the UnitType " + command.unitType + " is not a trainable unit.");
+            return command;
         }
 
-        trainCommand.unitType = unitType;
-        addCommand(trainCommand);
-        return trainCommand;
+        // resolve facility
+        Unit rUnit = UnitsCenter.resolveTrainer(unitType);
+        if (rUnit == null) {
+            logFail(command, "No Facility available to train " + unitType);
+            return command;
+        }
+        command.unitId = rUnit.getID();
+        command.unitType = unitType;
+        addCommand(command);
+        return command;
     }
 
     public Command build(UnitType unitType) {
         Command command = addCommand(UnitCommandType.Build, -1, -1, null);
         command.unitType = unitType;
+
+        // fail save to forece the corrent pddl domain action
+        if (!unitType.isBuilding()) {
+            logFail(command, "the UnitType " + command.unitType + " is not a building.");
+            return command;
+        }
 
         // look for a free SCV to build the unit
         Unit unit = UnitsCenter.getFreeTerranSCV();

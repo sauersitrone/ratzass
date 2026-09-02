@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import bwapi.UnitType;
+import de.simone.RBWListener;
+import de.simone.command.StarCraftConstants.BuildActionName;
 import de.simone.command.StarCraftConstants.OrderPriority;
 import de.simone.command.StarCraftConstants.OrderStatus;
 
@@ -16,32 +18,31 @@ public class BuildOrder {
     public String remitent;
     public UnitType unitType;
     public int quantity;
-    public OrderStatus status;
+    public OrderStatus status = OrderStatus.Pending;
     public String message = "";
+    public int voucher = RBWListener.game.getFrameCount();
 
-    private List<BuildAction> buildActions = new ArrayList<>();
+    public BuildActionName action;
 
     public BuildOrder(String remitent, UnitType unitType, int quantity) {
         this.remitent = remitent;
         this.unitType = unitType;
         this.quantity = quantity;
-        this.status = OrderStatus.Pending;
-    }
-
-    public List<BuildAction> getBuildActions() {
-        return buildActions;
     }
 
     /**
-     * Set the build actions for this build order based on the provided plan. This
-     * method processes the plan to create BuildAction objects for gathering
+     * return the list of BuildOrder based on the provided plan. This
+     * method processes the plan to create BuildOrder objects for gathering
      * resources and training/building units. It consolidates multiple gather
-     * actions into a single BuildAction with the correct quantity.
+     * actions into a single BuildOrder with the correct quantity.
      * 
      * @param plan - the plan
+     * @return the orders
+     * 
      */
-    public void setBuildActions(List<String> plan) {
+    public static List<BuildOrder> getBuildOrders(String remitent, List<String> plan) {
         List<String> plan2 = new ArrayList<>(plan);
+        List<BuildOrder> BuildOrders = new ArrayList<>();
 
         // check the gatherTask_mineral and gatherTask_gas actions and convert them to
         // one BuildAction with the correct quantity
@@ -52,22 +53,32 @@ public class BuildOrder {
         gasCount *= StarCraftConstants.GAS_LOAD;
 
         if (mineralCount > 0) {
-            buildActions.add(
-                    new BuildAction(this, StarCraftConstants.BuildActionName.gather_Mineral, null, mineralCount));
+            BuildOrder buildOrder = new BuildOrder(remitent, null, mineralCount);
+            buildOrder.action = BuildActionName.gather_Mineral;
+            BuildOrders.add(buildOrder);
             plan2.removeIf(action -> action.equals("gather-Mineral"));
         }
         if (gasCount > 0) {
-            buildActions.add(new BuildAction(this, StarCraftConstants.BuildActionName.gather_Gas, null, gasCount));
+            BuildOrder buildOrder = new BuildOrder(remitent, null, mineralCount);
+            buildOrder.action = BuildActionName.gather_Gas;
+            BuildOrders.add(buildOrder);
             plan2.removeIf(action -> action.equals("gather-Gas"));
         }
 
         // pack the rest of the actions into BuildAction objects
         for (String action : plan2) {
             String[] action_UnitName = action.split("-");
-            buildActions.add(
-                    new BuildAction(this, StarCraftConstants.BuildActionName.valueOf(action_UnitName[0]),
-                            UnitType.valueOf(action_UnitName[1]), 1));
+            BuildOrder buildOrder = new BuildOrder(remitent, UnitType.valueOf(action_UnitName[1]), 1);
+            buildOrder.action = BuildActionName.valueOf(action_UnitName[0]);
+            BuildOrders.add(buildOrder);
         }
+        return BuildOrders;
+    }
+
+    @Override
+    public String toString() {
+        return voucher + " " + remitent + ", ut=" + unitType + ", a=" + action + ", q=" + quantity + ", s=" + status
+                + ", m=" + message;
     }
 
 }

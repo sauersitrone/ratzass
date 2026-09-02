@@ -106,7 +106,7 @@ public class RBWListener extends DefaultBWListener {
      */
     @Override
     public void onUnitComplete(Unit unit) {
-        // logisticCenter.onUnitComplete(unit);
+        logisticCenter.onUnitComplete(unit);
         unitsCenter.onUnitComplete(unit);
         UnitEvent unitEvent = new UnitEvent(unit);
         unitEvent.status = UnitEvent.EventType.CREATED;

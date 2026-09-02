@@ -19,4 +19,3 @@ root
             train unitType:"Terran_Supply_Depot" count:1
         # standar day to day operations
         # sequence
-        # ensureCsvAreWorking

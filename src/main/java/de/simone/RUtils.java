@@ -17,7 +17,6 @@ public class RUtils {
         executeInCommandLine(Env.chaosLauncherPath);
     }
 
-    
     public static void endStarcraftProcess() {
         executeInCommandLine("taskkill /IM StarCraft.exe /T /F");
         executeInCommandLine("taskkill /IM Chaoslauncher.exe /T /F");
@@ -74,12 +73,8 @@ public class RUtils {
         } else if (Env.treeStatus == Env.BehaviorTreeStatus.Stepping) {
             behaviorTree.step();
             Env.treeStatus = Env.BehaviorTreeStatus.Suspended;
-        } else {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                log.severe(e.toString());
-            }
+        } else if (Env.treeStatus == Env.BehaviorTreeStatus.Suspended) {
+            // Do nothing
         }
     }
 }

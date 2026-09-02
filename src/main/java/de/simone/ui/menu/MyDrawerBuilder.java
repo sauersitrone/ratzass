@@ -1,10 +1,15 @@
 package de.simone.ui.menu;
 
-import com.badlogic.gdx.ai.btree.BehaviorTree;
+import java.util.Arrays;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.UIManager;
+
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 
-import de.simone.command.LogisticCenter;
 import de.simone.gui.BehaviorTreeView;
 import de.simone.gui.CommandQueueView;
 import de.simone.gui.EnvView;
@@ -12,7 +17,19 @@ import de.simone.gui.LogView;
 import de.simone.gui.LogisticCenterView;
 import de.simone.gui.StarCraftMapView;
 import de.simone.ui.Demo;
-import de.simone.ui.forms.*;
+import de.simone.ui.forms.FormAvatarIcon;
+import de.simone.ui.forms.FormColorPicker;
+import de.simone.ui.forms.FormDashboard;
+import de.simone.ui.forms.FormDateTime;
+import de.simone.ui.forms.FormInput;
+import de.simone.ui.forms.FormModal;
+import de.simone.ui.forms.FormMultiSelect;
+import de.simone.ui.forms.FormPagination;
+import de.simone.ui.forms.FormResponsiveLayout;
+import de.simone.ui.forms.FormSetting;
+import de.simone.ui.forms.FormSlidePane;
+import de.simone.ui.forms.FormTable;
+import de.simone.ui.forms.FormToast;
 import de.simone.ui.model.ModelUser;
 import de.simone.ui.system.AllForms;
 import de.simone.ui.system.Form;
@@ -31,9 +48,6 @@ import raven.modal.drawer.simple.header.SimpleHeader;
 import raven.modal.drawer.simple.header.SimpleHeaderData;
 import raven.modal.option.Option;
 import raven.modal.utils.FlatLafStyleUtils;
-
-import javax.swing.*;
-import java.util.Arrays;
 
 public class MyDrawerBuilder extends SimpleDrawerBuilder {
 

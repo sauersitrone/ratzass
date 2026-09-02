@@ -111,7 +111,7 @@ public class Squad {
      * @return - the needed unit types.
      */
     public List<UnitType> getRequiredUnits() {
-        List<RUnit> freeUnits = unitsCenter.getUnits();
+        List<RUnit> freeUnits = UnitsCenter.getUnits();
         freeUnits.removeIf(u -> !"".equals(u.squadID));
 
         List<UnitType> myUnits = unitsCenter.getSquadUnits(squadID).stream().map(u -> u.unitType).toList();

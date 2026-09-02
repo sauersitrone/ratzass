@@ -3,15 +3,16 @@ package de.simone.gui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.JTree;
-import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -19,7 +20,6 @@ import com.badlogic.gdx.ai.btree.BehaviorTree;
 import com.badlogic.gdx.ai.btree.Task;
 import com.badlogic.gdx.ai.btree.Task.Status;
 
-import de.simone.Env;
 import de.simone.btree.RTask;
 
 public class BehaviorTreeTree extends JTree {
@@ -31,13 +31,23 @@ public class BehaviorTreeTree extends JTree {
     private final Map<Task<?>, DefaultMutableTreeNode> nodeMap = new HashMap<>();
     private DefaultMutableTreeNode executingNode;
     private BehaviorTree<?> behaviorTree;
+    private Timer repaintTimer;
+    private List<DefaultMutableTreeNode> nodesToRepaint;
 
-        
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public BehaviorTreeTree(BehaviorTree<?> behaviorTree) {
         super(new DefaultTreeModel(new DefaultMutableTreeNode(new NodeInfo("Behavior Tree", Task.Status.FRESH))));
-
         this.behaviorTree = behaviorTree;
+        this.nodesToRepaint = new ArrayList<>();
+
+        repaintTimer = new Timer(100, e -> {
+            if (!nodesToRepaint.isEmpty()) {
+                executingNode = nodesToRepaint.removeFirst();
+                repaint();
+            }
+        });
+        repaintTimer.start();
+
         treeModel = (DefaultTreeModel) getModel();
         behaviorTree.addListener(new BehaviorTree.Listener() {
             @Override
@@ -47,15 +57,7 @@ public class BehaviorTreeTree extends JTree {
 
             @Override
             public void statusUpdated(Task task, Status previousStatus) {
-                SwingUtilities.invokeLater(() -> {
-                    executingNode = nodeMap.get(task);
-                    if (executingNode != null) {
-                        TreePath path = new TreePath(executingNode.getPath());
-                        if (Env.scrollToExecutingNode)
-                            scrollPathToVisible(path);
-                    }
-                    repaint();
-                });
+                nodesToRepaint.add(nodeMap.get(task));
             }
         });
 
@@ -118,7 +120,8 @@ public class BehaviorTreeTree extends JTree {
             super.getTreeCellRendererComponent(t, label, sel, expanded, leaf, row, hasFocus);
             setForeground(Color.WHITE);
             if (value == executingNode) {
-                setBackground(new Color(150, 255, 255));
+                setBackground(Color.WHITE);
+                setForeground(Color.BLACK);
                 setOpaque(true);
             } else {
                 setOpaque(false);

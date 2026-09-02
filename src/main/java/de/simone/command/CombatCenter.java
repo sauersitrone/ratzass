@@ -40,7 +40,7 @@ public class CombatCenter {
     }
 
     private CombatCenter() {
-        this.behaviorTree = RUtils.parseFile("dog.tree", this);
+        // this.behaviorTree = RUtils.parseFile("dog.tree", this);
     }
 
     public void addSquad(Squad squad) {

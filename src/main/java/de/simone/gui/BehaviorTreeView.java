@@ -14,7 +14,7 @@ import javax.swing.JScrollPane;
 import com.badlogic.gdx.ai.btree.BehaviorTree;
 
 import de.simone.Env;
-import de.simone.command.CombatCenter;
+import de.simone.command.LogisticCenter;
 import de.simone.ui.system.Form;
 
 /**
@@ -38,7 +38,8 @@ public class BehaviorTreeView extends Form {
     private BehaviorTreeTree currentTree;
 
     public BehaviorTreeView() {
-        BehaviorTreeInfo info = new BehaviorTreeInfo("Combat Center", CombatCenter.getInstance().behaviorTree);
+        BehaviorTreeInfo info = new BehaviorTreeInfo("Logistic", LogisticCenter.getInstance().behaviorTree);
+        // BehaviorTreeInfo info = new BehaviorTreeInfo("Combat Center", CombatCenter.getInstance().behaviorTree);
         this.behaviorTrees.add(info);
 
         treeJComboBox = new JComboBox<>(behaviorTrees);
@@ -59,7 +60,7 @@ public class BehaviorTreeView extends Form {
                 e -> Env.scrollToExecutingNode = scrollToExecutingNode.isSelected());
         stepBehaviorTree = new JButton("Step");
         stepBehaviorTree.addActionListener(e -> Env.treeStatus = Env.BehaviorTreeStatus.Stepping);
-        runBehaviorTree = new JButton("Run");
+        runBehaviorTree = new JButton(Env.treeStatus == Env.BehaviorTreeStatus.Running ? "Suspend" : "Run");
         runBehaviorTree.addActionListener(e -> {
             if (Env.treeStatus == Env.BehaviorTreeStatus.Running) {
                 Env.treeStatus = Env.BehaviorTreeStatus.Suspended;

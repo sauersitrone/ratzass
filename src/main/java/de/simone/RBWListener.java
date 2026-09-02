@@ -77,14 +77,15 @@ public class RBWListener extends DefaultBWListener {
         gameSeconds = game.getFrameCount() / 23.81;
 
         // behavior tree step (every 0.100 milliseconds)
-        if (gameSeconds - lastBehaviorTreeStep >= 0.1) {
+        if (gameSeconds - lastBehaviorTreeStep >= 1) {
             lastBehaviorTreeStep = gameSeconds;
-            RUtils.step(CombatCenter.getInstance().behaviorTree);
+            // RUtils.step(CombatCenter.getInstance().behaviorTree);
         }
 
         // command dispatch & logistic
         if (gameSeconds - lastCenterComm >= 1) {
             lastCenterComm = gameSeconds;
+            RUtils.step(LogisticCenter.getInstance().behaviorTree);
             LogisticCenter.getInstance().update();
             CommandQueue.getInstance().dispatchCommands();
         }
@@ -105,7 +106,7 @@ public class RBWListener extends DefaultBWListener {
      */
     @Override
     public void onUnitComplete(Unit unit) {
-        logisticCenter.onUnitComplete(unit);
+        // logisticCenter.onUnitComplete(unit);
         unitsCenter.onUnitComplete(unit);
         UnitEvent unitEvent = new UnitEvent(unit);
         unitEvent.status = UnitEvent.EventType.CREATED;

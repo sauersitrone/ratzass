@@ -29,7 +29,7 @@ public class Env extends Properties {
     }
 
     public static String chaosLauncherPath;
-    public static BehaviorTreeStatus treeStatus = BehaviorTreeStatus.Suspended;
+    public static BehaviorTreeStatus treeStatus = BehaviorTreeStatus.Running;
 
     private long lastCameraUpdate = 0;
     private int drawBuildLocations = 0;

@@ -15,6 +15,7 @@ import com.badlogic.gdx.ai.btree.BehaviorTree;
 
 import de.simone.Env;
 import de.simone.command.LogisticCenter;
+import de.simone.ui.menu.MyDrawerBuilder;
 import de.simone.ui.system.Form;
 
 /**
@@ -80,7 +81,7 @@ public class BehaviorTreeView extends Form {
 
         JPanel controlPanel = GuiUtils.getControlPanel("Controls", scrollToExecutingNode, stepBehaviorTree,
                 runBehaviorTree, controlsBox);
-        JPanel headerPanel = GuiUtils.getInVerticalPanel(header, controlPanel);
+        JPanel headerPanel = GuiUtils.getInVerticalPanel(MyDrawerBuilder.getEnvView(), header, controlPanel);
         add(headerPanel, BorderLayout.NORTH);
 
         treeJComboBox.setSelectedIndex(0);

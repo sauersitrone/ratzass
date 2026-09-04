@@ -3,11 +3,16 @@ package de.simone.gui;
 import java.awt.BorderLayout;
 import java.util.List;
 
+import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
+import com.badlogic.gdx.scenes.scene2d.utils.UIUtils;
+
+import de.simone.RUtils;
 import de.simone.command.BuildOrder;
 import de.simone.command.LogisticCenter;
 import de.simone.command.LogisticCenterListener;
+import de.simone.ui.menu.MyDrawerBuilder;
 import de.simone.ui.system.Form;
 
 public class LogisticCenterView extends Form implements LogisticCenterListener {
@@ -18,8 +23,9 @@ public class LogisticCenterView extends Form implements LogisticCenterListener {
         setLayout(new BorderLayout());
         textArea = GuiUtils.getConsoleTextArea();
 
-        add(GuiUtils.getHeader("Logistic Center", "Displays the current state of the logistic center."),
-                BorderLayout.NORTH);
+        JPanel north = GuiUtils.getInVerticalPanel(MyDrawerBuilder.getEnvView(),
+                GuiUtils.getHeader("Logistic Center", "Displays the current state of the logistic center."));
+        add(north, BorderLayout.NORTH);
         add(textArea, BorderLayout.CENTER);
         LogisticCenter.getInstance().addListener(this);
     }
@@ -28,8 +34,8 @@ public class LogisticCenterView extends Form implements LogisticCenterListener {
     public void updated(List<BuildOrder> buildOrders) {
         textArea.setText("");
         for (BuildOrder buildOrder : buildOrders) {
-            // String message = buildOrder.toString().replace(",", "\n\t");
-            String message = buildOrder.toString();
+            String message = buildOrder.toString().replace(",", "\t");
+            // String message = buildOrder.toString();
             textArea.append(message + "\n");
         }
 

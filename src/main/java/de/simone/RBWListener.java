@@ -8,7 +8,6 @@ import bwapi.Game;
 import bwapi.Player;
 import bwapi.Unit;
 import bwem.BWEM;
-import de.simone.command.CombatCenter;
 import de.simone.command.CommandQueue;
 import de.simone.command.LogisticCenter;
 import de.simone.command.UnitsCenter;
@@ -32,12 +31,10 @@ public class RBWListener extends DefaultBWListener {
     public static double lastCenterComm;
 
     // Store the current units status
-    public static Table unitEventsTable;
 
     private long lastFrameTime = 0;
 
     private RBWListener() {
-        unitEventsTable = Table.create("Unit Events");
         logisticCenter = LogisticCenter.getInstance();
         unitsCenter = UnitsCenter.getInstance();
 
@@ -108,9 +105,6 @@ public class RBWListener extends DefaultBWListener {
     public void onUnitComplete(Unit unit) {
         logisticCenter.onUnitComplete(unit);
         unitsCenter.onUnitComplete(unit);
-        UnitEvent unitEvent = new UnitEvent(unit);
-        unitEvent.status = UnitEvent.EventType.CREATED;
-        // unitEventsTable.addColumns(unitEvent.toColumns());
     }
 
     /**
@@ -119,9 +113,6 @@ public class RBWListener extends DefaultBWListener {
     @Override
     public void onUnitDestroy(Unit unit) {
         unitsCenter.onUnitDestroy(unit);
-        UnitEvent unitEvent = new UnitEvent(unit);
-        unitEvent.status = UnitEvent.EventType.DESTROYED;
-        // unitEventsTable.addColumns(unitEvent.toColumns());
     }
 
     /**
@@ -130,9 +121,6 @@ public class RBWListener extends DefaultBWListener {
     @Override
     public void onUnitDiscover(Unit unit) {
         unitsCenter.onUnitDiscover(unit);
-        UnitEvent unitEvent = new UnitEvent(unit);
-        unitEvent.isEnemy = game.self().isEnemy(unit.getPlayer());
-        // unitEventsTable.addColumns(unitEvent.toColumns());
     }
 
 }

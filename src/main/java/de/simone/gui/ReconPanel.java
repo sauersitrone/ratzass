@@ -15,9 +15,9 @@ public class ReconPanel extends JPanel {
 
     public ReconPanel() {
         setLayout(new BorderLayout());
-        textArea = GuiUtils.getConsoleTextArea();
+        textArea = UIUtils.getConsoleTextArea();
 
-        add(GuiUtils.getHeader("Recon", "Displays the current state of the game as seen by Ratzass."),
+        add(UIUtils.getHeader("Recon", "Displays the current state of the game as seen by Ratzass."),
                 BorderLayout.NORTH);
         add(textArea, BorderLayout.CENTER);
 

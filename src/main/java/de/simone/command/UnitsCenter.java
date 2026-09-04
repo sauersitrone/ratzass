@@ -9,7 +9,10 @@ import bwapi.Pair;
 import bwapi.Unit;
 import bwapi.UnitType;
 import de.simone.RBWListener;
+import de.simone.UnitEvent;
 import lombok.extern.java.Log;
+import tech.tablesaw.api.Row;
+import tech.tablesaw.api.Table;
 
 /**
  * Represent the command center that keep track of all the units in the game.
@@ -23,9 +26,12 @@ public class UnitsCenter {
     private ArrayList<Squad> squads = new ArrayList<Squad>();
     private Map<UnitType, Integer> currentUnitCounts = new TreeMap<>();
     private Map<Integer, RUnit> currentUnits = new TreeMap<>();
+    private List<UnitsCenterListener> listeners = new ArrayList<>();
+    public Table unitEventsTable;
 
     private UnitsCenter() {
-        //
+        unitEventsTable = Table.create("Unit Events");
+        UnitEvent.createColumns(unitEventsTable);
     }
 
     public static UnitsCenter getInstance() {
@@ -39,27 +45,29 @@ public class UnitsCenter {
         getInstance();
     }
 
+    public void addListener(UnitsCenterListener listener) {
+        listeners.add(listener);
+    }
+
     public static Unit resolveTrainer(UnitType unitType) {
         Pair<UnitType, Integer> whatBuilds = unitType.whatBuilds();
         Unit trainer = UnitsCenter.getUnit(whatBuilds.getKey());
         System.out.println("resolveTrainer: " + unitType + " trainer: " + trainer.getType());
         return trainer;
-
-        // for (UnitType unitType2 : UnitType.values()) {
-        // Pair<UnitType, Integer> whatBuilds = unitType2.whatBuilds();
-        // if (whatBuilds.getKey() == unitType) {
-        // Unit trainer = UnitsCenter.getUnit(whatBuilds.getKey());
-        // return trainer;
-        // }
-        // }
-        // return null;
     }
 
     public void onUnitComplete(Unit unit) {
-        onUnitDiscover(unit);
+        UnitEvent unitEvent = new UnitEvent(unit);
+        unitEvent.status = UnitEvent.EventType.CREATED;
+        unitEvent.appendToTable(unitEventsTable);
+        listeners.forEach(l-> l.updated(unitEventsTable));
     }
 
     public void onUnitDiscover(Unit unit) {
+        UnitEvent unitEvent = new UnitEvent(unit);
+        unitEvent.appendToTable(unitEventsTable);
+        listeners.forEach(l-> l.updated(unitEventsTable));
+
         RUnit rUnit = new RUnit(unit);
         rUnit.isEnemy = RBWListener.game.self().isEnemy(unit.getPlayer());
         currentUnits.put(rUnit.unitID, rUnit);
@@ -68,6 +76,11 @@ public class UnitsCenter {
     }
 
     public void onUnitDestroy(Unit unit) {
+        UnitEvent unitEvent = new UnitEvent(unit);
+        unitEvent.status = UnitEvent.EventType.DESTROYED;
+        unitEvent.appendToTable(unitEventsTable);
+        listeners.forEach(l-> l.updated(unitEventsTable));
+
         RUnit rUnit = new RUnit(unit);
         rUnit.isAlive = false;
         currentUnits.remove(rUnit.unitID);

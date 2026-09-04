@@ -18,7 +18,7 @@ import com.formdev.flatlaf.FlatClientProperties;
 
 import net.miginfocom.swing.MigLayout;
 
-public class GuiUtils {
+public class UIUtils {
 
     public static String formatTime(int frames) {
         int seconds = frames / 24;

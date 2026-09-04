@@ -1,14 +1,15 @@
 package de.simone.gui;
 
 import java.awt.BorderLayout;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
-import com.badlogic.gdx.scenes.scene2d.utils.UIUtils;
+import com.github.freva.asciitable.AsciiTable;
+import com.github.freva.asciitable.Column;
 
-import de.simone.RUtils;
 import de.simone.command.BuildOrder;
 import de.simone.command.LogisticCenter;
 import de.simone.command.LogisticCenterListener;
@@ -21,10 +22,10 @@ public class LogisticCenterView extends Form implements LogisticCenterListener {
 
     public LogisticCenterView() {
         setLayout(new BorderLayout());
-        textArea = GuiUtils.getConsoleTextArea();
+        textArea = UIUtils.getConsoleTextArea();
 
-        JPanel north = GuiUtils.getInVerticalPanel(MyDrawerBuilder.getEnvView(),
-                GuiUtils.getHeader("Logistic Center", "Displays the current state of the logistic center."));
+        JPanel north = UIUtils.getInVerticalPanel(MyDrawerBuilder.getEnvView(),
+                UIUtils.getHeader("Logistic Center", "Displays the current state of the logistic center."));
         add(north, BorderLayout.NORTH);
         add(textArea, BorderLayout.CENTER);
         LogisticCenter.getInstance().addListener(this);
@@ -32,18 +33,13 @@ public class LogisticCenterView extends Form implements LogisticCenterListener {
 
     @Override
     public void updated(List<BuildOrder> buildOrders) {
-        textArea.setText("");
-        for (BuildOrder buildOrder : buildOrders) {
-            String message = buildOrder.toString().replace(",", "\t");
-            // String message = buildOrder.toString();
-            textArea.append(message + "\n");
-        }
-
-        // textArea.setText(AsciiTable.getTable(buildOrders, Arrays.asList(
-        // new Column().header("Remitent").with(c -> c.remitent),
-        // new Column().header("Type").with(c -> c.unitType.toString()),
-        // new Column().header("Quantity").with(c -> "" + c.quantity),
-        // new Column().header("Status").with(c -> c.status.toString()),
-        // new Column().header("Message").with(c -> c.message))));
+        
+        textArea.setText(AsciiTable.getTable(AsciiTable.NO_BORDERS, buildOrders, Arrays.asList(
+        new Column().header("Cicle").with(c -> ""+c.cicle),
+        new Column().header("UnitType").with(c -> c.unitType.toString()),
+        new Column().header("Action").with(c -> c.action.toString()),
+        new Column().header("Quantity").with(c -> "" + c.quantity),
+        new Column().header("Status").with(c -> c.status.toString()),
+        new Column().header("Message").with(c -> c.message))));
     }
 }

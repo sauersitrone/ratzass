@@ -1,7 +1,7 @@
 import isUnitNeeded:"de.simone.btree.IsUnitNeededCondition"
 import train:"de.simone.btree.TrainTask"
 import ensureCsvAreWorking:"de.simone.btree.EnsureCsvAreWorkingTask"
-import isResourceNeeded:"de.simone.btree.IsResourceNeededTask"
+import isSupplyNeeded:"de.simone.btree.IsSupplyNeededTask"
 
 root
     selector
@@ -15,7 +15,7 @@ root
             train unitType:"Terran_SCV" count:6
         # ensure supply depot 
         sequence
-            isResourceNeeded
+            isSupplyNeeded
             train unitType:"Terran_Supply_Depot" count:1
         # standar day to day operations
         # sequence

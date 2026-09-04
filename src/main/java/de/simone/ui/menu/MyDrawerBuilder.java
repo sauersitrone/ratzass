@@ -16,6 +16,7 @@ import de.simone.gui.EnvView;
 import de.simone.gui.LogView;
 import de.simone.gui.LogisticCenterView;
 import de.simone.gui.StarCraftMapView;
+import de.simone.gui.UnitsCenterView;
 import de.simone.ui.Demo;
 import de.simone.ui.forms.FormAvatarIcon;
 import de.simone.ui.forms.FormColorPicker;
@@ -153,6 +154,7 @@ public class MyDrawerBuilder extends SimpleDrawerBuilder {
         MenuItem[] items = new MenuItem[] {
                 new Item.Label("Ratzass"),
                 new Item("Logistic center", "dashboard.svg", LogisticCenterView.class),
+                new Item("Units center", "dashboard.svg", UnitsCenterView.class),
                 new Item("Behavior Tree", "BehaviorTree2.svg", BehaviorTreeView.class),
                 new Item("StarCraft Map", "dashboard.svg", StarCraftMapView.class),
                 new Item("Log View", "dashboard.svg", LogView.class),

@@ -3,7 +3,7 @@ package de.simone.btree;
 import de.simone.RBWListener;
 import de.simone.command.StarCraftConstants;
 
-public class IsResourceNeededTask extends RTask {
+public class IsSupplyNeededTask extends RTask {
 
     @Override
     public Status execute() {

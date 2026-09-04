@@ -21,12 +21,12 @@ public class EnvView extends JPanel {
     public EnvView() {
         setLayout(new FlowLayout(FlowLayout.LEFT));
 
-        autoRestart = GuiUtils.getCheckBox("Auto Restart", Env.autoRestart, e -> Env.autoRestart = autoRestart.isSelected());
-        useManners = GuiUtils.getCheckBox("Use Manners", Env.useManners, e -> Env.useManners = useManners.isSelected());
-        fogOfWar = GuiUtils.getCheckBox("Fog of War", Env.fogOfWar, e -> Env.fogOfWar = fogOfWar.isSelected());
-        quitOnGameEnd = GuiUtils.getCheckBox("Quit on Game End", Env.quitOnGameEnd, e -> Env.quitOnGameEnd = quitOnGameEnd.isSelected());
-        autoCamera = GuiUtils.getCheckBox("Auto Camera", Env.autoCamera, e -> Env.autoCamera = autoCamera.isSelected());
-        speed = GuiUtils.getSlider(0, 100, Env.speed, e -> Env.speed = speed.getValue());
+        autoRestart = UIUtils.getCheckBox("Auto Restart", Env.autoRestart, e -> Env.autoRestart = autoRestart.isSelected());
+        useManners = UIUtils.getCheckBox("Use Manners", Env.useManners, e -> Env.useManners = useManners.isSelected());
+        fogOfWar = UIUtils.getCheckBox("Fog of War", Env.fogOfWar, e -> Env.fogOfWar = fogOfWar.isSelected());
+        quitOnGameEnd = UIUtils.getCheckBox("Quit on Game End", Env.quitOnGameEnd, e -> Env.quitOnGameEnd = quitOnGameEnd.isSelected());
+        autoCamera = UIUtils.getCheckBox("Auto Camera", Env.autoCamera, e -> Env.autoCamera = autoCamera.isSelected());
+        speed = UIUtils.getSlider(0, 100, Env.speed, e -> Env.speed = speed.getValue());
         speed.setBorder(new TitledBorder("Game Speed"));
 
         add(autoRestart);

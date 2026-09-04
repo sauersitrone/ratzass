@@ -11,7 +11,6 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import com.badlogic.gdx.ai.btree.BehaviorTree;
 import com.hstairs.ppmajal.transition.TransitionGround;
 
-import bwapi.Order;
 import bwapi.Pair;
 import bwapi.Unit;
 import bwapi.UnitType;
@@ -90,7 +89,6 @@ public class LogisticCenter {
      * - notify the listeners about the updated buildOrders
      */
     public void update() {
-        List<Unit> units = UnitsCenter.getUnits();
 
         // ensure the scv are working
         Unit unit = UnitsCenter.getIdleTerranSCV();
@@ -138,8 +136,6 @@ public class LogisticCenter {
             }
         }
 
-        // resources check.
-
         // star the next pending build or train action
         optional = buildOrders.stream()
                 .filter(bo -> (bo.action == StarCraftConstants.BuildActionName.build
@@ -177,8 +173,7 @@ public class LogisticCenter {
      * @param buildOrder - the order
      */
     public void addBuildOrder(BuildOrder buildOrder) {
-        // to avoid creating the same build order, check if the remitent already has a
-        // pending build order.
+        // to avoid creating the same build order, check if si ther a  pending build order.
         Optional<BuildOrder> optional = buildOrders.stream()
                 .filter(bo -> bo.unitType == buildOrder.unitType
                         && (bo.status == OrderStatus.Pending || bo.status == OrderStatus.Running))

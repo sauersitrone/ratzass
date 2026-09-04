@@ -21,10 +21,10 @@ public class CommandQueueView extends Form {
     public CommandQueueView() {
         setLayout(new BorderLayout());
 
-        JPanel header = GuiUtils.getHeader("Command Queue", "Displays the command queue in real-time.");
+        JPanel header = UIUtils.getHeader("Command Queue", "Displays the command queue in real-time.");
 
-        textPane = GuiUtils.getConsoleTextArea();
-        JPanel north = GuiUtils.getInVerticalPanel(MyDrawerBuilder.getEnvView(), header);
+        textPane = UIUtils.getConsoleTextArea();
+        JPanel north = UIUtils.getInVerticalPanel(MyDrawerBuilder.getEnvView(), header);
         add(north, BorderLayout.NORTH);
         add(textPane, BorderLayout.CENTER);
 

@@ -15,17 +15,15 @@ public class BuildOrder {
     // LogisticCenter to sort the build orders by priority
     public OrderPriority priority = OrderPriority.Normal;
 
-    public String remitent;
     public UnitType unitType;
     public int quantity;
     public OrderStatus status = OrderStatus.Pending;
     public String message = "";
-    public int voucher = RBWListener.game.getFrameCount();
+    public int cicle = RBWListener.game.getFrameCount();
 
     public BuildActionName action;
 
-    public BuildOrder(String remitent, UnitType unitType, int quantity) {
-        this.remitent = remitent;
+    public BuildOrder(UnitType unitType, int quantity) {
         this.unitType = unitType;
         this.quantity = quantity;
     }
@@ -40,7 +38,7 @@ public class BuildOrder {
      * @return the orders
      * 
      */
-    public static List<BuildOrder> getBuildOrders(String remitent, List<String> plan) {
+    public static List<BuildOrder> getBuildOrders(List<String> plan) {
         List<String> plan2 = new ArrayList<>(plan);
         List<BuildOrder> BuildOrders = new ArrayList<>();
 
@@ -53,13 +51,13 @@ public class BuildOrder {
         gasCount *= StarCraftConstants.GAS_LOAD;
 
         if (mineralCount > 0) {
-            BuildOrder buildOrder = new BuildOrder(remitent, null, mineralCount);
+            BuildOrder buildOrder = new BuildOrder(UnitType.None, mineralCount);
             buildOrder.action = BuildActionName.gather_Mineral;
             BuildOrders.add(buildOrder);
             plan2.removeIf(action -> action.equals("gather-Mineral"));
         }
         if (gasCount > 0) {
-            BuildOrder buildOrder = new BuildOrder(remitent, null, mineralCount);
+            BuildOrder buildOrder = new BuildOrder(UnitType.None, mineralCount);
             buildOrder.action = BuildActionName.gather_Gas;
             BuildOrders.add(buildOrder);
             plan2.removeIf(action -> action.equals("gather-Gas"));
@@ -68,7 +66,7 @@ public class BuildOrder {
         // pack the rest of the actions into BuildAction objects
         for (String action : plan2) {
             String[] action_UnitName = action.split("-");
-            BuildOrder buildOrder = new BuildOrder(remitent, UnitType.valueOf(action_UnitName[1]), 1);
+            BuildOrder buildOrder = new BuildOrder(UnitType.valueOf(action_UnitName[1]), 1);
             buildOrder.action = BuildActionName.valueOf(action_UnitName[0]);
             BuildOrders.add(buildOrder);
         }
@@ -77,7 +75,7 @@ public class BuildOrder {
 
     @Override
     public String toString() {
-        return voucher + " " + remitent + ", ut=" + unitType + ", a=" + action + ", q=" + quantity + ", s=" + status
+        return cicle + ", ut=" + unitType + ", a=" + action + ", q=" + quantity + ", s=" + status
                 + ", m=" + message;
     }
 

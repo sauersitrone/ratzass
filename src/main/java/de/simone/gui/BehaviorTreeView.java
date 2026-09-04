@@ -54,10 +54,10 @@ public class BehaviorTreeView extends Form {
         });
 
         setLayout(new BorderLayout());
-        JPanel header = GuiUtils.getHeader("Behavior Tree",
+        JPanel header = UIUtils.getHeader("Behavior Tree",
                 "Displays the gdx-ai behavior tree using a JTree, highlighting the currently executing LeafTask.");
 
-        scrollToExecutingNode = GuiUtils.getCheckBox("Scroll to Executing Node", Env.scrollToExecutingNode,
+        scrollToExecutingNode = UIUtils.getCheckBox("Scroll to Executing Node", Env.scrollToExecutingNode,
                 e -> Env.scrollToExecutingNode = scrollToExecutingNode.isSelected());
         stepBehaviorTree = new JButton("Step");
         stepBehaviorTree.addActionListener(e -> Env.treeStatus = Env.BehaviorTreeStatus.Stepping);
@@ -79,9 +79,9 @@ public class BehaviorTreeView extends Form {
         controlsBox.add(Box.createHorizontalStrut(10));
         controlsBox.add(treeJComboBox);
 
-        JPanel controlPanel = GuiUtils.getControlPanel("Controls", scrollToExecutingNode, stepBehaviorTree,
+        JPanel controlPanel = UIUtils.getControlPanel("Controls", scrollToExecutingNode, stepBehaviorTree,
                 runBehaviorTree, controlsBox);
-        JPanel headerPanel = GuiUtils.getInVerticalPanel(MyDrawerBuilder.getEnvView(), header, controlPanel);
+        JPanel headerPanel = UIUtils.getInVerticalPanel(MyDrawerBuilder.getEnvView(), header, controlPanel);
         add(headerPanel, BorderLayout.NORTH);
 
         treeJComboBox.setSelectedIndex(0);

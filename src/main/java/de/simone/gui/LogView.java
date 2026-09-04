@@ -22,9 +22,9 @@ public class LogView extends Form {
     public LogView() {
         setLayout(new BorderLayout());
 
-        JPanel header = GuiUtils.getHeader("Logging Panel", "Displays log messages in real-time.");
+        JPanel header = UIUtils.getHeader("Logging Panel", "Displays log messages in real-time.");
 
-        this.jTextArea = GuiUtils.getConsoleTextArea();
+        this.jTextArea = UIUtils.getConsoleTextArea();
 
         add(header, BorderLayout.NORTH);
         add(new JScrollPane(jTextArea), BorderLayout.CENTER);

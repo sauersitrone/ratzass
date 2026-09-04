@@ -77,7 +77,8 @@ public class MyDrawerBuilder extends SimpleDrawerBuilder {
         SimpleHeader header = (SimpleHeader) getHeader();
         SimpleHeaderData data = header.getSimpleHeaderData();
         AvatarIcon icon = (AvatarIcon) data.getIcon();
-        // String iconName = user.getRole() == ModelUser.Role.ADMIN ? "avatar_male.svg" : "avatar_female.svg";
+        // String iconName = user.getRole() == ModelUser.Role.ADMIN ? "avatar_male.svg"
+        // : "avatar_female.svg";
 
         // icon.setIcon(new FlatSVGIcon("ui/drawer/image/" + iconName, 100, 100));
         icon.setIcon(new ImageIcon(getClass().getResource("/ui/drawer/image/avatar.jpg")));
@@ -136,6 +137,15 @@ public class MyDrawerBuilder extends SimpleDrawerBuilder {
         return option;
     }
 
+    private static EnvView envView;
+
+    public static EnvView getEnvView() {
+        if (envView == null)
+            envView = new EnvView();
+
+        return envView;
+    }
+
     public static MenuOption createSimpleMenuOption() {
         // create simple menu option
         MenuOption simpleMenuOption = new MenuOption();
@@ -143,7 +153,6 @@ public class MyDrawerBuilder extends SimpleDrawerBuilder {
         MenuItem[] items = new MenuItem[] {
                 new Item.Label("Ratzass"),
                 new Item("Logistic center", "dashboard.svg", LogisticCenterView.class),
-                new Item("Environment", "dashboard.svg", EnvView.class),
                 new Item("Behavior Tree", "BehaviorTree2.svg", BehaviorTreeView.class),
                 new Item("StarCraft Map", "dashboard.svg", StarCraftMapView.class),
                 new Item("Log View", "dashboard.svg", LogView.class),

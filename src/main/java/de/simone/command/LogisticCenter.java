@@ -58,29 +58,11 @@ public class LogisticCenter {
         // this.planner = "sat-hmrp";
     }
 
-    public boolean areMyOrdersReady(String remitent, int voucher) {
-        List<BuildOrder> list = buildOrders.stream().filter(o -> o.remitent.equals(remitent) && o.voucher == voucher)
+    public boolean areMyOrdersReady(UnitType unitType, int quantity) {
+        List<BuildOrder> list = buildOrders.stream().filter(o -> o.unitType == unitType && o.quantity == quantity)
                 .toList();
         int ready = (int) list.stream().filter(o -> o.status == OrderStatus.Completed).count();
         return ready == list.size();
-    }
-
-    private void updateBuildOrdersStatus() {
-        for (BuildOrder buildOrder : buildOrders) {
-            OrderStatus status = OrderStatus.Pending;
-
-            // if any action end in error, the build order is in error
-            Optional<BuildOrder> optional = buildOrders.stream()
-                    .filter(n -> n.status == OrderStatus.Error).findFirst();
-            status = optional.isPresent() ? OrderStatus.Error : status;
-
-            // if all actions are completed, the build order is completed
-            int count = (int) buildOrders.stream()
-                    .filter(n -> n.status == OrderStatus.Completed).count();
-            status = count == buildOrders.size() ? OrderStatus.Completed : status;
-
-            buildOrder.status = status;
-        }
     }
 
     public void onUnitComplete(Unit unit) {
@@ -90,7 +72,6 @@ public class LogisticCenter {
 
         if (optional.isPresent()) {
             optional.get().status = OrderStatus.Completed;
-            updateBuildOrdersStatus();
         }
     }
 
@@ -199,7 +180,7 @@ public class LogisticCenter {
         // to avoid creating the same build order, check if the remitent already has a
         // pending build order.
         Optional<BuildOrder> optional = buildOrders.stream()
-                .filter(bo -> bo.remitent.equals(buildOrder.remitent) && bo.unitType == buildOrder.unitType
+                .filter(bo -> bo.unitType == buildOrder.unitType
                         && (bo.status == OrderStatus.Pending || bo.status == OrderStatus.Running))
                 .findFirst();
         if (optional.isPresent()) {
@@ -220,7 +201,7 @@ public class LogisticCenter {
             buildOrder.message = "No plan found for build order: " + buildOrder.unitType + " x" + buildOrder.quantity;
         } else {
             buildOrder.status = OrderStatus.Pending;
-            buildOrders2 = BuildOrder.getBuildOrders(buildOrder.remitent, plan);
+            buildOrders2 = BuildOrder.getBuildOrders(plan);
         }
 
         // build order priority
@@ -233,10 +214,6 @@ public class LogisticCenter {
         for (LogisticCenterListener listener : listeners) {
             listener.updated(buildOrders);
         }
-    }
-
-    public BuildOrder getBuildOrder(String remitent) {
-        return buildOrders.stream().filter(bo -> bo.remitent.equals(remitent)).findFirst().orElse(null);
     }
 
     private List<String> solve() {

@@ -9,6 +9,7 @@ import javax.swing.Timer;
 
 import de.simone.command.Command;
 import de.simone.command.CommandQueue;
+import de.simone.ui.menu.MyDrawerBuilder;
 import de.simone.ui.system.Form;
 
 public class CommandQueueView extends Form {
@@ -23,8 +24,8 @@ public class CommandQueueView extends Form {
         JPanel header = GuiUtils.getHeader("Command Queue", "Displays the command queue in real-time.");
 
         textPane = GuiUtils.getConsoleTextArea();
-
-        add(header, BorderLayout.NORTH);
+        JPanel north = GuiUtils.getInVerticalPanel(MyDrawerBuilder.getEnvView(), header);
+        add(north, BorderLayout.NORTH);
         add(textPane, BorderLayout.CENTER);
 
         timer = new Timer(1000, e -> {

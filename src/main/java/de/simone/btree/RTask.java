@@ -4,19 +4,18 @@ import com.badlogic.gdx.ai.btree.LeafTask;
 import com.badlogic.gdx.ai.btree.Task;
 
 import de.simone.command.BuildOrder;
-import de.simone.command.CombatCenter;
 import de.simone.command.StarCraftConstants.OrderStatus;
 
-public abstract class RTask extends LeafTask<CombatCenter> {
+public abstract class RTask extends LeafTask<Blackboard> {
 
     // i need some how fire an event to the GUI that this task is being executed, so
     // that the GUI can highlight it
-    public Task<CombatCenter> getControl() {
+    public Task<Blackboard> getControl() {
         return control;
     }
 
     @Override
-    protected Task<CombatCenter> copyTo(Task<CombatCenter> task) {
+    protected Task<Blackboard> copyTo(Task<Blackboard> task) {
         return task;
     }
 

@@ -38,8 +38,6 @@ import de.simone.Env;
 import de.simone.RBWListener;
 import de.simone.command.Command;
 import de.simone.command.CommandQueueListener;
-import de.simone.command.RUnit;
-import de.simone.command.UnitsCenter;
 
 /**
  * Tiled-map-backed GUI showing the ProxyBot's view of the game state.
@@ -187,8 +185,8 @@ public class StarCraftTileMap extends JPanel
     // -------------------------------------------------------------------------
 
     private void updateTiledMap() {
-        if (Env.ignoreBases)
-            return;
+        // if (Env.ignoreBases)
+        //     return;
 
         try {
             if (!mapInitialized)
@@ -321,26 +319,26 @@ public class StarCraftTileMap extends JPanel
     private void refreshUnits() {
         enemyUnitsGroup.getObjects().clear();
         if (Env.drawEnemyUnits) {
-            for (RUnit unit : UnitsCenter.getInstance().getEnemyUnits()) {
-                MapObject obj = new MapObject(unit.position.x * tileSize, unit.position.y * tileSize,
-                        unit.unitType.tileWidth() * tileSize,
-                        unit.unitType.tileHeight() * tileSize, 0);
+            for (Unit unit : game.getAllUnits()) {
+                MapObject obj = new MapObject(unit.getPosition().x * tileSize, unit.getPosition().y * tileSize,
+                        unit.getType().tileWidth() * tileSize,
+                        unit.getType().tileHeight() * tileSize, 0);
                 obj.setType("enemy_unit");
                 if (Env.drawIDs)
-                    obj.setName(String.valueOf(unit.unitID));
+                    obj.setName(String.valueOf(unit.getID()));
                 enemyUnitsGroup.addObject(obj);
             }
         }
 
         allyUnitsGroup.getObjects().clear();
         if (Env.drawPlayerUnits) {
-            for (RUnit unit : UnitsCenter.getInstance().getUnits()) {
-                MapObject obj = new MapObject(unit.position.x * tileSize, unit.position.y * tileSize,
-                        unit.unitType.tileWidth() * tileSize,
-                        unit.unitType.tileHeight() * tileSize, 0);
+            for (Unit unit : game.getAllUnits()) {
+                MapObject obj = new MapObject(unit.getPosition().x * tileSize, unit.getPosition().y * tileSize,
+                        unit.getType().tileWidth() * tileSize,
+                        unit.getType().tileHeight() * tileSize, 0);
                 obj.setType("ally_unit");
                 if (Env.drawIDs)
-                    obj.setName(String.valueOf(unit.unitID));
+                    obj.setName(String.valueOf(unit.getID()));
                 allyUnitsGroup.addObject(obj);
             }
         }
@@ -373,11 +371,13 @@ public class StarCraftTileMap extends JPanel
         Graphics2D g2 = (Graphics2D) g;
         g2.setBackground(Color.BLACK);
         g2.clearRect(0, 0, getWidth(), getHeight());
+        // System.out.println(getWidth() + " " + getHeight());
         g2.translate(tx, ty);
         g2.scale(scale, scale);
 
         if (!influenceMap) {
-            if (!Env.ignoreBases && mapInitialized) {
+            // if (!Env.ignoreBases && mapInitialized) {
+            if (mapInitialized) {
                 paintTerrainLayer(g2);
                 if (Env.drawRegions)
                     paintObjectGroupOutline(g2, regionsGroup);
@@ -517,11 +517,11 @@ public class StarCraftTileMap extends JPanel
         HashMap<Integer, Double> playerInf = new HashMap<>();
         HashMap<Integer, Double> enemyInf = new HashMap<>();
 
-        for (RUnit unit : UnitsCenter.getInstance().getUnits()) {
-            accumulateInfluence(playerInf, unit.position.x, unit.position.y, w);
+        for (Unit unit : game.getAllUnits()) {
+            accumulateInfluence(playerInf, unit.getPosition().x, unit.getPosition().y, w);
         }
-        for (RUnit unit : UnitsCenter.getInstance().getEnemyUnits()) {
-            accumulateInfluence(enemyInf, unit.position.x, unit.position.y, w);
+        for (Unit unit : game.getAllUnits()) {
+            accumulateInfluence(enemyInf, unit.getPosition().x, unit.getPosition().y, w);
         }
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {

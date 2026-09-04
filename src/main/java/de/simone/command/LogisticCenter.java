@@ -33,9 +33,9 @@ public class LogisticCenter {
     private String domain;
     private String problem;
     private String planner;
-    private List<BuildOrder> buildOrders = new ArrayList<>();
     private List<LogisticCenterListener> listeners = new ArrayList<>();
     public BehaviorTree<LogisticCenter> behaviorTree;
+    public List<BuildOrder> buildOrders = new ArrayList<>();
 
     public static LogisticCenter getInstance() {
         if (instance == null) {
@@ -158,6 +158,15 @@ public class LogisticCenter {
                 buildOrder.status = OrderStatus.Running;
             }
         }
+
+        // // build refinery
+        // int count = UnitsCenter.getUnitCount(UnitType.Terran_Refinery);
+        // if(count < 1) {
+        //     BuildOrder buildOrder = new BuildOrder(UnitType.Terran_Refinery, 1);
+        //     addBuildOrder(buildOrder);
+        //     return;
+        // }
+
 
         for (LogisticCenterListener listener : listeners) {
             listener.updated(buildOrders);

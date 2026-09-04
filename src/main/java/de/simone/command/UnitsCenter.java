@@ -11,7 +11,6 @@ import bwapi.UnitType;
 import de.simone.RBWListener;
 import de.simone.UnitEvent;
 import lombok.extern.java.Log;
-import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 
 /**
@@ -24,8 +23,7 @@ public class UnitsCenter {
     private static UnitsCenter instance;
 
     private ArrayList<Squad> squads = new ArrayList<Squad>();
-    private Map<UnitType, Integer> currentUnitCounts = new TreeMap<>();
-    private Map<Integer, RUnit> currentUnits = new TreeMap<>();
+    private Map<Integer, UnitDocument> unitDocuments = new TreeMap<>();
     private List<UnitsCenterListener> listeners = new ArrayList<>();
     public Table unitEventsTable;
 
@@ -49,60 +47,94 @@ public class UnitsCenter {
         listeners.add(listener);
     }
 
-    public static Unit resolveTrainer(UnitType unitType) {
-        Pair<UnitType, Integer> whatBuilds = unitType.whatBuilds();
-        Unit trainer = UnitsCenter.getUnit(whatBuilds.getKey());
-        System.out.println("resolveTrainer: " + unitType + " trainer: " + trainer.getType());
-        return trainer;
-    }
-
     public void onUnitComplete(Unit unit) {
         UnitEvent unitEvent = new UnitEvent(unit);
         unitEvent.status = UnitEvent.EventType.CREATED;
         unitEvent.appendToTable(unitEventsTable);
-        listeners.forEach(l-> l.updated(unitEventsTable));
+        listeners.forEach(l -> l.updated(unitEventsTable));
     }
 
     public void onUnitDiscover(Unit unit) {
         UnitEvent unitEvent = new UnitEvent(unit);
         unitEvent.appendToTable(unitEventsTable);
-        listeners.forEach(l-> l.updated(unitEventsTable));
+        listeners.forEach(l -> l.updated(unitEventsTable));
 
-        RUnit rUnit = new RUnit(unit);
-        rUnit.isEnemy = RBWListener.game.self().isEnemy(unit.getPlayer());
-        currentUnits.put(rUnit.unitID, rUnit);
-        int count = currentUnitCounts.getOrDefault(rUnit.unitType, 0);
-        currentUnitCounts.put(rUnit.unitType, count + 1);
+        UnitDocument doc = new UnitDocument(unit);
+        unitDocuments.put(doc.unitID, doc);
     }
 
     public void onUnitDestroy(Unit unit) {
         UnitEvent unitEvent = new UnitEvent(unit);
         unitEvent.status = UnitEvent.EventType.DESTROYED;
         unitEvent.appendToTable(unitEventsTable);
-        listeners.forEach(l-> l.updated(unitEventsTable));
+        listeners.forEach(l -> l.updated(unitEventsTable));
 
-        RUnit rUnit = new RUnit(unit);
-        rUnit.isAlive = false;
-        currentUnits.remove(rUnit.unitID);
-        int count = currentUnitCounts.getOrDefault(rUnit.unitType, 1);
-        currentUnitCounts.put(rUnit.unitType, count - 1);
+        UnitDocument doc = unitDocuments.get(unit.getID());
+        if (doc != null)
+            doc.isAlive = false;
+    }
+
+    //
+    public List<UnitDocument> getDocuments() {
+        return unitDocuments.values().stream().filter(u -> !u.isEnemy).toList();
+    }
+
+    //
+    public List<UnitDocument> getDocuments(UnitType unitType) {
+        return getDocuments().stream().filter(u -> !u.isEnemy && u.unitType == unitType).toList();
+    }
+
+    //
+    public UnitDocument getDocument(UnitType unitType) {
+        List<UnitDocument> units = getDocuments(unitType);
+        if (!units.isEmpty())
+            return units.getFirst();
+
+        return null;
+    }
+
+    public List<UnitDocument> getEnemies() {
+        return unitDocuments.values().stream().filter(u -> u.isEnemy).toList();
     }
 
     public int getEnemyUnitCount(UnitType unitType) {
-        return (int) currentUnits.values().stream().filter(u -> u.isEnemy && u.unitType == unitType).count();
+        return (int) getEnemies().stream().filter(u -> u.unitType == unitType).count();
     }
 
-    public List<RUnit> getUnits(UnitType unitType) {
-        return currentUnits.values().stream().filter(u -> !u.isEnemy && u.unitType == unitType).toList();
+    public List<UnitDocument> getEnemyUnits(UnitType unitType) {
+        return getEnemies().stream().filter(u -> u.unitType == unitType).toList();
     }
 
-    public List<RUnit> getEnemyUnits(UnitType unitType) {
-        return currentUnits.values().stream().filter(u -> u.isEnemy && u.unitType == unitType).toList();
+    public void addSquad(Squad squad) {
+        squads.add(squad);
     }
 
-    public List<RUnit> getEnemyUnits() {
-        List<RUnit> units = currentUnits.values().stream().filter(u -> u.isEnemy).toList();
-        return units;
+    public List<Squad> getSquads() {
+        return new ArrayList<>(squads);
+    }
+
+    /**
+     * Get the largest squad that has size less than or equal to the given size.
+     * 
+     * @param size - the size
+     * @return the squad
+     */
+    public Squad getSquads(int size) {
+        List<Squad> squads = getSquads();
+        if (squads.isEmpty()) {
+            return null;
+        }
+        // reverse
+        squads.sort((s1, s2) -> Integer.compare(s2.getAliveMembers().size(), s1.getAliveMembers().size()));
+
+        squads.removeIf(s -> s.getAliveMembers().size() > size);
+        return squads.isEmpty() ? null : squads.get(0);
+    }
+
+    //
+    public List<UnitDocument> getSquadUnits(String squadID) {
+        List<UnitDocument> list = getDocuments();
+        return list.stream().filter(u -> u.squadID.equals(squadID)).toList();
     }
 
     public static Unit getUnit(UnitType... unitTypes) {
@@ -112,6 +144,12 @@ public class UnitsCenter {
                 return unit;
         }
         return null;
+    }
+
+    public static Unit resolveTrainer(UnitType unitType) {
+        Pair<UnitType, Integer> whatBuilds = unitType.whatBuilds();
+        Unit trainer = UnitsCenter.getUnit(whatBuilds.getKey());
+        return trainer;
     }
 
     public static Unit getUnit(UnitType unitType) {
@@ -144,41 +182,4 @@ public class UnitsCenter {
         int count = (int) getUnits().stream().filter(u -> u.getType() == unitType).count();
         return count;
     }
-
-    public void addSquad(Squad squad) {
-        squads.add(squad);
-    }
-
-    public List<Squad> getSquads() {
-        return new ArrayList<>(squads);
-    }
-
-    /**
-     * Get the largest squad that has size less than or equal to the given size.
-     * 
-     * @param size - the size
-     * @return the squad
-     */
-    public Squad getSquads(int size) {
-        List<Squad> squads = getSquads();
-        if (squads.isEmpty()) {
-            return null;
-        }
-        // reverse
-        squads.sort((s1, s2) -> Integer.compare(s2.getAliveMembers().size(), s1.getAliveMembers().size()));
-
-        squads.removeIf(s -> s.getAliveMembers().size() > size);
-        return squads.isEmpty() ? null : squads.get(0);
-    }
-
-    /**
-     * return all members of the squad (death or alives)
-     * 
-     * @param squadID - the id
-     * @return the members
-     */
-    public List<RUnit> getSquadUnits(String squadID) {
-        return currentUnits.values().stream().filter(u -> u.squadID.equals(squadID)).toList();
-    }
-
 }

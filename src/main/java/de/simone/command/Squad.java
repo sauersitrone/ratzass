@@ -75,12 +75,8 @@ public class Squad {
         this.commandQueue = CommandQueue.getInstance();
     }
 
-    // public int getSize() {
-    // return members.size();
-    // }
-
-    public List<RUnit> getAliveMembers() {
-        List<RUnit> units = unitsCenter.getSquadUnits(squadID);
+    public List<UnitDocument> getAliveMembers() {
+        List<UnitDocument> units = unitsCenter.getSquadUnits(squadID);
         units.removeIf(u -> !u.isAlive);
         return units;
     }
@@ -91,7 +87,7 @@ public class Squad {
     public void recruitMembers() {
         List<UnitType> requiredUnits = getRequiredUnits();
         for (UnitType unitType : requiredUnits) {
-            RUnit unit = unitsCenter.getUnit(unitType);
+            UnitDocument unit = unitsCenter.getDocument(unitType);
             if (unit != null) {
                 unit.squadID = squadID;
             }
@@ -111,7 +107,7 @@ public class Squad {
      * @return - the needed unit types.
      */
     public List<UnitType> getRequiredUnits() {
-        List<RUnit> freeUnits = UnitsCenter.getUnits();
+        List<UnitDocument> freeUnits = unitsCenter.getDocuments();
         freeUnits.removeIf(u -> !"".equals(u.squadID));
 
         List<UnitType> myUnits = unitsCenter.getSquadUnits(squadID).stream().map(u -> u.unitType).toList();
@@ -124,19 +120,19 @@ public class Squad {
 
     // terry
     public void mergeSquads(Squad sourceSquad) {
-        List<RUnit> units = unitsCenter.getSquadUnits(sourceSquad.squadID);
+        List<UnitDocument> units = unitsCenter.getSquadUnits(sourceSquad.squadID);
         units.forEach(u -> u.squadID = squadID);
         this.squadID += "-" + sourceSquad.squadID;
         regroup(true);
     }
 
     public boolean getSpreadExceeded() {
-        List<RUnit> units = unitsCenter.getSquadUnits(squadID);
+        List<UnitDocument> units = unitsCenter.getSquadUnits(squadID);
         return getSpread() > units.size() * 30;
     }
 
     public boolean getSpreadFixed() {
-        List<RUnit> units = unitsCenter.getSquadUnits(squadID);
+        List<UnitDocument> units = unitsCenter.getSquadUnits(squadID);
         return (getSpread() < units.size() * 20) || (RBWListener.game.getFrameCount() > (regroupTime + 60));
     }
 
@@ -148,7 +144,7 @@ public class Squad {
             Point center = squad.getCenter(false);
 
             if (center != null) {
-                double distance = RUnit.distance(x, y, center.x, center.y);
+                double distance = StaffUtils.distance(x, y, center.x, center.y);
 
                 if (distance < closest) {
                     closest = distance;
@@ -160,8 +156,8 @@ public class Squad {
     }
 
     public void patrol(Position position) {
-        List<RUnit> units = unitsCenter.getSquadUnits(squadID);
-        for (RUnit unit : units) {
+        List<UnitDocument> units = unitsCenter.getSquadUnits(squadID);
+        for (UnitDocument unit : units) {
             commandQueue.patrol(unit.unitID, position);
         }
     }
@@ -170,8 +166,8 @@ public class Squad {
         Point rally = StaffUtils.getRallyPoint(0, 0);
         double theta = Math.random() * 2.0 * Math.PI;
 
-        List<RUnit> units = unitsCenter.getSquadUnits(squadID);
-        for (RUnit unit : units) {
+        List<UnitDocument> units = unitsCenter.getSquadUnits(squadID);
+        for (UnitDocument unit : units) {
             commandQueue.rightClick(unit.unitID,
                     32 * rally.x + (int) (Math.cos(theta) * 3.5),
                     32 * rally.y + (int) (Math.sin(theta) * 3.5));
@@ -189,8 +185,8 @@ public class Squad {
     }
 
     public boolean getCanAttackAir() {
-        List<RUnit> units = unitsCenter.getSquadUnits(squadID);
-        for (RUnit unit : units) {
+        List<UnitDocument> units = unitsCenter.getSquadUnits(squadID);
+        for (UnitDocument unit : units) {
             if (unit.unitType.airWeapon().targetsAir())
                 return true;
         }
@@ -216,8 +212,8 @@ public class Squad {
         int maxX = 0;
         int maxY = 0;
 
-        List<RUnit> units = unitsCenter.getSquadUnits(squadID);
-        for (RUnit unit : units) {
+        List<UnitDocument> units = unitsCenter.getSquadUnits(squadID);
+        for (UnitDocument unit : units) {
             minX = Math.min(minX, unit.position.x);
             minY = Math.min(minY, unit.position.y);
             maxX = Math.max(maxX, unit.position.x);
@@ -237,11 +233,11 @@ public class Squad {
     public Point getCenter(boolean real) {
         int x = 0;
         int y = 0;
-        List<RUnit> units = unitsCenter.getSquadUnits(squadID);
+        List<UnitDocument> units = unitsCenter.getSquadUnits(squadID);
         if (units.isEmpty())
             return null;
 
-        for (RUnit unit : units) {
+        for (UnitDocument unit : units) {
             if (real) {
                 x += unit.position.x;
                 y += unit.position.y;
@@ -266,11 +262,9 @@ public class Squad {
             return distance;
         }
 
-        UnitsCenter enemyCenter = unitsCenter;
-
-        for (RUnit unit : enemyCenter.getUnits()) {
-            double dx = unit.position.x - center.x;
-            double dy = unit.position.y - center.y;
+        for (UnitDocument enemy : unitsCenter.getEnemies()) {
+            double dx = enemy.position.x - center.x;
+            double dy = enemy.position.y - center.y;
             distance = Math.min(Math.sqrt(dx * dx + dy * dy), distance);
         }
 
@@ -290,7 +284,7 @@ public class Squad {
             return distance;
         }
 
-        for (RUnit unit : unitsCenter.getUnits(UnitType.Terran_Command_Center)) {
+        for (UnitDocument unit : unitsCenter.getDocuments(UnitType.Terran_Command_Center)) {
             double dx = unit.position.x - center.x;
             double dy = unit.position.y - center.y;
             distance = Math.min(Math.sqrt(dx * dx + dy * dy), distance);
@@ -306,8 +300,8 @@ public class Squad {
             return;
         }
 
-        List<RUnit> units = unitsCenter.getSquadUnits(squadID);
-        for (RUnit unit : units) {
+        List<UnitDocument> units = unitsCenter.getSquadUnits(squadID);
+        for (UnitDocument unit : units) {
             if (groupCasters) {
                 commandQueue.rightClick(unit.unitID, center.x, center.y);
             } else {
@@ -318,8 +312,8 @@ public class Squad {
 
     public int getSquadSupply() {
         int supply = 0;
-        List<RUnit> units = unitsCenter.getSquadUnits(squadID);
-        for (RUnit unit : units)
+        List<UnitDocument> units = unitsCenter.getSquadUnits(squadID);
+        for (UnitDocument unit : units)
             supply += unit.unitType.supplyRequired() / 2;
 
         return supply;
@@ -333,8 +327,8 @@ public class Squad {
             return threat;
         }
 
-        List<RUnit> enemyUnits = unitsCenter.getUnits();
-        for (RUnit unit : enemyUnits) {
+        List<UnitDocument> enemyUnits = unitsCenter.getDocuments();
+        for (UnitDocument unit : enemyUnits) {
             if (unit.unitType.isWorker()) {
                 continue;
             }
@@ -368,7 +362,7 @@ public class Squad {
      */
     public static List<Position> calculateLine(Squad squad, double angle) {
         List<Position> line = new ArrayList<>();
-        List<RUnit> units = squad.getAliveMembers();
+        List<UnitDocument> units = squad.getAliveMembers();
         if (units.isEmpty())
             return line;
 
@@ -401,7 +395,7 @@ public class Squad {
      */
     public static List<Position> calculateColumn(Squad squad, double angle) {
         List<Position> line = new ArrayList<>();
-        List<RUnit> units = squad.getAliveMembers();
+        List<UnitDocument> units = squad.getAliveMembers();
         if (units.isEmpty())
             return line;
 

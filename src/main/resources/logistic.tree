@@ -1,10 +1,16 @@
 import isUnitNeeded:"de.simone.btree.IsUnitNeededCondition"
 import train:"de.simone.btree.TrainTask"
 import ensureCsvAreWorking:"de.simone.btree.EnsureCsvAreWorkingTask"
-import isSupplyNeeded:"de.simone.btree.IsSupplyNeededTask"
+import isSupplyNeeded:"de.simone.btree.IsSupplyNeededCondition"
+import ensureAllCSVAreWorking:"de.simone.btree.EnsureAllCSVAreWorkingTask"
+import checkPendingAction:"de.simone.btree.CheckPendingActionTask"
 
 root
     selector
+        # sequence
+        #     ensureAllCSVAreWorking
+        #     checkPendingAction action:"gather_Mineral"
+        #     checkPendingAction action:"gather_Gas"
         # build at leas a refinery
         sequence
             isUnitNeeded unitType:"Terran_Refinery" count:1
@@ -18,4 +24,3 @@ root
             isSupplyNeeded
             train unitType:"Terran_Supply_Depot" count:1
         # standar day to day operations
-        # sequence

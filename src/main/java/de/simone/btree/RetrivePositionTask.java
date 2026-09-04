@@ -15,7 +15,7 @@ public class RetrivePositionTask extends RTask {
 
     @Override
     public Status execute() {
-        CombatCenter combatCenter = getObject();
+        CombatCenter combatCenter = CombatCenter.getInstance();
         List<CombatOrder> combatOrders = combatCenter.getOrders(position);
 
         return combatOrders.isEmpty() ? Status.FAILED : Status.SUCCEEDED;

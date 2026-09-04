@@ -61,6 +61,7 @@ public class Env extends Properties {
 
     // behavior tree settings
     public static boolean scrollToExecutingNode = true;
+    public static boolean showResources = false;
 
     private Env() {
         //
@@ -96,6 +97,7 @@ public class Env extends Properties {
             drawChokepoints = Boolean.parseBoolean(getProperty("GameSettings.map.drawChokepoints"));
 
             scrollToExecutingNode = Boolean.parseBoolean(getProperty("BehaviorTree.scrollToExecutingNode"));
+            showResources = Boolean.parseBoolean(getProperty("BehaviorTree.showResources"));
 
         } catch (Exception e) {
             e.printStackTrace();

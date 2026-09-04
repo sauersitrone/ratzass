@@ -5,7 +5,7 @@ import com.badlogic.gdx.ai.btree.annotation.TaskAttribute;
 import bwapi.UnitType;
 import de.simone.command.BuildOrder;
 import de.simone.command.LogisticCenter;
-import de.simone.command.RUnit;
+import de.simone.command.UnitDocument;
 import de.simone.command.UnitsCenter;
 
 public class TrainForceToTask extends RTask {
@@ -24,18 +24,18 @@ public class TrainForceToTask extends RTask {
         LogisticCenter logisticsCenter = LogisticCenter.getInstance();
 
         if (level == 1) {
-            RUnit rUnit = unitsCenter.getUnit(UnitType.Terran_Barracks);
+            UnitDocument rUnit = unitsCenter.getDocument(UnitType.Terran_Barracks);
             if (rUnit == null) {
-                currentBuildOrder = new BuildOrder(getName(), UnitType.Terran_Barracks, 1);
+                currentBuildOrder = new BuildOrder(UnitType.Terran_Barracks, 1);
                 logisticsCenter.addBuildOrder(currentBuildOrder);
                 return Status.RUNNING;
             }
         }
 
         if (level == 2) {
-            RUnit rUnit = unitsCenter.getUnit(UnitType.Terran_Academy);
+            UnitDocument rUnit = unitsCenter.getDocument(UnitType.Terran_Academy);
             if (rUnit == null) {
-                currentBuildOrder = new BuildOrder(getName(), UnitType.Terran_Academy, 1);
+                currentBuildOrder = new BuildOrder(UnitType.Terran_Academy, 1);
                 logisticsCenter.addBuildOrder(currentBuildOrder);
                 return Status.RUNNING;
             }
@@ -48,23 +48,23 @@ public class TrainForceToTask extends RTask {
         }
 
         if (level == 3) {
-            RUnit rUnit = unitsCenter.getUnit(UnitType.Terran_Factory);
+            UnitDocument rUnit = unitsCenter.getDocument(UnitType.Terran_Factory);
             if (rUnit == null) {
-                currentBuildOrder = new BuildOrder(getName(), UnitType.Terran_Factory, 1);
+                currentBuildOrder = new BuildOrder( UnitType.Terran_Factory, 1);
                 logisticsCenter.addBuildOrder(currentBuildOrder);
                 return Status.RUNNING;
             }
 
-            rUnit = unitsCenter.getUnit(UnitType.Terran_Machine_Shop);
+            rUnit = unitsCenter.getDocument(UnitType.Terran_Machine_Shop);
             if (rUnit == null) {
-                currentBuildOrder = new BuildOrder(getName(), UnitType.Terran_Machine_Shop, 1);
+                currentBuildOrder = new BuildOrder( UnitType.Terran_Machine_Shop, 1);
                 logisticsCenter.addBuildOrder(currentBuildOrder);
                 return Status.RUNNING;
             }
 
-            rUnit = unitsCenter.getUnit(UnitType.Terran_Armory);
+            rUnit = unitsCenter.getDocument(UnitType.Terran_Armory);
             if (rUnit == null) {
-                currentBuildOrder = new BuildOrder(getName(), UnitType.Terran_Armory, 1);
+                currentBuildOrder = new BuildOrder( UnitType.Terran_Armory, 1);
                 logisticsCenter.addBuildOrder(currentBuildOrder);
                 return Status.RUNNING;
             }

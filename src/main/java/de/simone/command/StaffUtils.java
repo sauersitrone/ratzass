@@ -10,8 +10,8 @@ public class StaffUtils {
     // terry: i donw nknow how to work with map. commentent for now implement laerr
     public static Point getRallyPoint(int x, int y) {
 
-        List<RUnit> expos = UnitsCenter.getInstance().getUnits(UnitType.Terran_Command_Center);
-        RUnit base = expos.get(0);
+        List<UnitDocument> expos = UnitsCenter.getInstance().getDocuments(UnitType.Terran_Command_Center);
+        UnitDocument base = expos.get(0);
 
         return new Point(base.position.x, base.position.y);
     }
@@ -35,5 +35,11 @@ public class StaffUtils {
         }
 
         return nearest;
+    }
+
+        public static double distance(double x1, double y1, double x2, double y2) {
+        final double dx = x1 - x2;
+        final double dy = y1 - y2;
+        return Math.sqrt(dx * dx + dy * dy);
     }
 }

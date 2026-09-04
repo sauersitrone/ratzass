@@ -34,7 +34,7 @@ public class CreateSquadTask extends RTask {
         }
         
         if (currentSquad.status == SquadStatus.Idle) {
-            ((CombatCenter) getObject()).addSquad(currentSquad);
+            CombatCenter.getInstance().addSquad(currentSquad);
         }
         return currentSquad.status == SquadStatus.Building ? Status.RUNNING : Status.SUCCEEDED;
     }

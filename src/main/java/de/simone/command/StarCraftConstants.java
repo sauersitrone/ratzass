@@ -58,7 +58,7 @@ public interface StarCraftConstants {
         Request, Prepare, Ready, Constructing, Paused, Finished
     }
 
-    enum BuildActionName {
+    public enum BuildActionName {
         gather_Mineral,
         gather_Gas,
         train,

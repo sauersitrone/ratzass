@@ -52,7 +52,7 @@ public class CombatCenter {
      * 
      */
     public void update() {
-        List<Unit> units = new ArrayList<>(RBWListener.game.getAllUnits());
+        List<Unit> units = UnitsCenter.getUnits();
 
         for (CombatCenterListener listener : listeners) {
             listener.updated(orders);

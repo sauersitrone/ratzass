@@ -11,7 +11,6 @@ import bwem.BWEM;
 import de.simone.command.CommandQueue;
 import de.simone.command.LogisticCenter;
 import de.simone.command.UnitsCenter;
-import tech.tablesaw.api.Table;
 
 public class RBWListener extends DefaultBWListener {
 

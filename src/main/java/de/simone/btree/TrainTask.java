@@ -1,5 +1,7 @@
 package de.simone.btree;
 
+import java.util.List;
+
 import com.badlogic.gdx.ai.btree.annotation.TaskAttribute;
 
 import bwapi.UnitType;
@@ -17,15 +19,17 @@ public class TrainTask extends RTask {
     @Override
     public Status execute() {
         LogisticCenter logisticCenter = LogisticCenter.getInstance();
+        String key = unitType + "-" + count;
 
         if (getStatus() == Status.RUNNING) {
-            boolean ready = logisticCenter.areMyOrdersReady(unitType, count);
-            return ready ? Status.SUCCEEDED : Status.RUNNING;
+            // boolean ready = logisticCenter.areMyOrdersReady(unitType, count);
+            // return ready ? Status.SUCCEEDED : Status.RUNNING;
+            return getBuildOrderStatus(key);
         }
 
         // no previous, create a new build order
-        BuildOrder order = new BuildOrder(unitType, count);
-        logisticCenter.addBuildOrder(order);
+        List<BuildOrder> orders = logisticCenter.addBuildOrder(unitType, count);
+        getObject().orders.put(key, orders);
 
         return Status.RUNNING;
     }

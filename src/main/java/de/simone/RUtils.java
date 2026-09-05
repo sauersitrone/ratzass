@@ -6,6 +6,7 @@ import java.util.logging.Level;
 import com.badlogic.gdx.ai.btree.BehaviorTree;
 import com.badlogic.gdx.ai.btree.utils.BehaviorTreeParser;
 
+import de.simone.btree.Blackboard;
 import lombok.extern.java.Log;
 
 @Log
@@ -50,10 +51,11 @@ public class RUtils {
      * @param blackboard - the blackboard
      * @return the parsed BehaviorTree instance, or null if parsing fails
      */
-    public static <E> BehaviorTree<E> parseFile(String treeFile, E blackboard) {
+    public static BehaviorTree<Blackboard> parseFile(String treeFile) {
         try (InputStream inputStream = RUtils.class.getResourceAsStream("/" + treeFile)) {
-            BehaviorTreeParser<E> parser = new BehaviorTreeParser<E>(BehaviorTreeParser.DEBUG_HIGH);
-            BehaviorTree<E> behaviorTree = parser.parse(inputStream, blackboard);
+            Blackboard blackboard = new Blackboard();
+            BehaviorTreeParser<Blackboard> parser = new BehaviorTreeParser<Blackboard>(BehaviorTreeParser.DEBUG_HIGH);
+            BehaviorTree<Blackboard> behaviorTree = parser.parse(inputStream, blackboard);
             return behaviorTree;
         } catch (Exception e) {
             log.log(Level.SEVERE, "", e);

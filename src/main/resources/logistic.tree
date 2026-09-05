@@ -5,6 +5,10 @@ import isSupplyNeeded:"de.simone.btree.IsSupplyNeededCondition"
 import ensureAllCSVAreWorking:"de.simone.btree.EnsureAllCSVAreWorkingTask"
 import checkPendingAction:"de.simone.btree.CheckPendingActionTask"
 
+import createSquad:"de.simone.btree.CreateSquadTask"
+import trainForceTo:"de.simone.btree.TrainForceToTask"
+import isSquadNeeded:"de.simone.btree.IsSquadNeededCondition"
+
 root
     selector
         # sequence
@@ -23,4 +27,25 @@ root
         sequence
             isSupplyNeeded
             train unitType:"Terran_Supply_Depot" count:1
-        # standar day to day operations
+        # ------------------------------
+        sequence
+            trainForceTo level:1
+            isSquadNeeded type:"Patrol" count:3
+            train unitType:"Terran_Marine" count:3
+            createSquad type:"Patrol" members:"Terran_Marine,Terran_Marine,Terran_Marine"
+        sequence
+            trainForceTo level:2
+            isSquadNeeded type:"Strike" count:3
+            train unitType:"Terran_Marine" count:4
+            train unitType:"Terran_Medic" count:1
+            train unitType:"Terran_Firebat" count:3
+            createSquad type:"Strike" members:"Terran_Medic,Terran_Firebat,Terran_Firebat,Terran_Firebat,Terran_Marine,Terran_Marine,Terran_Marine,Terran_Marine"
+        sequence
+            trainForceTo level:3
+            isSquadNeeded type:"Combat" count:3
+            train unitType:"Terran_SCV" count:1
+            train unitType:"Terran_Marine" count:4
+            train unitType:"Terran_Medic" count:1
+            train unitType:"Terran_Firebat" count:2
+            train unitType:"Terran_Goliath" count:4
+            createSquad type:"Combat" members:"Terran_SCV,Terran_Medic,Terran_Firebat,Terran_Firebat,Terran_Goliath,Terran_Goliath,Terran_Goliath,Terran_Goliath,Terran_Marine,Terran_Marine,Terran_Marine,Terran_Marine"

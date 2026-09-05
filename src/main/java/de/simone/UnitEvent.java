@@ -1,6 +1,8 @@
 package de.simone;
 
 import bwapi.Unit;
+import bwapi.UnitCommand;
+import bwapi.UnitCommandType;
 import bwapi.UnitType;
 import tech.tablesaw.api.BooleanColumn;
 import tech.tablesaw.api.IntColumn;
@@ -18,6 +20,7 @@ public class UnitEvent {
 
     public int id;
     public UnitType type;
+    public UnitCommandType lastCommand;
     public int hitPoints;
     public int killCount;
     public EventType status = EventType.UNKNOW;
@@ -29,6 +32,7 @@ public class UnitEvent {
     public UnitEvent(Unit unit) {
         this.id = unit.getID();
         this.type = unit.getType();
+        this.lastCommand = unit.getLastCommand() == null ? UnitCommandType.Unknown : unit.getLastCommand().getType();
         this.hitPoints = unit.getHitPoints();
         this.killCount = unit.getKillCount();
         this.gasResources = unit.getType().gasPrice();
@@ -41,6 +45,7 @@ public class UnitEvent {
         table.addColumns(
                 IntColumn.create("id"),
                 StringColumn.create("type"),
+                StringColumn.create("lastCommand"),
                 IntColumn.create("hitPoints"),
                 IntColumn.create("killCount"),
                 StringColumn.create("status"),
@@ -50,7 +55,7 @@ public class UnitEvent {
                 IntColumn.create("totalResources"));
     }
 
-    public void appendToTable(Table table) {
+    public void update(Table table) {
         Row row = null;
 
         // is an id already in the table?
@@ -67,6 +72,7 @@ public class UnitEvent {
         // update the values
         row.setInt("id", id);
         row.setString("type", type.toString());
+        row.setString("lastCommand", lastCommand.toString());
         row.setInt("hitPoints", hitPoints);
         row.setInt("killCount", killCount);
         row.setString("status", status.toString());

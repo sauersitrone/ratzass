@@ -1,6 +1,5 @@
 package de.simone.command;
 
-import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -14,6 +13,7 @@ import bwapi.UnitCommandType;
 import bwapi.UnitType;
 import de.simone.RBWListener;
 import de.simone.RUtils;
+import de.simone.btree.Blackboard;
 
 public class Squad {
     public enum SquadStatus {
@@ -58,7 +58,7 @@ public class Squad {
     public UnitCommandType currentCommand = UnitCommandType.Unknown;
     public SquadStatus status = SquadStatus.Building;
     public SquadType type = SquadType.Patrol;
-    public BehaviorTree<Squad> behaviorTree;
+    public BehaviorTree<Blackboard> behaviorTree;
 
     private int regroupTime = 0;
     private CommandQueue commandQueue;
@@ -66,7 +66,7 @@ public class Squad {
     private List<UnitType> members = new ArrayList<>();
 
     public Squad(SquadType type, List<UnitType> members) {
-        this.behaviorTree = RUtils.parseFile("squad.tree", this);
+        this.behaviorTree = RUtils.parseFile("squad.tree");
         this.type = type;
         this.members = members;
         Collections.shuffle(coolSquadNames);
@@ -75,8 +75,13 @@ public class Squad {
         this.commandQueue = CommandQueue.getInstance();
     }
 
-    public List<UnitDocument> getAliveMembers() {
+    public List<UnitDocument> getSquadUnits() {
         List<UnitDocument> units = unitsCenter.getSquadUnits(squadID);
+        return units;
+    }
+
+    public List<UnitDocument> getAliveMembers() {
+        List<UnitDocument> units = getSquadUnits();
         units.removeIf(u -> !u.isAlive);
         return units;
     }
@@ -141,7 +146,7 @@ public class Squad {
         double closest = 256 * 256;
 
         for (Squad squad : unitsCenter.getSquads()) {
-            Point center = squad.getCenter(false);
+            Position center = squad.getCenter();
 
             if (center != null) {
                 double distance = StaffUtils.distance(x, y, center.x, center.y);
@@ -162,15 +167,10 @@ public class Squad {
         }
     }
 
-    public void retreat() {
-        Point rally = StaffUtils.getRallyPoint(0, 0);
-        double theta = Math.random() * 2.0 * Math.PI;
-
-        List<UnitDocument> units = unitsCenter.getSquadUnits(squadID);
+    public void move(Position position) {
+        List<UnitDocument> units = getAliveMembers();
         for (UnitDocument unit : units) {
-            commandQueue.rightClick(unit.unitID,
-                    32 * rally.x + (int) (Math.cos(theta) * 3.5),
-                    32 * rally.y + (int) (Math.sin(theta) * 3.5));
+            commandQueue.rightClick(unit.unitID, position);
         }
     }
 
@@ -196,7 +196,7 @@ public class Squad {
 
     // terry
     public void draw() {
-        Point center = getCenter(true);
+        Position center = getCenter();
         if (center == null) {
             return;
         }
@@ -224,13 +224,14 @@ public class Squad {
     }
 
     /**
-     * Get the center point of the squad. If `real` is true, returns the center in
+     * Get the center Position of the squad. If `real` is true, returns the center
+     * in
      * real coordinates; otherwise, returns the center in tile coordinates.
      * 
      * @param real - real coordinateos or tile coordinates
      * @return the center
      */
-    public Point getCenter(boolean real) {
+    public Position getCenter() {
         int x = 0;
         int y = 0;
         List<UnitDocument> units = unitsCenter.getSquadUnits(squadID);
@@ -238,16 +239,11 @@ public class Squad {
             return null;
 
         for (UnitDocument unit : units) {
-            if (real) {
-                x += unit.position.x;
-                y += unit.position.y;
-            } else {
-                x += unit.position.x / 32;
-                y += unit.position.y / 32;
-            }
+            x += unit.position.x;
+            y += unit.position.y;
         }
 
-        return new Point(x / units.size(), y / units.size());
+        return new Position(x / units.size(), y / units.size());
     }
 
     /**
@@ -257,7 +253,7 @@ public class Squad {
     public double getEnemyDistance() {
         double distance = 128;
 
-        Point center = getCenter(false);
+        Position center = getCenter();
         if (center == null) {
             return distance;
         }
@@ -279,7 +275,7 @@ public class Squad {
     public double getBaseDistance() {
         double distance = 128;
 
-        Point center = getCenter(false);
+        Position center = getCenter();
         if (center == null) {
             return distance;
         }
@@ -293,19 +289,18 @@ public class Squad {
         return distance;
     }
 
-    // TERRY: is this not a btree task?
-    public void regroup(boolean groupCasters) {
-        Point center = getCenter(true);
+    public void regroup(boolean attacking) {
+        Position center = getCenter();
         if (center == null) {
             return;
         }
 
-        List<UnitDocument> units = unitsCenter.getSquadUnits(squadID);
+        List<UnitDocument> units = getSquadUnits();
         for (UnitDocument unit : units) {
-            if (groupCasters) {
-                commandQueue.rightClick(unit.unitID, center.x, center.y);
+            if (attacking) {
+                commandQueue.attackMove(unit.unitID, center);
             } else {
-                commandQueue.attackMove(unit.unitID, center.x, center.y);
+                commandQueue.rightClick(unit.unitID, center);
             }
         }
     }
@@ -322,7 +317,7 @@ public class Squad {
     public int getEnemySupply() {
         int threat = 0;
 
-        Point center = getCenter(false);
+        Position center = getCenter();
         if (center == null) {
             return threat;
         }

@@ -1,52 +1,49 @@
 package de.simone.gui;
 
 import java.awt.BorderLayout;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.Timer;
 
+import com.github.freva.asciitable.AsciiTable;
+import com.github.freva.asciitable.Column;
+
 import de.simone.command.Command;
 import de.simone.command.CommandQueue;
+import de.simone.command.CommandQueueListener;
 import de.simone.ui.menu.MyDrawerBuilder;
 import de.simone.ui.system.Form;
 
-public class CommandQueueView extends Form {
+public class CommandQueueView extends Form implements CommandQueueListener {
 
-    JTextArea textPane = null;
+    JTextArea textArea = null;
     int listSize = 30;
-    Timer timer;
 
     public CommandQueueView() {
         setLayout(new BorderLayout());
 
         JPanel header = UIUtils.getHeader("Command Queue", "Displays the command queue in real-time.");
 
-        textPane = UIUtils.getConsoleTextArea();
+        textArea = UIUtils.getConsoleTextArea();
         JPanel north = UIUtils.getInVerticalPanel(MyDrawerBuilder.getEnvView(), header);
         add(north, BorderLayout.NORTH);
-        add(textPane, BorderLayout.CENTER);
+        add(textArea, BorderLayout.CENTER);
 
-        timer = new Timer(1000, e -> {
-            update();
-        });
-        timer.start();
-        update();
+        update(CommandQueue.getInstance().getCommands());
     }
 
-    public void update() {
-        List<Command> commands = CommandQueue.getInstance().getCommands();
-        int i0 = Math.max(0, commands.size() - listSize);
-        List<Command> commands3 = commands.subList(i0, commands.size());
-        StringBuffer buffer = new StringBuffer();
-
-        for (Command command : commands3) {
-            String msg = String.format("%d\t%s %s %d %s %d %s", command.cycle, command.order,
-                    command.unitType, command.unitId, command.position, command.targetId, command.status);
-            buffer.append(msg + "\n");
-        }
-
-        textPane.setText(buffer.toString());
+    @Override
+    public void update(List<Command> commands) {
+        textArea.setText(AsciiTable.getTable(AsciiTable.NO_BORDERS, commands, Arrays.asList(
+        new Column().header("Cicle").with(c -> ""+c.cycle),
+        new Column().header("UnitId").with(c -> "" +c.unitId),
+        new Column().header("targetId").with(c -> "" +c.targetId),
+        new Column().header("order").with(c -> c.order.toString()),
+        new Column().header("Position").with(c -> "" + c.position),
+        new Column().header("Status").with(c -> c.status.toString()),
+        new Column().header("Message").with(c -> c.message))));
     }
 }

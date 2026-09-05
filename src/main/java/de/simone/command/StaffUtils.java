@@ -1,27 +1,27 @@
 package de.simone.command;
 
-import java.awt.Point;
 import java.util.List;
 
+import bwapi.Position;
 import bwapi.UnitType;
 
 public class StaffUtils {
 
     // terry: i donw nknow how to work with map. commentent for now implement laerr
-    public static Point getRallyPoint(int x, int y) {
+    public static Position getRallyPoint(int x, int y) {
 
         List<UnitDocument> expos = UnitsCenter.getInstance().getDocuments(UnitType.Terran_Command_Center);
         UnitDocument base = expos.get(0);
 
-        return new Point(base.position.x, base.position.y);
+        return new Position(base.position.x, base.position.y);
     }
 
-    public static Squad getNearestSquad(Point point) {
+    public static Squad getNearestSquad(Position point) {
         Squad nearest = null;
         double nearestDistance = Double.MAX_VALUE;
 
         for (Squad squad : UnitsCenter.getInstance().getSquads()) {
-            Point center = squad.getCenter(false);
+            Position center = squad.getCenter(false);
             if (center == null) {
                 continue;
             }

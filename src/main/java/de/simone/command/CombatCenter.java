@@ -2,13 +2,15 @@ package de.simone.command;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 
 import com.badlogic.gdx.ai.btree.BehaviorTree;
 
+import bwapi.Position;
 import bwapi.Unit;
-import de.simone.RBWListener;
-import de.simone.RUtils;
+import bwapi.UnitType;
 import de.simone.command.CombatOrder.PositionName;
 import de.simone.command.StarCraftConstants.OrderPriority;
 import de.simone.command.StarCraftConstants.OrderStatus;
@@ -24,6 +26,7 @@ public class CombatCenter {
     private List<CombatOrder> orders = new ArrayList<>();
     private List<CombatCenterListener> listeners = new ArrayList<>();
     private List<Squad> squads = new ArrayList<>();
+    private Map<String, Position> namedAreas = new TreeMap<>();
 
     public BehaviorTree<CombatCenter> behaviorTree;
 
@@ -47,12 +50,18 @@ public class CombatCenter {
         squads.add(squad);
     }
 
+    public Position getArea(String areaName) {
+        return namedAreas.get(areaName);
+    }
+
     /**
      * call by RBWListener every x seconds. this method will:
      * 
      */
     public void update() {
-        List<Unit> units = UnitsCenter.getUnits();
+        // update named areas
+        Unit unit = UnitsCenter.getUnit(UnitType.Terran_Command_Center);
+        namedAreas.put("RetreatArea", unit.getPosition());
 
         for (CombatCenterListener listener : listeners) {
             listener.updated(orders);

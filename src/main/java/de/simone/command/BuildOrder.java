@@ -11,16 +11,15 @@ import de.simone.command.StarCraftConstants.OrderStatus;
 
 public class BuildOrder {
 
-    // only used for the build order, not for the build actions. should used only by
-    // LogisticCenter to sort the build orders by priority
-    public OrderPriority priority = OrderPriority.Normal;
+    private static int idGenerator = 1;
 
+    public OrderPriority priority = OrderPriority.Normal;
     public UnitType unitType;
     public int quantity;
     public OrderStatus status = OrderStatus.Pending;
     public String message = "";
-    public int cicle = RBWListener.game.getFrameCount();
-
+    // public int id = RBWListener.game.getFrameCount();
+    public int id = idGenerator++;
     public BuildActionName action;
 
     public BuildOrder(UnitType unitType, int quantity) {
@@ -75,7 +74,7 @@ public class BuildOrder {
 
     @Override
     public String toString() {
-        return cicle + ", ut=" + unitType + ", a=" + action + ", q=" + quantity + ", s=" + status
+        return id + ", ut=" + unitType + ", a=" + action + ", q=" + quantity + ", s=" + status
                 + ", m=" + message;
     }
 

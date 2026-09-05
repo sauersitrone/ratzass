@@ -50,4 +50,14 @@ public class Command {
         this.targetId = targetUnitId;
         this.position = position;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null || getClass() != obj.getClass())
+            return false;
+        Command action = (Command) obj;
+        return cycle == action.cycle;
+    }
 }

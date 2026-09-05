@@ -2,6 +2,7 @@ package de.simone.gui;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,7 +25,14 @@ import de.simone.btree.RTask;
 
 public class BehaviorTreeTree extends JTree {
 
-    record NodeInfo(String label, Task.Status status) {
+    static class NodeInfo {
+        String label;
+        Task.Status status;
+
+        NodeInfo(String label, Task.Status status) {
+            this.label = label;
+            this.status = status;
+        }
     }
 
     private final DefaultTreeModel treeModel;
@@ -33,6 +41,7 @@ public class BehaviorTreeTree extends JTree {
     private BehaviorTree<?> behaviorTree;
     private Timer repaintTimer;
     private List<DefaultMutableTreeNode> nodesToRepaint;
+    Dimension dimension;
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public BehaviorTreeTree(BehaviorTree<?> behaviorTree) {
@@ -57,7 +66,14 @@ public class BehaviorTreeTree extends JTree {
 
             @Override
             public void statusUpdated(Task task, Status previousStatus) {
-                nodesToRepaint.add(nodeMap.get(task));
+                DefaultMutableTreeNode node = nodeMap.get(task);
+                dimension = getSize();
+                if (node == null)
+                    return;
+
+                NodeInfo nodeInfo = (NodeInfo) node.getUserObject();
+                nodeInfo.status = task.getStatus();
+                nodesToRepaint.add(node);
             }
         });
 
@@ -114,10 +130,14 @@ public class BehaviorTreeTree extends JTree {
         @Override
         public Component getTreeCellRendererComponent(JTree t, Object value,
                 boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+            if (dimension != null) {
+                Dimension dim = getSize();
+                setSize(dimension.width, dim.height);
+            }
             NodeInfo nodeInfo = (NodeInfo) ((DefaultMutableTreeNode) value).getUserObject();
-            String label = StringUtils.abbreviate(nodeInfo.label(), 80) + " ";
-            label += nodeInfo.status() == Task.Status.FRESH ? "" : nodeInfo.status().toString();
-            super.getTreeCellRendererComponent(t, label, sel, expanded, leaf, row, hasFocus);
+            String label = StringUtils.abbreviate(nodeInfo.label, 80) + " ";
+            label += nodeInfo.status == Task.Status.FRESH ? "" : nodeInfo.status.toString();
+            setText(label);
             setForeground(Color.WHITE);
             if (value == executingNode) {
                 setBackground(Color.WHITE);

@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import bwapi.Pair;
+import bwapi.Position;
 import bwapi.Unit;
 import bwapi.UnitType;
 import de.simone.RBWListener;
@@ -47,16 +48,26 @@ public class UnitsCenter {
         listeners.add(listener);
     }
 
+    public void update() {
+        List<Unit> units = RBWListener.game.getAllUnits();
+        for (Unit unit : units) {
+            UnitEvent unitEvent = new UnitEvent(unit);
+            unitEvent.status = UnitEvent.EventType.CREATED;
+            unitEvent.update(unitEventsTable);
+        }
+
+    }
+
     public void onUnitComplete(Unit unit) {
         UnitEvent unitEvent = new UnitEvent(unit);
         unitEvent.status = UnitEvent.EventType.CREATED;
-        unitEvent.appendToTable(unitEventsTable);
+        unitEvent.update(unitEventsTable);
         listeners.forEach(l -> l.updated(unitEventsTable));
     }
 
     public void onUnitDiscover(Unit unit) {
         UnitEvent unitEvent = new UnitEvent(unit);
-        unitEvent.appendToTable(unitEventsTable);
+        unitEvent.update(unitEventsTable);
         listeners.forEach(l -> l.updated(unitEventsTable));
 
         UnitDocument doc = new UnitDocument(unit);
@@ -66,7 +77,7 @@ public class UnitsCenter {
     public void onUnitDestroy(Unit unit) {
         UnitEvent unitEvent = new UnitEvent(unit);
         unitEvent.status = UnitEvent.EventType.DESTROYED;
-        unitEvent.appendToTable(unitEventsTable);
+        unitEvent.update(unitEventsTable);
         listeners.forEach(l -> l.updated(unitEventsTable));
 
         UnitDocument doc = unitDocuments.get(unit.getID());
@@ -181,5 +192,18 @@ public class UnitsCenter {
     public static int getUnitCount(UnitType unitType) {
         int count = (int) getUnits().stream().filter(u -> u.getType() == unitType).count();
         return count;
+    }
+
+    public static List<Unit> getEnemyUnits(Position center, int radious) {
+        boolean isEnemy = RBWListener.game.self().isEnemy(RBWListener.game.self());
+        List<Unit> units = RBWListener.game.getUnitsInRadius(center, 200);
+        List<Unit> enemies = units.stream().filter(u -> isEnemy).toList();
+        return enemies;
+    }
+
+    public static List<Unit> getEnemyUnits() {
+        boolean isEnemy = RBWListener.game.self().isEnemy(RBWListener.game.self());
+        List<Unit> units = RBWListener.game.getAllUnits().stream().filter(u -> isEnemy).toList();
+        return units;
     }
 }

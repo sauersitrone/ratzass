@@ -16,9 +16,10 @@ import bwapi.Unit;
 import bwapi.UnitType;
 import de.simone.RBWListener;
 import de.simone.RUtils;
+import de.simone.StarCraftException;
+import de.simone.btree.Blackboard;
 import de.simone.command.CommandQueue.ResourceType;
 import de.simone.command.StarCraftConstants.BuildActionName;
-import de.simone.command.StarCraftConstants.OrderPriority;
 import de.simone.command.StarCraftConstants.OrderStatus;
 
 /**
@@ -34,7 +35,7 @@ public class LogisticCenter {
     private String problem;
     private String planner;
     private List<LogisticCenterListener> listeners = new ArrayList<>();
-    public BehaviorTree<LogisticCenter> behaviorTree;
+    public BehaviorTree<Blackboard> behaviorTree;
     public List<BuildOrder> buildOrders = new ArrayList<>();
 
     public static LogisticCenter getInstance() {
@@ -52,7 +53,7 @@ public class LogisticCenter {
     private LogisticCenter() {
         this.domain = RUtils.getResourceFile("./starcraft-domain.pddl");
         this.planner = "opt-blind";
-        this.behaviorTree = RUtils.parseFile("logistic.tree", this);
+        this.behaviorTree = RUtils.parseFile("logistic.tree");
 
         // this.planner = "sat-hmrp";
     }
@@ -159,14 +160,10 @@ public class LogisticCenter {
             }
         }
 
-        // // build refinery
-        // int count = UnitsCenter.getUnitCount(UnitType.Terran_Refinery);
-        // if(count < 1) {
-        //     BuildOrder buildOrder = new BuildOrder(UnitType.Terran_Refinery, 1);
-        //     addBuildOrder(buildOrder);
-        //     return;
-        // }
-
+        // build supply if needed. this hast hight priority
+        if (RBWListener.currentSupplyTotal - RBWListener.currentSupplyUsed < StarCraftConstants.TERRAN_MIN_SUPPLY) {
+            addBuildOrder(UnitType.Terran_Supply_Depot, 1, true);
+        }
 
         for (LogisticCenterListener listener : listeners) {
             listener.updated(buildOrders);
@@ -181,19 +178,23 @@ public class LogisticCenter {
      * 
      * @param buildOrder - the order
      */
-    public void addBuildOrder(BuildOrder buildOrder) {
-        // to avoid creating the same build order, check if si ther a  pending build order.
+    public List<BuildOrder> addBuildOrder(UnitType unitType, int quantity) {
+        return addBuildOrder(unitType, quantity, false);
+    }
+
+    private List<BuildOrder> addBuildOrder(UnitType unitType, int quantity, boolean highPriority) {
+        // fail save
         Optional<BuildOrder> optional = buildOrders.stream()
-                .filter(bo -> bo.unitType == buildOrder.unitType
+                .filter(bo -> bo.unitType == unitType && bo.quantity == quantity
                         && (bo.status == OrderStatus.Pending || bo.status == OrderStatus.Running))
                 .findFirst();
         if (optional.isPresent()) {
-            return;
+            throw new StarCraftException("An order for " + quantity + " of " + unitType + " is already in.");
         }
 
         // the goal muss express the total units (e.g if i want to build 1 SCV, and i
         // already have 1, the goal must be 2, not 1)
-        Pair<UnitType, Integer> pair = new Pair<>(buildOrder.unitType, buildOrder.quantity);
+        Pair<UnitType, Integer> pair = new Pair<>(unitType, quantity);
         PddlProblem pddlProblem = new PddlProblem(pair);
         pddlProblem.printProblem = true;
         this.problem = pddlProblem.getPDDLProblem();
@@ -201,16 +202,21 @@ public class LogisticCenter {
         List<String> plan = solve();
         List<BuildOrder> buildOrders2 = new ArrayList<>();
         if (plan == null || plan.isEmpty()) {
-            buildOrder.status = OrderStatus.Error;
-            buildOrder.message = "No plan found for build order: " + buildOrder.unitType + " x" + buildOrder.quantity;
+            throw new StarCraftException("No plan found for build order: " + unitType + " x" + quantity);
         } else {
-            buildOrder.status = OrderStatus.Pending;
             buildOrders2 = BuildOrder.getBuildOrders(plan);
         }
 
         // build order priority
-        if (buildOrder.priority == OrderPriority.High) {
-            buildOrders.addAll(0, buildOrders2);
+        if (highPriority) {
+            int i = 0;
+            // find the first non-completet task
+            for (i = 0; i < buildOrders.size(); i++) {
+                BuildOrder order = buildOrders.get(i);
+                if (order.status == OrderStatus.Pending || order.status == OrderStatus.Running)
+                    break;
+            }
+            buildOrders.addAll(i, buildOrders2);
         } else {
             buildOrders.addAll(buildOrders2);
         }
@@ -218,6 +224,8 @@ public class LogisticCenter {
         for (LogisticCenterListener listener : listeners) {
             listener.updated(buildOrders);
         }
+
+        return buildOrders2;
     }
 
     private List<String> solve() {

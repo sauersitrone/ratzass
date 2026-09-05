@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 
 import bwapi.Game;
-import bwapi.Pair;
 import bwapi.Position;
 import bwapi.TechType;
 import bwapi.TilePosition;
@@ -32,7 +31,7 @@ public class CommandQueue {
 
     private static CommandQueue instance = null;
 
-    private ArrayList<Command> commandQueue = new ArrayList<Command>();
+    private ArrayList<Command> commands = new ArrayList<Command>();
     private ArrayList<CommandQueueListener> listeners = new ArrayList<CommandQueueListener>();
 
     private CommandQueue() {
@@ -51,7 +50,7 @@ public class CommandQueue {
     }
 
     public List<Command> getCommands() {
-        return commandQueue;
+        return commands;
     }
 
     public void addListener(CommandQueueListener listener) {
@@ -61,7 +60,7 @@ public class CommandQueue {
     public void dispatchCommands() {
         Game bwapi = RBWListener.bwClient.getGame();
 
-        for (Command command : commandQueue) {
+        for (Command command : commands) {
             if (command.status != OrderStatus.Pending)
                 continue;
 
@@ -215,25 +214,26 @@ public class CommandQueue {
             }
 
             command.status = success ? OrderStatus.Completed : OrderStatus.Error;
-            listeners.forEach(listener -> listener.update(commandQueue));
+            listeners.forEach(listener -> listener.update(commands));
         }
     }
 
     private Command addCommand(UnitCommandType command, int unitID, int targetUnit, Position position) {
         Command command2 = new Command(command, unitID, targetUnit, position);
         addCommand(command2);
+        System.out.println("CommandQueue.addCommand() " + unitID + " " + command);
         return command2;
     }
 
     private void addCommand(Command command) {
         // iff exist the same command with status pending, return silently
-        Optional<Command> optional = commandQueue.stream()
+        Optional<Command> optional = commands.stream()
                 .filter(c -> c.order == command.order && c.status == OrderStatus.Pending).findFirst();
         if (optional.isPresent())
             return;
 
-        commandQueue.add(command);
-        listeners.forEach(listener -> listener.update(commandQueue));
+        commands.add(command);
+        listeners.forEach(listener -> listener.update(commands));
     }
 
     public Command gather(ResourceType resourceType) {
@@ -260,8 +260,8 @@ public class CommandQueue {
         addCommand(UnitCommandType.Gather, unitID, targetID, null);
     }
 
-    public void attackMove(int unitID, int x, int y) {
-        addCommand(UnitCommandType.Attack_Move, unitID, -1, new Position(x * 32, y * 32));
+    public void attackMove(int unitID, Position position) {
+        addCommand(UnitCommandType.Attack_Move, unitID, -1, position);
     }
 
     /**
@@ -274,14 +274,11 @@ public class CommandQueue {
     }
 
     /**
-     * Tells the unit to right click (move) to the specified location (in tile
-     * coordinates).
+     * Tells the unit to right click (move) to the specified location 
      * 
-     * // virtual bool rightClick(Position position) = 0;
      */
-    public void rightClick(int unitID, int x, int y) {
-        Position position = new Position(x * 32, y * 32);
-        addCommand(UnitCommandType.Right_Click_Position, unitID, -1, position);
+    public Command rightClick(int unitID, Position position) {
+        return addCommand(UnitCommandType.Right_Click_Position, unitID, -1, position);
     }
 
     /**
@@ -329,7 +326,9 @@ public class CommandQueue {
         // look for a free SCV to build the unit
         Unit unit = UnitsCenter.getFreeTerranSCV();
         if (unit == null) {
-            logFail(command, "No SCV available to build " + command.unitType);
+            // make a note but dont alter the status
+            command.message = "No SCV available to build " + command.unitType;
+            // logFail(command, "No SCV available to build " + command.unitType);
             return command;
         }
         command.unitId = unit.getID();

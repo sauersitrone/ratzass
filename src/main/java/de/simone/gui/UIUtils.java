@@ -45,7 +45,7 @@ public class UIUtils {
 
     public static JSlider getSlider(int min, int max, int value, ChangeListener listener) {
         JSlider slider = new JSlider(min, max, value);
-        slider.setMajorTickSpacing((max - min) / 5);
+        slider.setMajorTickSpacing((max - min) / 10);
         slider.setSnapToTicks(true);
         slider.setPaintTicks(true); 
         slider.addChangeListener(listener);

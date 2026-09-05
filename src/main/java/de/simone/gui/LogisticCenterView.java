@@ -33,9 +33,8 @@ public class LogisticCenterView extends Form implements LogisticCenterListener {
 
     @Override
     public void updated(List<BuildOrder> buildOrders) {
-        
         textArea.setText(AsciiTable.getTable(AsciiTable.NO_BORDERS, buildOrders, Arrays.asList(
-        new Column().header("Cicle").with(c -> ""+c.cicle),
+        new Column().header("Cicle").with(c -> ""+c.id),
         new Column().header("UnitType").with(c -> c.unitType.toString()),
         new Column().header("Action").with(c -> c.action.toString()),
         new Column().header("Quantity").with(c -> "" + c.quantity),

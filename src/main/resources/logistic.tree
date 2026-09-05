@@ -19,16 +19,8 @@ root
         sequence
             isUnitNeeded unitType:"Terran_Refinery" count:1
             train unitType:"Terran_Refinery" count:1
-        # ensure minimum number of SCVs
-        sequence
             isUnitNeeded unitType:"Terran_SCV" count:6
             train unitType:"Terran_SCV" count:6
-        # ensure supply depot 
-        sequence
-            isSupplyNeeded
-            train unitType:"Terran_Supply_Depot" count:1
-        # ------------------------------
-        sequence
             trainForceTo level:1
             isSquadNeeded type:"Patrol" count:3
             train unitType:"Terran_Marine" count:3

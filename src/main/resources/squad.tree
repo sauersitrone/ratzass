@@ -16,21 +16,20 @@ subtree name:"patrol"
         sequence
             isDangerous
             retrivePosition position:"RetreatArea"
-            move
+            move position:"RetreatArea"
         # answer for help
-        sequence
-            isThereACallForHelp
-            retrivePosition position:"HelpCall"
-            move
-        # combat
-        sequence
-            isEnemyDetected
-            retrivePosition position:"LastKnownEnemyPosition"
-            attackMove
+        # sequence
+        #     isThereACallForHelp
+        #     retrivePosition position:"HelpCall"
+        #     move
+        # # combat
+        # sequence
+        #     isEnemyDetected
+        #     retrivePosition position:"LastKnownEnemyPosition"
+        #     attackMove
         #patrol
         sequence    
-            retrivePosition position:"Random"
-            attackMove
+            attackMove position:"Random"
 
 subtree name:"attack"
     selector

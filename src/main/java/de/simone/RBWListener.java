@@ -84,6 +84,7 @@ public class RBWListener extends DefaultBWListener {
             RUtils.step(LogisticCenter.getInstance().behaviorTree);
             LogisticCenter.getInstance().update();
             CommandQueue.getInstance().dispatchCommands();
+            UnitsCenter.getInstance().update();
         }
 
         // update gathered resources

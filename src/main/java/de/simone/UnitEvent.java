@@ -1,7 +1,6 @@
 package de.simone;
 
 import bwapi.Unit;
-import bwapi.UnitCommand;
 import bwapi.UnitCommandType;
 import bwapi.UnitType;
 import tech.tablesaw.api.BooleanColumn;

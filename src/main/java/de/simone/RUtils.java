@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.util.logging.Level;
 
 import com.badlogic.gdx.ai.btree.BehaviorTree;
+import com.badlogic.gdx.ai.btree.LeafTask;
 import com.badlogic.gdx.ai.btree.utils.BehaviorTreeParser;
 
 import de.simone.btree.Blackboard;
@@ -15,15 +16,15 @@ public class RUtils {
     public static void startStarcraftProcess() {
         endStarcraftProcess();
         // Make sure Chaoslauncher -> Settings -> "Run Starcraft on Startup" is checked
-        executeInCommandLine(Env.chaosLauncherPath);
+        executeInCommandLine(new String[]{Env.chaosLauncherPath});
     }
 
     public static void endStarcraftProcess() {
-        executeInCommandLine("taskkill /IM StarCraft.exe /T /F");
-        executeInCommandLine("taskkill /IM Chaoslauncher.exe /T /F");
+        executeInCommandLine(new String[]{"taskkill", "/IM", "StarCraft.exe", "/T", "/F"});
+        executeInCommandLine(new String[]{"taskkill", "/IM", "Chaoslauncher.exe", "/T", "/F"});
     }
 
-    private static void executeInCommandLine(String command) {
+    private static void executeInCommandLine(String[] command) {
         try {
             Thread.sleep(150);
             Runtime.getRuntime().exec(command);
@@ -78,5 +79,13 @@ public class RUtils {
         } else if (Env.treeStatus == Env.BehaviorTreeStatus.Suspended) {
             // Do nothing
         }
+    }
+
+    
+    public static String getNodeName(LeafTask<?> task) {
+        String name = task.getClass().getSimpleName();
+        name = name.replace("Task", "");
+        name = name.replace("Condition", "");
+        return name;
     }
 }

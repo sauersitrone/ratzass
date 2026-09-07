@@ -14,12 +14,10 @@ import de.simone.command.UnitsCenter;
 
 public class RBWListener extends DefaultBWListener {
 
-    public static RBWListener instance;
     public static BWClient bwClient;
     public static Game game;
     public static LocalDateTime startTime;
     public static BWEM bwem;
-    public static UnitsCenter unitsCenter;
     public static LogisticCenter logisticCenter;
     public static int currentMinerals = 0;
     public static int currentGas = 0;
@@ -34,22 +32,12 @@ public class RBWListener extends DefaultBWListener {
     private long lastFrameTime = 0;
 
     private RBWListener() {
-        logisticCenter = LogisticCenter.getInstance();
-        unitsCenter = UnitsCenter.getInstance();
-
         bwClient = new BWClient(this);
         bwClient.startGame();
     }
 
-    public static RBWListener getInstance() {
-        if (instance == null) {
-            instance = new RBWListener();
-        }
-        return instance;
-    }
-
     public static void init() {
-        getInstance();
+        new RBWListener();
     }
 
     @Override
@@ -67,8 +55,10 @@ public class RBWListener extends DefaultBWListener {
     public void onFrame() {
         Player self = game.self();
         game.setLocalSpeed(Env.speed);
-        // System.out.println("RBWListener.onFrame() " + game.getFrameCount() + " - " + Env.speed);
-        // game.drawTextScreen(10, 15, "Playing as " + self.getName() + " - " + self.getRace());
+        // System.out.println("RBWListener.onFrame() " + game.getFrameCount() + " - " +
+        // Env.speed);
+        // game.drawTextScreen(10, 15, "Playing as " + self.getName() + " - " +
+        // self.getRace());
 
         gameSeconds = game.getFrameCount() / 23.81;
 
@@ -81,19 +71,23 @@ public class RBWListener extends DefaultBWListener {
         // command dispatch & logistic
         if (gameSeconds - lastCenterComm >= 1) {
             lastCenterComm = gameSeconds;
-            RUtils.step(LogisticCenter.getInstance().behaviorTree);
-            LogisticCenter.getInstance().update();
-            CommandQueue.getInstance().dispatchCommands();
-            UnitsCenter.getInstance().update();
+            // update current resources
+            currentGas = self.gas();
+            currentMinerals = self.minerals();
+            currentSupplyTotal = self.supplyTotal();
+            currentSupplyUsed = self.supplyUsed();
+
+            UnitsCenter.update();
+            LogisticCenter.update();
+            CommandQueue.dispatchCommands();
+
+            RUtils.step(LogisticCenter.behaviorTree);
         }
 
         // update gathered resources
         if (System.currentTimeMillis() - lastFrameTime >= 5 * 1000) {
             lastFrameTime = System.currentTimeMillis();
-            currentGas = self.gas();
-            currentMinerals = self.minerals();
-            currentSupplyTotal = self.supplyTotal();
-            currentSupplyUsed = self.supplyUsed();
+
         }
     }
 
@@ -103,8 +97,8 @@ public class RBWListener extends DefaultBWListener {
      */
     @Override
     public void onUnitComplete(Unit unit) {
-        logisticCenter.onUnitComplete(unit);
-        unitsCenter.onUnitComplete(unit);
+        LogisticCenter.onUnitComplete(unit);
+        UnitsCenter.onUnitComplete(unit);
     }
 
     /**
@@ -112,7 +106,7 @@ public class RBWListener extends DefaultBWListener {
      */
     @Override
     public void onUnitDestroy(Unit unit) {
-        unitsCenter.onUnitDestroy(unit);
+        UnitsCenter.onUnitDestroy(unit);
     }
 
     /**
@@ -120,7 +114,7 @@ public class RBWListener extends DefaultBWListener {
      */
     @Override
     public void onUnitDiscover(Unit unit) {
-        unitsCenter.onUnitDiscover(unit);
+        UnitsCenter.onUnitDiscover(unit);
     }
 
 }

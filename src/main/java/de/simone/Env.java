@@ -1,5 +1,9 @@
 package de.simone;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Properties;
 
 import lombok.extern.java.Log;
@@ -23,10 +27,11 @@ import lombok.extern.java.Log;
  * 
  */
 @Log
-public class Env extends Properties {
+public class Env   {
     public enum BehaviorTreeStatus {
         Running, Suspended, Stepping;
     }
+    private static Properties properties = new Properties();
 
     public static String chaosLauncherPath;
     public static BehaviorTreeStatus treeStatus = BehaviorTreeStatus.Running;
@@ -36,6 +41,7 @@ public class Env extends Properties {
     private boolean drawParticles = false;
     private int delay = 0;
     private int quitFrame = 0;
+    private static File configFile;
 
     // game settings
     public static boolean autoRestart = false;
@@ -45,7 +51,7 @@ public class Env extends Properties {
     public static boolean fogOfWar = false;
     public static boolean quitOnGameEnd = false;
     public static boolean autoCamera = false;
-    
+
     // StarCraft map drawing settings
     public static boolean ignoreBases = false; // for micro scenarios
     public static boolean drawIDs = true;
@@ -62,44 +68,70 @@ public class Env extends Properties {
     // behavior tree settings
     public static boolean scrollToExecutingNode = true;
     public static boolean showResources = false;
-
-    private Env() {
-        //
+    static {
+        loadStarCraftProperties();
+        configFile = new File(Env.class.getResource("/config.properties").getFile());
     }
 
-    public static void init() {
-        Env env = new Env();
-        env.loadStarCraftProperties();
-    }
-
-    private void loadStarCraftProperties() {
+    private static void loadStarCraftProperties() {
         try {
-            load(Env.class.getResourceAsStream("/config.properties"));
-            chaosLauncherPath = getProperty("GameSettings.chaosLauncherPath");
-            ignoreBases = Boolean.parseBoolean(getProperty("GameSettings.IgnoreBases"));
-            autoRestart = Boolean.parseBoolean(getProperty("GameSettings.AutoRestart"));
-            useManners = Boolean.parseBoolean(getProperty("GameSettings.UseManners"));
-            speed = Integer.parseInt(getProperty("GameSettings.speed"));
-            userInput = Boolean.parseBoolean(getProperty("GameSettings.UserInput"));
-            quitOnGameEnd = Boolean.parseBoolean(getProperty("GameSettings.QuitOnGameEnd"));
-            autoCamera = Boolean.parseBoolean(getProperty("GameSettings.AutoCamera"));
-            fogOfWar = Boolean.parseBoolean(getProperty("GameSettings.fogOfWar"));
+            properties.load(Env.class.getResourceAsStream("/config.properties"));
+            chaosLauncherPath = properties.getProperty("GameSettings.chaosLauncherPath");
+            ignoreBases = Boolean.parseBoolean(properties.getProperty("GameSettings.IgnoreBases"));
+            autoRestart = Boolean.parseBoolean(properties.getProperty("GameSettings.AutoRestart"));
+            useManners = Boolean.parseBoolean(properties.getProperty("GameSettings.UseManners"));
+            speed = Integer.parseInt(properties.getProperty("GameSettings.speed"));
+            userInput = Boolean.parseBoolean(properties.getProperty("GameSettings.UserInput"));
+            quitOnGameEnd = Boolean.parseBoolean(properties.getProperty("GameSettings.QuitOnGameEnd"));
+            autoCamera = Boolean.parseBoolean(properties.getProperty("GameSettings.AutoCamera"));
+            fogOfWar = Boolean.parseBoolean(properties.getProperty("GameSettings.fogOfWar"));
+            drawIDs = Boolean.parseBoolean(properties.getProperty("GameSettings.map.drawIDs"));
+            drawPings = Boolean.parseBoolean(properties.getProperty("GameSettings.map.drawPings"));
+            drawPlayerUnits = Boolean.parseBoolean(properties.getProperty("GameSettings.map.drawPlayerUnits"));
+            drawEnemyUnits = Boolean.parseBoolean(properties.getProperty("GameSettings.map.drawEnemyUnits"));
+            drawNeutralUnits = Boolean.parseBoolean(properties.getProperty("GameSettings.map.drawNeutralUnits"));
+            drawResources = Boolean.parseBoolean(properties.getProperty("GameSettings.map.drawResources"));
+            drawStartSpots = Boolean.parseBoolean(properties.getProperty("GameSettings.map.drawStartSpots"));
+            drawRegions = Boolean.parseBoolean(properties.getProperty("GameSettings.map.drawRegions"));
+            fillRegions = Boolean.parseBoolean(properties.getProperty("GameSettings.map.fillRegions"));
+            drawChokepoints = Boolean.parseBoolean(properties.getProperty("GameSettings.map.drawChokepoints"));
 
-            drawIDs = Boolean.parseBoolean(getProperty("GameSettings.map.drawIDs"));
-            drawPings = Boolean.parseBoolean(getProperty("GameSettings.map.drawPings"));
-            drawPlayerUnits = Boolean.parseBoolean(getProperty("GameSettings.map.drawPlayerUnits"));
-            drawEnemyUnits = Boolean.parseBoolean(getProperty("GameSettings.map.drawEnemyUnits"));
-            drawNeutralUnits = Boolean.parseBoolean(getProperty("GameSettings.map.drawNeutralUnits"));
-            drawResources = Boolean.parseBoolean(getProperty("GameSettings.map.drawResources"));
-            drawStartSpots = Boolean.parseBoolean(getProperty("GameSettings.map.drawStartSpots"));
-            drawRegions = Boolean.parseBoolean(getProperty("GameSettings.map.drawRegions"));
-            fillRegions = Boolean.parseBoolean(getProperty("GameSettings.map.fillRegions"));
-            drawChokepoints = Boolean.parseBoolean(getProperty("GameSettings.map.drawChokepoints"));
-
-            scrollToExecutingNode = Boolean.parseBoolean(getProperty("BehaviorTree.scrollToExecutingNode"));
-            showResources = Boolean.parseBoolean(getProperty("BehaviorTree.showResources"));
+            scrollToExecutingNode = Boolean.parseBoolean(properties.getProperty("BehaviorTree.scrollToExecutingNode"));
+            showResources = Boolean.parseBoolean(properties.getProperty("BehaviorTree.showResources"));
 
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void save() {
+        try (FileOutputStream fos = new FileOutputStream(configFile)) {
+            properties.setProperty("GameSettings.chaosLauncherPath", chaosLauncherPath);
+            properties.setProperty("GameSettings.IgnoreBases", Boolean.toString(ignoreBases));
+            properties.setProperty("GameSettings.AutoRestart", Boolean.toString(autoRestart));
+            properties.setProperty("GameSettings.UseManners", Boolean.toString(useManners));
+            properties.setProperty("GameSettings.speed", Integer.toString(speed));
+            properties.setProperty("GameSettings.UserInput", Boolean.toString(userInput));
+            properties.setProperty("GameSettings.QuitOnGameEnd", Boolean.toString(quitOnGameEnd));
+            properties.setProperty("GameSettings.AutoCamera", Boolean.toString(autoCamera));
+            properties.setProperty("GameSettings.fogOfWar", Boolean.toString(fogOfWar));
+            properties.setProperty("GameSettings.map.drawIDs", Boolean.toString(drawIDs));
+            properties.setProperty("GameSettings.map.drawPings", Boolean.toString(drawPings));
+            properties.setProperty("GameSettings.map.drawPlayerUnits", Boolean.toString(drawPlayerUnits));
+            properties.setProperty("GameSettings.map.drawEnemyUnits", Boolean.toString(drawEnemyUnits));
+            properties.setProperty("GameSettings.map.drawNeutralUnits", Boolean.toString(drawNeutralUnits));
+            properties.setProperty("GameSettings.map.drawResources", Boolean.toString(drawResources));
+            properties.setProperty("GameSettings.map.drawStartSpots", Boolean.toString(drawStartSpots));
+            properties.setProperty("GameSettings.map.drawRegions", Boolean.toString(drawRegions));
+            properties.setProperty("GameSettings.map.fillRegions", Boolean.toString(fillRegions));
+            properties.setProperty("GameSettings.map.drawChokepoints", Boolean.toString(drawChokepoints));
+
+            properties.setProperty("BehaviorTree.scrollToExecutingNode", Boolean.toString(scrollToExecutingNode));
+            properties.setProperty("BehaviorTree.showResources", Boolean.toString(showResources));
+
+            LocalDateTime now = LocalDateTime.now();
+          properties.  store(fos, "Updated at " + now);
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

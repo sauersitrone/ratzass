@@ -5,9 +5,12 @@ import java.util.logging.Level;
 
 import com.badlogic.gdx.ai.btree.BehaviorTree;
 import com.badlogic.gdx.ai.btree.LeafTask;
+import com.badlogic.gdx.ai.btree.Task;
 import com.badlogic.gdx.ai.btree.utils.BehaviorTreeParser;
 
 import de.simone.btree.Blackboard;
+import de.simone.btree.combat.CombatTask;
+import de.simone.btree.logistic.LogisticTask;
 import lombok.extern.java.Log;
 
 @Log
@@ -79,13 +82,5 @@ public class RUtils {
         } else if (Env.treeStatus == Env.BehaviorTreeStatus.Suspended) {
             // Do nothing
         }
-    }
-
-    
-    public static String getNodeName(LeafTask<?> task) {
-        String name = task.getClass().getSimpleName();
-        name = name.replace("Task", "");
-        name = name.replace("Condition", "");
-        return name;
     }
 }

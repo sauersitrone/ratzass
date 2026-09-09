@@ -14,7 +14,7 @@ public class MoveTask extends CombatTask {
     @Override
     public Status execute() {
         Squad squad = getObject();
-        Position area = CombatCenter.getInstance().getArea(position);
+        Position area = CombatCenter.getArea(position);
         squad.move(area);
         return Status.SUCCEEDED;
     }

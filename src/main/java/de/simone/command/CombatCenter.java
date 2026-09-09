@@ -21,36 +21,18 @@ import de.simone.command.StarCraftConstants.OrderStatus;
  * 
  */
 public class CombatCenter {
-    private static CombatCenter instance;
+    private static List<CombatOrder> orders = new ArrayList<>();
+    private static List<CombatCenterListener> listeners = new ArrayList<>();
+    private static List<Squad> squads = new ArrayList<>();
+    private static Map<String, Position> namedAreas = new TreeMap<>();
 
-    private List<CombatOrder> orders = new ArrayList<>();
-    private List<CombatCenterListener> listeners = new ArrayList<>();
-    private List<Squad> squads = new ArrayList<>();
-    private Map<String, Position> namedAreas = new TreeMap<>();
+    public static BehaviorTree<CombatCenter> behaviorTree;
 
-    public BehaviorTree<CombatCenter> behaviorTree;
-
-    public static CombatCenter getInstance() {
-        if (instance == null) {
-            instance = new CombatCenter();
-            return instance;
-        }
-        return instance;
-    }
-
-    public static void init() {
-        getInstance();
-    }
-
-    private CombatCenter() {
-        // this.behaviorTree = RUtils.parseFile("dog.tree", this);
-    }
-
-    public void addSquad(Squad squad) {
+    public static void addSquad(Squad squad) {
         squads.add(squad);
     }
 
-    public Position getArea(String areaName) {
+    public static Position getArea(String areaName) {
         return namedAreas.get(areaName);
     }
 
@@ -58,7 +40,7 @@ public class CombatCenter {
      * call by RBWListener every x seconds. this method will:
      * 
      */
-    public void update() {
+    public static void update() {
         // update named areas
         Unit unit = UnitsCenter.getUnit(UnitType.Terran_Command_Center);
         namedAreas.put("RetreatArea", unit.getPosition());
@@ -68,7 +50,7 @@ public class CombatCenter {
         }
     }
 
-    public void addOrder(CombatOrder combatOrder) {
+    public static void addOrder(CombatOrder combatOrder) {
         // to avoid creating the same order, check if the order already exists in the
         // list
         Optional<CombatOrder> optional = orders.stream()
@@ -89,12 +71,12 @@ public class CombatCenter {
         }
     }
 
-    public List<CombatOrder> getOrders(PositionName positionName) {
+    public static List<CombatOrder> getOrders(PositionName positionName) {
         return orders.stream().filter(co -> co.positionName == positionName && co.status == OrderStatus.Pending)
                 .toList();
     }
 
-    public void addListener(CombatCenterListener listener) {
+    public static void addListener(CombatCenterListener listener) {
         listeners.add(listener);
     }
 

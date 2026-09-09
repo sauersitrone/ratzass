@@ -7,11 +7,19 @@ import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import com.badlogic.gdx.ai.btree.BehaviorTree;
+import com.hstairs.ppmajal.PDDLProblem.PDDLObjects;
+import com.hstairs.ppmajal.PDDLProblem.PDDLProblem;
+import com.hstairs.ppmajal.PDDLProblem.PDDLSearchEngine;
+import com.hstairs.ppmajal.conditions.BoolPredicate;
+import com.hstairs.ppmajal.conditions.Condition;
+import com.hstairs.ppmajal.conditions.PDDLObject;
+import com.hstairs.ppmajal.domain.PDDLDomain;
+import com.hstairs.ppmajal.pddl.heuristics.advanced.H1;
 import com.hstairs.ppmajal.transition.TransitionGround;
 
-import bwapi.Pair;
 import bwapi.Unit;
 import bwapi.UnitType;
 import de.simone.RBWListener;
@@ -23,49 +31,33 @@ import de.simone.command.StarCraftConstants.BuildActionName;
 import de.simone.command.StarCraftConstants.OrderStatus;
 
 /**
- * control the creation of units and buildings, and the gathering of resources.
- * It uses a PDDL planner to determine the best course of action to achieve the
- * desired state of the game.
- * 
+ * Coordinates unit and building production together with resource gathering.
+ * Uses a PDDL planner to create build orders that move the game toward the
+ * desired state.
  */
 public class LogisticCenter {
 
-    private static LogisticCenter instance;
-    private String domain;
-    private String problem;
-    private String planner;
-    private List<LogisticCenterListener> listeners = new ArrayList<>();
-    public BehaviorTree<Blackboard> behaviorTree;
-    public List<BuildOrder> buildOrders = new ArrayList<>();
-
-    public static LogisticCenter getInstance() {
-        if (instance == null) {
-            instance = new LogisticCenter();
-            return instance;
-        }
-        return instance;
+    private static String domain;
+    private static String problem;
+    private static String planner;
+    private static List<LogisticCenterListener> listeners = new ArrayList<>();
+    public static BehaviorTree<Blackboard> behaviorTree;
+    public static List<BuildOrder> buildOrders = new ArrayList<>();
+    static {
+        domain = RUtils.getResourceFile("./starcraft-domain.pddl");
+        planner = "opt-blind";
+        // planner = "sat-hmrp";
+        behaviorTree = RUtils.parseFile("logistic.tree");
     }
 
-    public static void init() {
-        getInstance();
-    }
-
-    private LogisticCenter() {
-        this.domain = RUtils.getResourceFile("./starcraft-domain.pddl");
-        this.planner = "opt-blind";
-        this.behaviorTree = RUtils.parseFile("logistic.tree");
-
-        // this.planner = "sat-hmrp";
-    }
-
-    public boolean areMyOrdersReady(UnitType unitType, int quantity) {
+    public static boolean areMyOrdersReady(UnitType unitType, int quantity) {
         List<BuildOrder> list = buildOrders.stream().filter(o -> o.unitType == unitType && o.quantity == quantity)
                 .toList();
         int ready = (int) list.stream().filter(o -> o.status == OrderStatus.Completed).count();
         return ready == list.size();
     }
 
-    public void onUnitComplete(Unit unit) {
+    public static void onUnitComplete(Unit unit) {
         Optional<BuildOrder> optional = buildOrders.stream()
                 .filter(ba -> ba.status == OrderStatus.Running && ba.unitType == unit.getType())
                 .findFirst();
@@ -76,20 +68,15 @@ public class LogisticCenter {
     }
 
     /**
-     * call by RBWListener every x seconds. this method will:
-     * - check if is there at leas a refinery. if not, create it
-     * - update the status of the pending gathering actions.
-     * - check the pending build and train actions. if the resources are enough,
-     * dispatch the command to the CommandQueue
-     * - check the supply min threshold. if the supply is low, create a build order
-     * for supplyDepot
-     * - check the min number of SCV. if the number of SCV is low, create a build
-     * order for SCV
-     * - check if there is any idle SCV. if there is, set it to gather minerals or
-     * gas, depending on the current number of SCV gathering each resource.
-     * - notify the listeners about the updated buildOrders
+     * Called by RBWListener every x seconds. This method will:
+     * - ensure that the SCVs are gathering resources
+     * - check if there are any pending build or train orders
+     * - start the next pending order if possible.
+     * - check if there is a need to build supply depots and add them to the build
+     * order if necessary.
+     * - notify all registered listeners about the updated build orders.
      */
-    public void update() {
+    public static void update() {
 
         // ensure the scv are working
         Unit unit = UnitsCenter.getIdleTerranSCV();
@@ -99,13 +86,13 @@ public class LogisticCenter {
             int gGas = (int) UnitsCenter.getUnits().stream()
                     .filter(u -> u.getType() == UnitType.Terran_SCV && u.isGatheringGas()).count();
             if (gGas < StarCraftConstants.SCV_GATHERING_GAS && refinery != null) {
-                CommandQueue.getInstance().gather(ResourceType.Gas);
+                CommandQueue.gather(ResourceType.Gas);
             }
 
             int gMinerals = (int) (int) UnitsCenter.getUnits().stream()
                     .filter(u -> u.getType() == UnitType.Terran_SCV && u.isGatheringMinerals()).count();
             if (gMinerals < StarCraftConstants.SCV_GATHERING_MINERALS) {
-                CommandQueue.getInstance().gather(ResourceType.Mineral);
+                CommandQueue.gather(ResourceType.Mineral);
             }
         }
 
@@ -147,14 +134,14 @@ public class LogisticCenter {
             BuildOrder buildOrder = optional.get();
             // train
             if (buildOrder.action == StarCraftConstants.BuildActionName.train) {
-                Command command = CommandQueue.getInstance().train(buildOrder.unitType);
+                Command command = CommandQueue.train(buildOrder.unitType);
                 buildOrder.message = command.message;
                 buildOrder.status = OrderStatus.Running;
             }
 
             // build
             if (buildOrder.action == StarCraftConstants.BuildActionName.build) {
-                Command command = CommandQueue.getInstance().build(buildOrder.unitType);
+                Command command = CommandQueue.build(buildOrder.unitType);
                 buildOrder.message = command.message;
                 buildOrder.status = OrderStatus.Running;
             }
@@ -177,12 +164,14 @@ public class LogisticCenter {
      * found. see the message attribute of the buildOrder for more information.
      * 
      * @param buildOrder - the order
+     * @return a list of build orders to be executed in order to achieve the desired
+     *         state of the game.
      */
-    public List<BuildOrder> addBuildOrder(UnitType unitType, int quantity) {
+    public static List<BuildOrder> addBuildOrder(UnitType unitType, int quantity) {
         return addBuildOrder(unitType, quantity, false);
     }
 
-    private List<BuildOrder> addBuildOrder(UnitType unitType, int quantity, boolean highPriority) {
+    private static List<BuildOrder> addBuildOrder(UnitType unitType, int quantity, boolean highPriority) {
         // fail save
         Optional<BuildOrder> optional = buildOrders.stream()
                 .filter(bo -> bo.unitType == unitType && bo.quantity == quantity
@@ -194,10 +183,26 @@ public class LogisticCenter {
 
         // the goal muss express the total units (e.g if i want to build 1 SCV, and i
         // already have 1, the goal must be 2, not 1)
-        Pair<UnitType, Integer> pair = new Pair<>(unitType, quantity);
-        PddlProblem pddlProblem = new PddlProblem(pair);
+        Pair<UnitType, Integer> pair = Pair.of(unitType, quantity);
+
+        // PDDLDomain pddlDomain = new PDDLDomain(domain);
+        // PDDLProblem pddlProblem = new PDDLProblem(pddlDomain);
+
+        // pddlProblem.setGoals(BoolPredicate.getPredicate("total-units", pair));
+
+        // PDDLObject pddlObject = new PDDLObject(pddlProblem);
+
+        // PDDLObjects pddlObjects = new PDDLObjects(pddlProblem);
+
+        // pddlProblem.setObjects(BoolPredicate.getPredicate("total-units", pair));
+
+        // PDDLSearchEngine searchEngine = new PDDLSearchEngine(pddlProblem, new H1(pddlProblem)); // manager of the search
+        //                                                                                         // strategies
+        // LinkedList<Pair<BigDecimal, Object>> plans = searchEngine.WAStar();
+
+        RPddlProblem pddlProblem = new RPddlProblem(pair);
         pddlProblem.printProblem = true;
-        this.problem = pddlProblem.getPDDLProblem();
+        problem = pddlProblem.getPDDLProblem();
 
         List<String> plan = solve();
         List<BuildOrder> buildOrders2 = new ArrayList<>();
@@ -228,7 +233,7 @@ public class LogisticCenter {
         return buildOrders2;
     }
 
-    private List<String> solve() {
+    private static List<String> solve() {
         RENHSP p = new RENHSP(false);
         String[] args1 = { "-o", domain, "-f", problem, "-planner", planner };
         p.parseInput(args1);
@@ -243,7 +248,7 @@ public class LogisticCenter {
         }
     }
 
-    public void addListener(LogisticCenterListener listener) {
+    public static void addListener(LogisticCenterListener listener) {
         listeners.add(listener);
     }
 

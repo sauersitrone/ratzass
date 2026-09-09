@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import bwapi.UnitType;
-import de.simone.RBWListener;
 import de.simone.command.StarCraftConstants.BuildActionName;
 import de.simone.command.StarCraftConstants.OrderPriority;
 import de.simone.command.StarCraftConstants.OrderStatus;

@@ -23,41 +23,23 @@ import lombok.extern.java.Log;
  */
 @Log
 public class CommandQueue {
-
-    public enum ResourceType {
+    public static enum ResourceType {
         Mineral,
         Gas
     }
 
-    private static CommandQueue instance = null;
+    private static ArrayList<Command> commands = new ArrayList<Command>();
+    private static ArrayList<CommandQueueListener> listeners = new ArrayList<CommandQueueListener>();
 
-    private ArrayList<Command> commands = new ArrayList<Command>();
-    private ArrayList<CommandQueueListener> listeners = new ArrayList<CommandQueueListener>();
-
-    private CommandQueue() {
-        //
-    }
-
-    public static CommandQueue getInstance() {
-        if (instance == null) {
-            instance = new CommandQueue();
-        }
-        return instance;
-    }
-
-    public static void init() {
-        getInstance();
-    }
-
-    public List<Command> getCommands() {
+    public static List<Command> getCommands() {
         return commands;
     }
 
-    public void addListener(CommandQueueListener listener) {
+    public static void addListener(CommandQueueListener listener) {
         listeners.add(listener);
     }
 
-    public void dispatchCommands() {
+    public static void dispatchCommands() {
         Game bwapi = RBWListener.bwClient.getGame();
 
         for (Command command : commands) {
@@ -218,14 +200,13 @@ public class CommandQueue {
         }
     }
 
-    private Command addCommand(UnitCommandType command, int unitID, int targetUnit, Position position) {
+    private static Command addCommand(UnitCommandType command, int unitID, int targetUnit, Position position) {
         Command command2 = new Command(command, unitID, targetUnit, position);
         addCommand(command2);
-        System.out.println("CommandQueue.addCommand() " + unitID + " " + command);
         return command2;
     }
 
-    private void addCommand(Command command) {
+    private static void addCommand(Command command) {
         // iff exist the same command with status pending, return silently
         Optional<Command> optional = commands.stream()
                 .filter(c -> c.order == command.order && c.status == OrderStatus.Pending).findFirst();
@@ -236,7 +217,7 @@ public class CommandQueue {
         listeners.forEach(listener -> listener.update(commands));
     }
 
-    public Command gather(ResourceType resourceType) {
+    public static Command gather(ResourceType resourceType) {
         Command command = new Command(UnitCommandType.Gather, -1, -1, null);
 
         // select idle SCV
@@ -256,11 +237,11 @@ public class CommandQueue {
         return addCommand(UnitCommandType.Gather, rUnit.getID(), resourceUnit.getID(), null);
     }
 
-    public void gather(int unitID, int targetID) {
+    public static void gather(int unitID, int targetID) {
         addCommand(UnitCommandType.Gather, unitID, targetID, null);
     }
 
-    public void attackMove(int unitID, Position position) {
+    public static void attackMove(int unitID, Position position) {
         addCommand(UnitCommandType.Attack_Move, unitID, -1, position);
     }
 
@@ -269,15 +250,15 @@ public class CommandQueue {
      * 
      * // virtual bool attackUnit(Unit* target) = 0;
      */
-    public void attackUnit(int unitID, int targetID) {
+    public static void attackUnit(int unitID, int targetID) {
         addCommand(UnitCommandType.Attack_Unit, unitID, targetID, null);
     }
 
     /**
-     * Tells the unit to right click (move) to the specified location 
+     * Tells the unit to right click (move) to the specified location
      * 
      */
-    public Command rightClick(int unitID, Position position) {
+    public static Command rightClick(int unitID, Position position) {
         return addCommand(UnitCommandType.Right_Click_Position, unitID, -1, position);
     }
 
@@ -287,11 +268,11 @@ public class CommandQueue {
      * 
      * // virtual bool rightClick(Unit* target) = 0;
      */
-    public void rightClick(int unitID, int targetID) {
+    public static void rightClick(int unitID, int targetID) {
         addCommand(UnitCommandType.Right_Click_Unit, unitID, targetID, null);
     }
 
-    public Command train(UnitType unitType) {
+    public static Command train(UnitType unitType) {
         Command command = new Command(UnitCommandType.Train, -1, -1, null);
         command.unitType = unitType;
 
@@ -313,7 +294,7 @@ public class CommandQueue {
         return command;
     }
 
-    public Command build(UnitType unitType) {
+    public static Command build(UnitType unitType) {
         Command command = addCommand(UnitCommandType.Build, -1, -1, null);
         command.unitType = unitType;
 
@@ -369,7 +350,7 @@ public class CommandQueue {
      * 
      * // virtual bool buildAddon(UnitType type) = 0;
      */
-    public void buildAddon(int unitID, UnitType unitType) {
+    public static void buildAddon(int unitID, UnitType unitType) {
         Command command = addCommand(UnitCommandType.Build_Addon, unitID, -1, null);
         command.unitType = unitType;
     }
@@ -379,7 +360,7 @@ public class CommandQueue {
      * 
      * // virtual bool research(TechType tech) = 0;
      */
-    public void research(int unitID, TechType techType) {
+    public static void research(int unitID, TechType techType) {
         Command command = addCommand(UnitCommandType.Research, unitID, -1, null);
         command.techType = techType;
     }
@@ -389,7 +370,7 @@ public class CommandQueue {
      * 
      * // virtual bool upgrade(UpgradeType upgrade) = 0;
      */
-    public void upgrade(int unitID, UpgradeType upgradeType) {
+    public static void upgrade(int unitID, UpgradeType upgradeType) {
         Command command = addCommand(UnitCommandType.Upgrade, unitID, -1, null);
         command.upgradeType = upgradeType;
     }
@@ -400,19 +381,19 @@ public class CommandQueue {
      * 
      * // virtual bool stop() = 0;
      */
-    public void stop(int unitID) {
+    public static void stop(int unitID) {
         addCommand(UnitCommandType.Stop, unitID, -1, null);
     }
 
-    public void holdPosition(int unitID) {
+    public static void holdPosition(int unitID) {
         addCommand(UnitCommandType.Hold_Position, unitID, -1, null);
     }
 
-    // public Command patrol(Position position) {
+    // public static Command patrol(Position position) {
     // Command command = new Command(UnitCommandType.Patrol, -1, -1, position);
 
     // // select a squad to patrol
-    // Squad squad = UnitsCenter.getInstance().getSquads(3);
+    // Squad squad = UnitsCenter.getSquads(3);
     // if (squad == null)
     // return logFail(command, "No squad available to patrol.");
 
@@ -421,7 +402,7 @@ public class CommandQueue {
     // return addCommand(command);
     // }
 
-    public void patrol(int unitID, Position position) {
+    public static void patrol(int unitID, Position position) {
         addCommand(UnitCommandType.Patrol, unitID, -1, position);
     }
 
@@ -430,7 +411,7 @@ public class CommandQueue {
      * 
      * // virtual bool follow(Unit* target) = 0;
      */
-    public void follow(int unitID, int targetID) {
+    public static void follow(int unitID, int targetID) {
         addCommand(UnitCommandType.Follow, unitID, targetID, null);
     }
 
@@ -439,7 +420,7 @@ public class CommandQueue {
      * 
      * // virtual bool setRallyPosition(Position target) = 0;
      */
-    public void setRallyPosition(int unitID, Position position) {
+    public static void setRallyPosition(int unitID, Position position) {
         addCommand(UnitCommandType.Set_Rally_Position, unitID, -1, position);
     }
 
@@ -449,7 +430,7 @@ public class CommandQueue {
      * 
      * // virtual bool setRallyUnit(Unit* target) = 0;
      */
-    public void setRallyUnit(int unitID, int targetID) {
+    public static void setRallyUnit(int unitID, int targetID) {
         addCommand(UnitCommandType.Set_Rally_Unit, unitID, targetID, null);
     }
 
@@ -458,7 +439,7 @@ public class CommandQueue {
      * 
      * // virtual bool repair(Unit* target) = 0;
      */
-    public void repair(int unitID, int targetID) {
+    public static void repair(int unitID, int targetID) {
         addCommand(UnitCommandType.Repair, unitID, targetID, null);
     }
 
@@ -467,7 +448,7 @@ public class CommandQueue {
      * 
      * // virtual bool morph(UnitType type) = 0;
      */
-    public void morph(int unitID, UnitType unitType) {
+    public static void morph(int unitID, UnitType unitType) {
         Command command = addCommand(UnitCommandType.Morph, unitID, -1, null);
         command.unitType = unitType;
     }
@@ -477,7 +458,7 @@ public class CommandQueue {
      * 
      * // virtual bool burrow() = 0;
      */
-    public void burrow(int unitID) {
+    public static void burrow(int unitID) {
         addCommand(UnitCommandType.Burrow, unitID, -1, null);
     }
 
@@ -486,7 +467,7 @@ public class CommandQueue {
      * 
      * // virtual bool unburrow() = 0;
      */
-    public void unburrow(int unitID) {
+    public static void unburrow(int unitID) {
         addCommand(UnitCommandType.Unburrow, unitID, -1, null);
     }
 
@@ -495,7 +476,7 @@ public class CommandQueue {
      * 
      * // virtual bool siege() = 0;
      */
-    public void siege(int unitID) {
+    public static void siege(int unitID) {
         addCommand(UnitCommandType.Siege, unitID, -1, null);
     }
 
@@ -504,7 +485,7 @@ public class CommandQueue {
      * 
      * // virtual bool unsiege() = 0;
      */
-    public void unsiege(int unitID) {
+    public static void unsiege(int unitID) {
         addCommand(UnitCommandType.Unsiege, unitID, -1, null);
     }
 
@@ -513,7 +494,7 @@ public class CommandQueue {
      * 
      * // virtual bool cloak() = 0;
      */
-    public void cloak(int unitID) {
+    public static void cloak(int unitID) {
         addCommand(UnitCommandType.Cloak, unitID, -1, null);
     }
 
@@ -522,7 +503,7 @@ public class CommandQueue {
      * 
      * // virtual bool decloak() = 0;
      */
-    public void decloak(int unitID) {
+    public static void decloak(int unitID) {
         addCommand(UnitCommandType.Decloak, unitID, -1, null);
     }
 
@@ -531,7 +512,7 @@ public class CommandQueue {
      * 
      * // virtual bool lift() = 0;
      */
-    public void lift(int unitID) {
+    public static void lift(int unitID) {
         addCommand(UnitCommandType.Lift, unitID, -1, null);
     }
 
@@ -540,7 +521,7 @@ public class CommandQueue {
      * 
      * // virtual bool land(TilePosition position) = 0;
      */
-    public void land(int unitID, Position position) {
+    public static void land(int unitID, Position position) {
         addCommand(UnitCommandType.Land, unitID, -1, position);
     }
 
@@ -549,7 +530,7 @@ public class CommandQueue {
      * 
      * // virtual bool load(Unit* target) = 0;
      */
-    public void load(int unitID, int targetID) {
+    public static void load(int unitID, int targetID) {
         addCommand(UnitCommandType.Load, unitID, targetID, null);
     }
 
@@ -559,7 +540,7 @@ public class CommandQueue {
      * 
      * // virtual bool unload(Unit* target) = 0;
      */
-    public void unload(int unitID, int targetID) {
+    public static void unload(int unitID, int targetID) {
         addCommand(UnitCommandType.Unload, unitID, targetID, null);
     }
 
@@ -568,7 +549,7 @@ public class CommandQueue {
      * 
      * // virtual bool unloadAll() = 0;
      */
-    public void unloadAll(int unitID) {
+    public static void unloadAll(int unitID) {
         addCommand(UnitCommandType.Unload_All, unitID, -1, null);
     }
 
@@ -577,7 +558,7 @@ public class CommandQueue {
      * 
      * // virtual bool unloadAll(Position position) = 0;
      */
-    public void unloadAll(int unitID, Position position) {
+    public static void unloadAll(int unitID, Position position) {
         addCommand(UnitCommandType.Unload_All_Position, unitID, -1, position);
     }
 
@@ -586,7 +567,7 @@ public class CommandQueue {
      * 
      * // virtual bool cancelConstruction() = 0;
      */
-    public void cancelConstruction(int unitID) {
+    public static void cancelConstruction(int unitID) {
         addCommand(UnitCommandType.Cancel_Construction, unitID, -1, null);
     }
 
@@ -595,7 +576,7 @@ public class CommandQueue {
      * 
      * // virtual bool haltConstruction() = 0;
      */
-    public void haltConstruction(int unitID) {
+    public static void haltConstruction(int unitID) {
         addCommand(UnitCommandType.Halt_Construction, unitID, -1, null);
     }
 
@@ -604,7 +585,7 @@ public class CommandQueue {
      * 
      * // virtual bool cancelMorph() = 0;
      */
-    public void cancelMorph(int unitID) {
+    public static void cancelMorph(int unitID) {
         addCommand(UnitCommandType.Cancel_Morph, unitID, -1, null);
     }
 
@@ -613,7 +594,7 @@ public class CommandQueue {
      * 
      * // virtual bool cancelTrain() = 0;
      */
-    public void cancelTrain(int unitID) {
+    public static void cancelTrain(int unitID) {
         addCommand(UnitCommandType.Cancel_Train, unitID, -1, null);
     }
 
@@ -622,7 +603,7 @@ public class CommandQueue {
      * 
      * // virtual bool cancelTrain(int slot) = 0;
      */
-    public void cancelTrain(int unitID, int slot) {
+    public static void cancelTrain(int unitID, int slot) {
         addCommand(UnitCommandType.Cancel_Train_Slot, unitID, slot, null);
     }
 
@@ -631,7 +612,7 @@ public class CommandQueue {
      * 
      * // virtual bool cancelAddon() = 0;
      */
-    public void cancelAddon(int unitID) {
+    public static void cancelAddon(int unitID) {
         addCommand(UnitCommandType.Cancel_Addon, unitID, -1, null);
     }
 
@@ -640,7 +621,7 @@ public class CommandQueue {
      * 
      * // virtual bool cancelResearch() = 0;
      */
-    public void cancelResearch(int unitID) {
+    public static void cancelResearch(int unitID) {
         addCommand(UnitCommandType.Cancel_Research, unitID, -1, null);
     }
 
@@ -649,7 +630,7 @@ public class CommandQueue {
      * 
      * // virtual bool cancelUpgrade() = 0;
      */
-    public void cancelUpgrade(int unitID) {
+    public static void cancelUpgrade(int unitID) {
         addCommand(UnitCommandType.Cancel_Upgrade, unitID, -1, null);
     }
 
@@ -658,7 +639,7 @@ public class CommandQueue {
      * 
      * // virtual bool useTech(TechType tech) = 0;
      */
-    public void useTech(int unitID, TechType techType) {
+    public static void useTech(int unitID, TechType techType) {
         Command command = addCommand(UnitCommandType.Use_Tech, unitID, -1, null);
         command.techType = techType;
     }
@@ -670,7 +651,7 @@ public class CommandQueue {
      * 
      * // virtual bool useTech(TechType tech, Position position) = 0;
      */
-    public void useTech(int unitID, TechType techType, Position position) {
+    public static void useTech(int unitID, TechType techType, Position position) {
         addCommand(UnitCommandType.Use_Tech_Position, unitID, -1, position);
     }
 
@@ -681,11 +662,11 @@ public class CommandQueue {
      * 
      * // virtual bool useTech(TechType tech, Unit* target) = 0;
      */
-    public void useTech(int unitID, TechType techType, int targetID) {
+    public static void useTech(int unitID, TechType techType, int targetID) {
         addCommand(UnitCommandType.Use_Tech_Unit, unitID, targetID, null);
     }
 
-    public Command logSuccess(Command command, String message) {
+    public static Command logSuccess(Command command, String message) {
         log.info("SUCCEEDED: " + message);
         command.status = OrderStatus.Completed;
         command.message = message;

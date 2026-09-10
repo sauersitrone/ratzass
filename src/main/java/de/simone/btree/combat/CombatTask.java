@@ -18,11 +18,11 @@ public abstract class CombatTask extends LeafTask<Squad> {
         return task;
     }
 
-    public String getName() {
-        String name = this.getClass().getSimpleName();
+    @Override
+    public String toString() {
+        String name = getClass().getSimpleName();
         name = name.replace("Task", "");
         name = name.replace("Condition", "");
         return name;
     }
-
 }

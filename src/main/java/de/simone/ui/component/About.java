@@ -1,19 +1,24 @@
 package de.simone.ui.component;
 
-import com.formdev.flatlaf.FlatClientProperties;
-import com.formdev.flatlaf.util.LoggingFacade;
-
-import de.simone.ui.Demo;
-import net.miginfocom.swing.MigLayout;
-
-import javax.swing.*;
-import javax.swing.border.TitledBorder;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.text.DefaultCaret;
-import java.awt.*;
+import java.awt.Desktop;
+import java.awt.Graphics;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTextPane;
+import javax.swing.border.TitledBorder;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.text.DefaultCaret;
+
+import com.formdev.flatlaf.FlatClientProperties;
+import com.formdev.flatlaf.util.LoggingFacade;
+
+import de.simone.Main;
+import net.miginfocom.swing.MigLayout;
 
 public class About extends JPanel {
 
@@ -76,7 +81,7 @@ public class About extends JPanel {
         panel.setBorder(new TitledBorder("System Information"));
         JTextPane textPane = createText("");
         textPane.setContentType("text/html");
-        String version = Demo.DEMO_VERSION;
+        String version = Main.VERSION;
         String java = System.getProperty("java.vendor") + " - v" + System.getProperty("java.version");
         String system = System.getProperty("os.name") + " " + System.getProperty("os.arch") + " - v" + System.getProperty("os.version");
         String text = String.format(getSystemInformationText(),

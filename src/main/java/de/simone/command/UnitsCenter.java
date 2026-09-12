@@ -11,44 +11,36 @@ import bwapi.Unit;
 import bwapi.UnitType;
 import de.simone.RBWListener;
 import de.simone.UnitEvent;
-import lombok.extern.java.Log;
 import tech.tablesaw.api.Table;
 
+
 /**
- * Represent the command center that keep track of all the units in the game.
- * UnitsCenter
+ * Tracks units, unit events, discovered unit documents, and combat squads.
+ * Provides access to friendly and enemy units and notifies listeners about unit
+ * event updates.
  */
-@Log
 public class UnitsCenter {
 
-    private static UnitsCenter instance;
-
-    private ArrayList<Squad> squads = new ArrayList<Squad>();
-    private Map<Integer, UnitDocument> unitDocuments = new TreeMap<>();
-    private List<UnitsCenterListener> listeners = new ArrayList<>();
-    public Table unitEventsTable;
-
-    private UnitsCenter() {
+    private static ArrayList<Squad> squads = new ArrayList<Squad>();
+    private static Map<Integer, UnitDocument> unitDocuments = new TreeMap<>();
+    private static List<UnitsCenterListener> listeners = new ArrayList<>();
+    public static Table unitEventsTable;
+    static {
         unitEventsTable = Table.create("Unit Events");
         UnitEvent.createColumns(unitEventsTable);
     }
 
-    public static UnitsCenter getInstance() {
-        if (instance == null) {
-            instance = new UnitsCenter();
-        }
-        return instance;
-    }
+    // public UnitsCenter() {
+    // unitEventsTable = Table.create("Unit Events");
+    // UnitEvent.createColumns(unitEventsTable);
+    // }
 
-    public static void init() {
-        getInstance();
-    }
-
-    public void addListener(UnitsCenterListener listener) {
+    public static void addListener(UnitsCenterListener listener) {
         listeners.add(listener);
     }
 
-    public void update() {
+    public static void update() {
+        // update the units status, current command and so on
         List<Unit> units = RBWListener.game.getAllUnits();
         for (Unit unit : units) {
             UnitEvent unitEvent = new UnitEvent(unit);
@@ -56,16 +48,18 @@ public class UnitsCenter {
             unitEvent.update(unitEventsTable);
         }
 
+        // remove dead squads
+        squads.removeIf(s -> !s.isAlive());
     }
 
-    public void onUnitComplete(Unit unit) {
+    public static void onUnitComplete(Unit unit) {
         UnitEvent unitEvent = new UnitEvent(unit);
         unitEvent.status = UnitEvent.EventType.CREATED;
         unitEvent.update(unitEventsTable);
         listeners.forEach(l -> l.updated(unitEventsTable));
     }
 
-    public void onUnitDiscover(Unit unit) {
+    public static void onUnitDiscover(Unit unit) {
         UnitEvent unitEvent = new UnitEvent(unit);
         unitEvent.update(unitEventsTable);
         listeners.forEach(l -> l.updated(unitEventsTable));
@@ -74,7 +68,7 @@ public class UnitsCenter {
         unitDocuments.put(doc.unitID, doc);
     }
 
-    public void onUnitDestroy(Unit unit) {
+    public static void onUnitDestroy(Unit unit) {
         UnitEvent unitEvent = new UnitEvent(unit);
         unitEvent.status = UnitEvent.EventType.DESTROYED;
         unitEvent.update(unitEventsTable);
@@ -86,17 +80,17 @@ public class UnitsCenter {
     }
 
     //
-    public List<UnitDocument> getDocuments() {
+    public static List<UnitDocument> getDocuments() {
         return unitDocuments.values().stream().filter(u -> !u.isEnemy).toList();
     }
 
     //
-    public List<UnitDocument> getDocuments(UnitType unitType) {
+    public static List<UnitDocument> getDocuments(UnitType unitType) {
         return getDocuments().stream().filter(u -> !u.isEnemy && u.unitType == unitType).toList();
     }
 
     //
-    public UnitDocument getDocument(UnitType unitType) {
+    public static UnitDocument getDocument(UnitType unitType) {
         List<UnitDocument> units = getDocuments(unitType);
         if (!units.isEmpty())
             return units.getFirst();
@@ -104,23 +98,23 @@ public class UnitsCenter {
         return null;
     }
 
-    public List<UnitDocument> getEnemies() {
+    public static List<UnitDocument> getEnemies() {
         return unitDocuments.values().stream().filter(u -> u.isEnemy).toList();
     }
 
-    public int getEnemyUnitCount(UnitType unitType) {
+    public static int getEnemyUnitCount(UnitType unitType) {
         return (int) getEnemies().stream().filter(u -> u.unitType == unitType).count();
     }
 
-    public List<UnitDocument> getEnemyUnits(UnitType unitType) {
+    public static List<UnitDocument> getEnemyUnits(UnitType unitType) {
         return getEnemies().stream().filter(u -> u.unitType == unitType).toList();
     }
 
-    public void addSquad(Squad squad) {
+    public static void addSquad(Squad squad) {
         squads.add(squad);
     }
 
-    public List<Squad> getSquads() {
+    public static List<Squad> getSquads() {
         return new ArrayList<>(squads);
     }
 
@@ -130,7 +124,7 @@ public class UnitsCenter {
      * @param size - the size
      * @return the squad
      */
-    public Squad getSquads(int size) {
+    public static Squad getSquads(int size) {
         List<Squad> squads = getSquads();
         if (squads.isEmpty()) {
             return null;
@@ -143,7 +137,7 @@ public class UnitsCenter {
     }
 
     //
-    public List<UnitDocument> getSquadUnits(String squadID) {
+    public static List<UnitDocument> getSquadUnits(String squadID) {
         List<UnitDocument> list = getDocuments();
         return list.stream().filter(u -> u.squadID.equals(squadID)).toList();
     }
@@ -196,7 +190,7 @@ public class UnitsCenter {
 
     public static List<Unit> getEnemyUnits(Position center, int radious) {
         boolean isEnemy = RBWListener.game.self().isEnemy(RBWListener.game.self());
-        List<Unit> units = RBWListener.game.getUnitsInRadius(center, 200);
+        List<Unit> units = RBWListener.game.getUnitsInRadius(center, radious);
         List<Unit> enemies = units.stream().filter(u -> isEnemy).toList();
         return enemies;
     }

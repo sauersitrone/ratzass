@@ -10,14 +10,6 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.badlogic.gdx.ai.btree.BehaviorTree;
-import com.hstairs.ppmajal.PDDLProblem.PDDLObjects;
-import com.hstairs.ppmajal.PDDLProblem.PDDLProblem;
-import com.hstairs.ppmajal.PDDLProblem.PDDLSearchEngine;
-import com.hstairs.ppmajal.conditions.BoolPredicate;
-import com.hstairs.ppmajal.conditions.Condition;
-import com.hstairs.ppmajal.conditions.PDDLObject;
-import com.hstairs.ppmajal.domain.PDDLDomain;
-import com.hstairs.ppmajal.pddl.heuristics.advanced.H1;
 import com.hstairs.ppmajal.transition.TransitionGround;
 
 import bwapi.Unit;
@@ -43,6 +35,8 @@ public class LogisticCenter {
     private static List<LogisticCenterListener> listeners = new ArrayList<>();
     public static BehaviorTree<Blackboard> behaviorTree;
     public static List<BuildOrder> buildOrders = new ArrayList<>();
+    private static RENHSP renhsp = new RENHSP(false);
+
     static {
         domain = RUtils.getResourceFile("./starcraft-domain.pddl");
         planner = "opt-blind";
@@ -80,6 +74,7 @@ public class LogisticCenter {
 
         // ensure the scv are working
         Unit unit = UnitsCenter.getIdleTerranSCV();
+
         Unit refinery = UnitsCenter.getUnits().stream().filter(u -> u.getType() == UnitType.Terran_Refinery).findFirst()
                 .orElse(null);
         if (unit != null) {
@@ -89,7 +84,7 @@ public class LogisticCenter {
                 CommandQueue.gather(ResourceType.Gas);
             }
 
-            int gMinerals = (int) (int) UnitsCenter.getUnits().stream()
+            int gMinerals = (int) UnitsCenter.getUnits().stream()
                     .filter(u -> u.getType() == UnitType.Terran_SCV && u.isGatheringMinerals()).count();
             if (gMinerals < StarCraftConstants.SCV_GATHERING_MINERALS) {
                 CommandQueue.gather(ResourceType.Mineral);
@@ -147,8 +142,13 @@ public class LogisticCenter {
             }
         }
 
-        // build supply if needed. this hast hight priority
-        if (RBWListener.currentSupplyTotal - RBWListener.currentSupplyUsed < StarCraftConstants.TERRAN_MIN_SUPPLY) {
+        // if no one ist pending, build supply if needed. this hast hight priority
+        optional = buildOrders.stream()
+                .filter(o -> o.action == BuildActionName.build && o.unitType == UnitType.Terran_Supply_Depot
+                        && (o.status == OrderStatus.Completed || o.status == OrderStatus.Running))
+                .findFirst();
+        if (!optional.isPresent() && RBWListener.currentSupplyTotal
+                - RBWListener.currentSupplyUsed < StarCraftConstants.TERRAN_MIN_SUPPLY) {
             addBuildOrder(UnitType.Terran_Supply_Depot, 1, true);
         }
 
@@ -184,23 +184,7 @@ public class LogisticCenter {
         // the goal muss express the total units (e.g if i want to build 1 SCV, and i
         // already have 1, the goal must be 2, not 1)
         Pair<UnitType, Integer> pair = Pair.of(unitType, quantity);
-
-        // PDDLDomain pddlDomain = new PDDLDomain(domain);
-        // PDDLProblem pddlProblem = new PDDLProblem(pddlDomain);
-
-        // pddlProblem.setGoals(BoolPredicate.getPredicate("total-units", pair));
-
-        // PDDLObject pddlObject = new PDDLObject(pddlProblem);
-
-        // PDDLObjects pddlObjects = new PDDLObjects(pddlProblem);
-
-        // pddlProblem.setObjects(BoolPredicate.getPredicate("total-units", pair));
-
-        // PDDLSearchEngine searchEngine = new PDDLSearchEngine(pddlProblem, new H1(pddlProblem)); // manager of the search
-        //                                                                                         // strategies
-        // LinkedList<Pair<BigDecimal, Object>> plans = searchEngine.WAStar();
-
-        RPddlProblem pddlProblem = new RPddlProblem(pair);
+        RPDDLProblem pddlProblem = new RPDDLProblem(pair);
         pddlProblem.printProblem = true;
         problem = pddlProblem.getPDDLProblem();
 
@@ -234,12 +218,11 @@ public class LogisticCenter {
     }
 
     private static List<String> solve() {
-        RENHSP p = new RENHSP(false);
         String[] args1 = { "-o", domain, "-f", problem, "-planner", planner };
-        p.parseInput(args1);
-        p.configurePlanner();
-        if (p.parsingDomainAndProblem(args1)) {
-            LinkedList<ImmutablePair<BigDecimal, TransitionGround>> plan = p.planning();
+        renhsp.parseInput(args1);
+        renhsp.configurePlanner();
+        if (renhsp.parsingDomainAndProblem(args1)) {
+            LinkedList<ImmutablePair<BigDecimal, TransitionGround>> plan = renhsp.planning();
             List<String> planStrings = plan.stream().map(inpair -> inpair.getRight().getName()).toList();
             return planStrings;
         } else {

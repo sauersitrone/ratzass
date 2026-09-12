@@ -33,18 +33,22 @@ public class CreateSquadTask extends LogisticTask {
             currentSquad.recruitMembers();
         }
         
-        if (currentSquad.status == SquadStatus.Idle) {
+        if (currentSquad.status == SquadStatus.Assembled) {
             CombatCenter.addSquad(currentSquad);
         }
-        return currentSquad.status == SquadStatus.Building ? Status.RUNNING : Status.SUCCEEDED;
+        return currentSquad.status == SquadStatus.Assembling ? Status.RUNNING : Status.SUCCEEDED;
     }
 
     private List<UnitType> parseMembers(String members) {
         List<UnitType> memberList = new ArrayList<>();
         String[] memberArray = members.split(",");
         for (String member : memberArray) {
-            UnitType unitType = UnitType.valueOf(member.trim());
-            memberList.add(unitType);
+            String[] memberParts = member.trim().split("\\*", 2);
+            int count = memberParts.length == 2 ? Integer.parseInt(memberParts[0].trim()) : 1;
+            UnitType unitType = UnitType.valueOf(memberParts[memberParts.length - 1].trim());
+            for (int i = 0; i < count; i++) {
+                memberList.add(unitType);
+            }
         }
         return memberList;
     }

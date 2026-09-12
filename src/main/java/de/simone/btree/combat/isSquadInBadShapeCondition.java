@@ -1,23 +1,15 @@
 package de.simone.btree.combat;
 
-import java.util.List;
-
-import bwapi.Position;
-import bwapi.Unit;
 import de.simone.command.Squad;
-import de.simone.command.UnitsCenter;
 
-public class IsDangerCondition extends CombatTask {
+public class isSquadInBadShapeCondition extends CombatTask {
 
     @Override
     public Status execute() {
         Squad squad = getObject();
         int myUnits = squad.getAliveMembers().size();
 
-        Position center = squad.getCenter();
-        List<Unit> enemies = UnitsCenter.getEnemyUnits(center, 200);
-
-        return enemies.size() > myUnits ? Status.SUCCEEDED : Status.FAILED;
+        return myUnits < 3 ? Status.SUCCEEDED : Status.FAILED;
 
         // subtract: Abstand oder Richtung berechnen
         // Position unit = new Position(100, 200);

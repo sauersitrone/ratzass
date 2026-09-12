@@ -1,66 +1,62 @@
-import isDangerous:"de.simone.btree.IsDangerousCondition"
-import retrivePosition:"de.simone.btree.RetrivePositionTask"
-import move:"de.simone.btree.MoveTask"
-import isEnemyDetected:"de.simone.btree.IsEnemyDetectedCondition"
-import attackMove:"de.simone.btree.AttackMoveTask"
-import isThereACallForHelp:"de.simone.btree.IsThereACallForHelpCondition"
-import isSquadInBadShape:"de.simone.btree.IsSquadInBadShapeCondition"
-import mergeSquads:"de.simone.btree.MergeSquadsTask"
+# import isDangerous:"de.simone.btree.combat.IsDangerousCondition"
+import move:"de.simone.btree.combat.MoveTask"
+import isEnemyDetected:"de.simone.btree.combat.IsEnemyDetectedCondition"
+import attackMove:"de.simone.btree.combat.AttackMoveTask"
+import isThereACallForHelp:"de.simone.btree.combat.IsThereACallForHelpCondition"
+import isSquadInBadShape:"de.simone.btree.combat.IsSquadInBadShapeCondition"
+import mergeSquads:"de.simone.btree.combat.MergeSquadsTask"
+import computePosition:"de.simone.btree.combat.ComputePositionTask"
 
 # a idea of random position is to create a raious with center on the command center, patrol the area and increase radious if the are is visible
-subtree name:"patrol"
+# subtree name:"patrol"
+root
     #selector can be used to check the behaviors from highest to lowest priority.
     selector
         #execute a series of conditions and actions in a specific order. It succeeds only when all its children succeed.
         # survival
         sequence
-            isDangerous
-            retrivePosition position:"RetreatArea"
-            move position:"RetreatArea"
-        # answer for help
+            # isDangerous
+            computePosition area:"RetreatArea"
+            move area:"RetreatArea"
+        # call for help
         # sequence
-        #     isThereACallForHelp
-        #     retrivePosition position:"HelpCall"
-        #     move
-        # # combat
-        # sequence
-        #     isEnemyDetected
-        #     retrivePosition position:"LastKnownEnemyPosition"
-        #     attackMove
-        #patrol
-        sequence    
-            attackMove position:"Random"
-
-subtree name:"attack"
-    selector
-        # survival
-        sequence
-            isDangerous
-            retrivePosition position:"RetreatArea"
-            move
-        # if the squad is in bad shape, merge with another squad
-        sequence
-            isSquadInBadShape
-            retrivePosition position:"ClosestSquad"
-            move
-            mergeSquads
+        #     isSquadInBadShape
+        #     computePosition area:"CallForHelp"
         # combat
         sequence
             isEnemyDetected
-            retrivePosition position:"LastKnownEnemyPosition"
-            attackMove
-        # answer for help
+            computePosition area:"EnemyPosition"
+            attackMove area:"EnemyPosition"
+        #patrol
         sequence
-            isThereACallForHelp
-            retrivePosition position:"HelpCall"
-            move
-        # search for enemy
-        sequence    
-            retrivePosition position:"SearchArea"
-            attackMove
+            computePosition area:"RandomPosition"
+            attackMove area:"RandomPosition"
+
+# subtree name:"attack"
+#     selector
+        # # survival
+        # sequence
+        #     isDangerous
+        #     move position:"RetreatArea"
+        # # if the squad is in bad shape, merge with another squad
+        # sequence
+        #     isSquadInBadShape
+        #     move position:"ClosestSquad"
+        #     mergeSquads
+        # # combat
+        # sequence
+        #     isEnemyDetected
+        #     attackMove position:"LastKnownEnemyPosition"
+        # # answer for help
+        # sequence
+        #     isThereACallForHelp
+        #     move position:"HelpCall"
+        # # search for enemy
+        # sequence    
+        #     attackMove position:"SearchArea"
 
 # Tree definition 
-root
-    dynamicGuardSelector
-        (isPatrolSquad) $patrol
-        (isAttackSquad) $attack
+# root
+#     dynamicGuardSelector
+#         (isPatrolSquad) $patrol
+#         (isAttackSquad) $attack

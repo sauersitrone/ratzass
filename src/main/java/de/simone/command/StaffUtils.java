@@ -10,7 +10,7 @@ public class StaffUtils {
     // terry: i donw nknow how to work with map. commentent for now implement laerr
     public static Position getRallyPoint(int x, int y) {
 
-        List<UnitDocument> expos = UnitsCenter.getInstance().getDocuments(UnitType.Terran_Command_Center);
+        List<UnitDocument> expos = UnitsCenter.getDocuments(UnitType.Terran_Command_Center);
         UnitDocument base = expos.get(0);
 
         return new Position(base.position.x, base.position.y);
@@ -20,8 +20,8 @@ public class StaffUtils {
         Squad nearest = null;
         double nearestDistance = Double.MAX_VALUE;
 
-        for (Squad squad : UnitsCenter.getInstance().getSquads()) {
-            Position center = squad.getCenter(false);
+        for (Squad squad : UnitsCenter.getSquads()) {
+            Position center = squad.getPosition();
             if (center == null) {
                 continue;
             }

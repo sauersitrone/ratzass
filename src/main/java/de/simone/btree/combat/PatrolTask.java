@@ -5,7 +5,7 @@ import com.badlogic.gdx.ai.btree.annotation.TaskAttribute;
 import bwapi.UnitCommandType;
 import de.simone.command.CombatCenter.NamedArea;
 
-public class MoveTask extends CombatTask {
+public class PatrolTask extends CombatTask {
 
     @TaskAttribute(required = true)
     public NamedArea area;
@@ -16,7 +16,7 @@ public class MoveTask extends CombatTask {
         if (status == Status.FAILED) 
             return Status.FAILED;
         
-        sendCommunication("Moving to area " + area);
+        sendCommunication("Patrolling area " + area);
         return Status.SUCCEEDED;
     }
 }

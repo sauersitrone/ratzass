@@ -35,13 +35,16 @@ public class Command {
     public Position position = null;
     public TilePosition tilePosition = null;
 
-    public Command() {
+    private Command() {
         //
     }
 
     public Command(UnitCommandType order, UnitType unitType) {
-        this.order = order;
-        this.unitType = unitType;
+        this(order, -1, -1, null);
+    }
+
+    public Command(UnitCommandType order, int unitId, Position position) {
+        this(order, unitId, -1, position);
     }
 
     public Command(UnitCommandType order, int unitId, int targetUnitId, Position position) {
@@ -49,6 +52,11 @@ public class Command {
         this.unitId = unitId;
         this.targetId = targetUnitId;
         this.position = position;
+    }
+
+    @Override
+    public String toString() {
+        return order + " " + unitType;
     }
 
     @Override

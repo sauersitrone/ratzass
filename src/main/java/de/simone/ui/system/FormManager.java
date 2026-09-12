@@ -1,5 +1,7 @@
 package de.simone.ui.system;
 
+import javax.swing.JFrame;
+
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.util.ColorFunctions;
@@ -7,15 +9,12 @@ import com.formdev.flatlaf.util.ColorFunctions;
 import de.simone.gui.LogisticCenterView;
 import de.simone.ui.auth.Login;
 import de.simone.ui.component.About;
-import de.simone.ui.forms.FormDashboard;
 import de.simone.ui.menu.MyDrawerBuilder;
 import de.simone.ui.model.ModelUser;
 import de.simone.ui.utils.UndoRedo;
 import raven.modal.Drawer;
 import raven.modal.ModalDialog;
 import raven.modal.component.SimpleModalBorder;
-
-import javax.swing.*;
 
 public class FormManager {
 

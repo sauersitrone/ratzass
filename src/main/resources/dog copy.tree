@@ -39,14 +39,6 @@ subtree name:"unitControl"
             # check the map to identify enemy positions 
             # issue and order to patrol the position
 
-# Set a worker to scout if it is the appropriate time
-# If any of our occupied regions contain enemy units, create defense Squad to defend
-# If additional combat units are available, attack as follows:
-# - If we know of a visible enemy base location, attack it
-# - Otherwise, if we see visible units, attack them
-# - Otherwise, if we know where an enemy building was, attack it
-# - Otherwise, explore until we find a new attack target
-
 # Tree definition 
 root
     selector

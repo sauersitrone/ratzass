@@ -1,18 +1,25 @@
 package de.simone.ui.system;
 
+import java.awt.BorderLayout;
+import java.awt.Component;
+
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.JToolBar;
+
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 
-import de.simone.ui.Demo;
+import de.simone.Main;
+import de.simone.gui.ControlPanel;
 import de.simone.ui.component.FormSearchButton;
 import de.simone.ui.component.MemoryBar;
 import de.simone.ui.component.RefreshLine;
 import de.simone.ui.icons.SVGIconUIColor;
 import net.miginfocom.swing.MigLayout;
 import raven.modal.Drawer;
-
-import javax.swing.*;
-import java.awt.*;
 
 public class MainForm extends JPanel {
 
@@ -72,7 +79,7 @@ public class MainForm extends JPanel {
         panel.putClientProperty(FlatClientProperties.STYLE, "background:$Menu.background;");
 
         // demo version
-        JLabel lbDemoVersion = new JLabel("Demo: v" + Demo.DEMO_VERSION);
+        JLabel lbDemoVersion = new JLabel("Version: " + Main.VERSION);
         lbDemoVersion.putClientProperty(FlatClientProperties.STYLE, "" +
                 "foreground:$Label.disabledForeground;");
         lbDemoVersion.setIcon(new SVGIconUIColor("ui/icons/git.svg", 1f, "Label.disabledForeground"));
@@ -114,11 +121,14 @@ public class MainForm extends JPanel {
 
     private Component createMain() {
         mainPanel = new JPanel(new BorderLayout());
+        envView = new ControlPanel();
+        mainPanel.add(envView, BorderLayout.NORTH);
         return mainPanel;
     }
 
     public void setForm(Form form) {
         mainPanel.removeAll();
+        mainPanel.add(envView, BorderLayout.NORTH);
         mainPanel.add(form);
         mainPanel.repaint();
         mainPanel.revalidate();
@@ -138,7 +148,7 @@ public class MainForm extends JPanel {
 
     private JPanel mainPanel;
     private RefreshLine refreshLine;
-
+    private ControlPanel envView;
     private JButton buttonUndo;
     private JButton buttonRedo;
     private JButton buttonRefresh;

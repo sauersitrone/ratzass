@@ -1,7 +1,5 @@
 package de.simone.command;
 
-import java.util.List;
-
 import tech.tablesaw.api.Table;
 
 public interface UnitsCenterListener {

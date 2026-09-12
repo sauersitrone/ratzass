@@ -28,6 +28,7 @@ public class CommandQueue {
         Gas
     }
 
+    public static Command currentCommand;
     private static ArrayList<Command> commands = new ArrayList<Command>();
     private static ArrayList<CommandQueueListener> listeners = new ArrayList<CommandQueueListener>();
 
@@ -66,12 +67,7 @@ public class CommandQueue {
                     success = unit.attack(targetUnit);
                     break;
                 case UnitCommandType.Build:
-                    success = unit.build(command.unitType, command.tilePosition);
-
-                    // ERROR with valid building placement
-                    if (!success) {
-                        // Terry: maybe implement message dispach to the source of this command
-                    }
+                    success = unit.build(command.unitType, command.tilePosition); // <-----------------------
                     break;
                 case UnitCommandType.Build_Addon:
                     success = unit.buildAddon(command.unitType);
@@ -200,6 +196,16 @@ public class CommandQueue {
         }
     }
 
+    public static List<Command> addCommand(UnitCommandType command, Squad squad, Position position) {
+        List<Command> addedCommands = new ArrayList<>();
+        for (UnitDocument unit : squad.getAliveMembers()) {
+            Command command2 = new Command(command, unit.unitID, position);
+            addCommand(command2);
+            addedCommands.add(command2);
+        }
+        return addedCommands;
+    }
+
     private static Command addCommand(UnitCommandType command, int unitID, int targetUnit, Position position) {
         Command command2 = new Command(command, unitID, targetUnit, position);
         addCommand(command2);
@@ -241,10 +247,6 @@ public class CommandQueue {
         addCommand(UnitCommandType.Gather, unitID, targetID, null);
     }
 
-    public static void attackMove(int unitID, Position position) {
-        addCommand(UnitCommandType.Attack_Move, unitID, -1, position);
-    }
-
     /**
      * Tells the unit to attack another unit.
      * 
@@ -258,8 +260,10 @@ public class CommandQueue {
      * Tells the unit to right click (move) to the specified location
      * 
      */
-    public static Command rightClick(int unitID, Position position) {
-        return addCommand(UnitCommandType.Right_Click_Position, unitID, -1, position);
+    public static void rightClick(Squad squad, Position position) {
+        for (UnitDocument unit : squad.getAliveMembers()) {
+            addCommand(UnitCommandType.Right_Click_Position, unit.unitID, -1, position);
+        }
     }
 
     /**
@@ -334,12 +338,13 @@ public class CommandQueue {
             addCommand(command);
 
             return command;
-        }
+        }  
 
         // if the unit to build is a building, find a suitable location
         TilePosition tilePosition = RBWListener.game.self().getStartLocation();
         tilePosition = RBWListener.game.getBuildLocation(command.unitType, tilePosition);
         command.tilePosition = tilePosition;
+        System.out.println("CommandQueue.build() " + tilePosition);
         addCommand(command);
 
         return command;
@@ -387,23 +392,6 @@ public class CommandQueue {
 
     public static void holdPosition(int unitID) {
         addCommand(UnitCommandType.Hold_Position, unitID, -1, null);
-    }
-
-    // public static Command patrol(Position position) {
-    // Command command = new Command(UnitCommandType.Patrol, -1, -1, position);
-
-    // // select a squad to patrol
-    // Squad squad = UnitsCenter.getSquads(3);
-    // if (squad == null)
-    // return logFail(command, "No squad available to patrol.");
-
-    // RUnit rUnit = squad.getUnits().get(0);
-    // command.unitId = rUnit.unitID;
-    // return addCommand(command);
-    // }
-
-    public static void patrol(int unitID, Position position) {
-        addCommand(UnitCommandType.Patrol, unitID, -1, position);
     }
 
     /**

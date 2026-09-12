@@ -12,7 +12,6 @@ import javax.swing.JTextArea;
 import de.simone.Env;
 import de.simone.command.UnitsCenter;
 import de.simone.command.UnitsCenterListener;
-import de.simone.ui.menu.MyDrawerBuilder;
 import de.simone.ui.system.Form;
 import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
@@ -25,20 +24,20 @@ public class UnitsCenterView extends Form implements UnitsCenterListener {
     public UnitsCenterView() {
         setLayout(new BorderLayout());
         textArea = UIUtils.getConsoleTextArea();
-        showResourcesCB = UIUtils.getCheckBox("Show resources", Env.showResources,
+        showResourcesCB = UIUtils.getPropertyCheckBox("Show resources", Env.showResources,
                 e -> {
                     Env.showResources = showResourcesCB.isSelected();
-                    updated(UnitsCenter.getInstance().unitEventsTable);
+                    updated(UnitsCenter.unitEventsTable);
                 });
 
         JPanel controlPanel = UIUtils.getControlPanel("Controls", showResourcesCB);
 
-        JPanel north = UIUtils.getInVerticalPanel(MyDrawerBuilder.getEnvView(),
-                UIUtils.getHeader("Units center", "Displays the current know units"), controlPanel);
+        JPanel north = UIUtils.getInVerticalPanel(UIUtils.getHeader("Units center", "Displays the current know units"),
+                controlPanel);
         add(north, BorderLayout.NORTH);
         add(new JScrollPane(textArea), BorderLayout.CENTER);
-        UnitsCenter.getInstance().addListener(this);
-        updated(UnitsCenter.getInstance().unitEventsTable);
+        UnitsCenter.addListener(this);
+        updated(UnitsCenter.unitEventsTable);
     }
 
     @Override
@@ -51,7 +50,9 @@ public class UnitsCenterView extends Form implements UnitsCenterListener {
                 if (row.getString("type").startsWith("Resource_"))
                     index.add(i);
             }
-            table = table.dropRows(index.stream().mapToInt(Integer::intValue).toArray());
+            int[] rows = index.stream().mapToInt(Integer::intValue).toArray();
+            if (rows.length > 0)
+                table = table.dropRows(rows);
         }
 
         textArea.setText(table.printAll());

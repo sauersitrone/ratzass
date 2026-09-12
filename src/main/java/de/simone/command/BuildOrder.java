@@ -17,7 +17,6 @@ public class BuildOrder {
     public int quantity;
     public OrderStatus status = OrderStatus.Pending;
     public String message = "";
-    // public int id = RBWListener.game.getFrameCount();
     public int id = idGenerator++;
     public BuildActionName action;
 

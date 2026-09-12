@@ -1,6 +1,8 @@
 package de.simone.gui;
 
+import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
@@ -16,6 +18,7 @@ import javax.swing.event.ChangeListener;
 
 import com.formdev.flatlaf.FlatClientProperties;
 
+import de.simone.Env;
 import net.miginfocom.swing.MigLayout;
 
 public class UIUtils {
@@ -30,9 +33,10 @@ public class UIUtils {
     public static JTextArea getConsoleTextArea() {
         JTextArea jTextArea = new JTextArea();
         jTextArea.setEditable(false);
-        jTextArea.setBackground(java.awt.Color.BLACK);
-        jTextArea.setForeground(java.awt.Color.WHITE);
-        jTextArea.setFont(new java.awt.Font("Monospaced", java.awt.Font.PLAIN, 12));
+        jTextArea.setBackground(Color.BLACK);
+        jTextArea.setForeground(Color.WHITE);
+        jTextArea.setFont(new Font("Consolas", Font.PLAIN, 14));
+        // jTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
         return jTextArea;
     }
 
@@ -43,16 +47,24 @@ public class UIUtils {
         return checkBox;
     }
 
+    public static JCheckBox getPropertyCheckBox(String text, boolean selected, ActionListener listener) {
+        JCheckBox checkBox = getCheckBox(text, selected, listener);
+        checkBox.addActionListener(e -> {
+            Env.save();
+        });
+        return checkBox;
+    }
+
     public static JSlider getSlider(int min, int max, int value, ChangeListener listener) {
         JSlider slider = new JSlider(min, max, value);
         slider.setMajorTickSpacing((max - min) / 10);
         slider.setSnapToTicks(true);
-        slider.setPaintTicks(true); 
+        slider.setPaintTicks(true);
         slider.addChangeListener(listener);
         return slider;
     }
 
-    public static JPanel getControlPanel( String title, JComponent... components) {
+    public static JPanel getControlPanel(String title, JComponent... components) {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         for (JComponent component : components) {
             panel.add(component);

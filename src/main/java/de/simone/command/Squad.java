@@ -1,5 +1,8 @@
 package de.simone.command;
 
+import java.awt.Graphics2D;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -17,7 +20,7 @@ import de.simone.btree.Blackboard;
 
 public class Squad {
     public enum SquadStatus {
-        Building, Idle, Attack, Regroup, Retreat
+        Assembling, Assembled, Attack, Regroup, Retreat
     }
 
     public enum SquadType {
@@ -56,13 +59,11 @@ public class Squad {
 
     public String squadID;
     public UnitCommandType currentCommand = UnitCommandType.Unknown;
-    public SquadStatus status = SquadStatus.Building;
+    public SquadStatus status = SquadStatus.Assembling;
     public SquadType type = SquadType.Patrol;
     public BehaviorTree<Blackboard> behaviorTree;
+    public List<Point2D> positionsTracking = new ArrayList<>();
 
-    private int regroupTime = 0;
-    private CommandQueue commandQueue;
-    private UnitsCenter unitsCenter;
     private List<UnitType> members = new ArrayList<>();
 
     public Squad(SquadType type, List<UnitType> members) {
@@ -71,18 +72,27 @@ public class Squad {
         this.members = members;
         Collections.shuffle(coolSquadNames);
         this.squadID = coolSquadNames.remove(0);
-        this.unitsCenter = UnitsCenter.getInstance();
-        this.commandQueue = CommandQueue.getInstance();
+    }
+
+    public boolean isAlive() {
+        List<UnitDocument> units = new ArrayList<>(UnitsCenter.getSquadUnits(squadID));
+        units.removeIf(u -> !u.isAlive);
+        return !units.isEmpty();
     }
 
     public List<UnitDocument> getSquadUnits() {
-        List<UnitDocument> units = unitsCenter.getSquadUnits(squadID);
+        List<UnitDocument> units = UnitsCenter.getSquadUnits(squadID);
         return units;
     }
 
     public List<UnitDocument> getAliveMembers() {
-        List<UnitDocument> units = getSquadUnits();
+        List<UnitDocument> units = new ArrayList<>(getSquadUnits());
         units.removeIf(u -> !u.isAlive);
+
+        // fail save. if the squad has no alive members no more calculations are allows.
+        // the behavior tree should be off and the squad retired.
+        if (units.isEmpty())
+            throw new IllegalStateException("No alive members in the squad.");
         return units;
     }
 
@@ -92,14 +102,14 @@ public class Squad {
     public void recruitMembers() {
         List<UnitType> requiredUnits = getRequiredUnits();
         for (UnitType unitType : requiredUnits) {
-            UnitDocument unit = unitsCenter.getDocument(unitType);
+            UnitDocument unit = UnitsCenter.getDocument(unitType);
             if (unit != null) {
                 unit.squadID = squadID;
             }
         }
 
         if (getRequiredUnits().isEmpty()) {
-            status = SquadStatus.Idle;
+            status = SquadStatus.Assembled;
         }
 
         regroup(true);
@@ -112,10 +122,10 @@ public class Squad {
      * @return - the needed unit types.
      */
     public List<UnitType> getRequiredUnits() {
-        List<UnitDocument> freeUnits = unitsCenter.getDocuments();
+        List<UnitDocument> freeUnits = new ArrayList<>(UnitsCenter.getDocuments());
         freeUnits.removeIf(u -> !"".equals(u.squadID));
 
-        List<UnitType> myUnits = unitsCenter.getSquadUnits(squadID).stream().map(u -> u.unitType).toList();
+        List<UnitType> myUnits = getSquadUnits().stream().map(u -> u.unitType).toList();
 
         List<UnitType> requiredUnits = new ArrayList<>(members);
         requiredUnits.removeAll(myUnits);
@@ -123,69 +133,28 @@ public class Squad {
         return requiredUnits;
     }
 
-    // terry
+    // TODO: change the merge strategy by resupply, so the squad can wait for new
+    // fresh units
     public void mergeSquads(Squad sourceSquad) {
-        List<UnitDocument> units = unitsCenter.getSquadUnits(sourceSquad.squadID);
+        List<UnitDocument> units = getSquadUnits();
         units.forEach(u -> u.squadID = squadID);
         this.squadID += "-" + sourceSquad.squadID;
         regroup(true);
     }
 
-    public boolean getSpreadExceeded() {
-        List<UnitDocument> units = unitsCenter.getSquadUnits(squadID);
-        return getSpread() > units.size() * 30;
+    public Position trackPosition() {
+        Position position2 = getPosition();
+        positionsTracking.add(new Point2D.Double(position2.x, position2.y));
+        return position2;
     }
 
-    public boolean getSpreadFixed() {
-        List<UnitDocument> units = unitsCenter.getSquadUnits(squadID);
-        return (getSpread() < units.size() * 20) || (RBWListener.game.getFrameCount() > (regroupTime + 60));
+    public void performCommand(UnitCommandType commandType, Position position) {
+        trackPosition();
+        CommandQueue.addCommand(UnitCommandType.Right_Click_Position, this, position);
     }
 
-    public String getClosestSquadID(int x, int y) {
-        String bestSquad = squadID;
-        double closest = 256 * 256;
-
-        for (Squad squad : unitsCenter.getSquads()) {
-            Position center = squad.getCenter();
-
-            if (center != null) {
-                double distance = StaffUtils.distance(x, y, center.x, center.y);
-
-                if (distance < closest) {
-                    closest = distance;
-                    bestSquad = squad.squadID;
-                }
-            }
-        }
-        return bestSquad;
-    }
-
-    public void patrol(Position position) {
-        List<UnitDocument> units = unitsCenter.getSquadUnits(squadID);
-        for (UnitDocument unit : units) {
-            commandQueue.patrol(unit.unitID, position);
-        }
-    }
-
-    public void move(Position position) {
+    public boolean canAttackAir() {
         List<UnitDocument> units = getAliveMembers();
-        for (UnitDocument unit : units) {
-            commandQueue.rightClick(unit.unitID, position);
-        }
-    }
-
-    public void setRegrouping(boolean regrouping) {
-        regroupTime = RBWListener.game.getFrameCount();
-        this.status = regrouping ? SquadStatus.Regroup : SquadStatus.Idle;
-    }
-
-    public void stopRetreat() {
-        this.status = SquadStatus.Idle;
-        regroup(false);
-    }
-
-    public boolean getCanAttackAir() {
-        List<UnitDocument> units = unitsCenter.getSquadUnits(squadID);
         for (UnitDocument unit : units) {
             if (unit.unitType.airWeapon().targetsAir())
                 return true;
@@ -194,155 +163,66 @@ public class Squad {
         return false;
     }
 
-    // terry
-    public void draw() {
-        Position center = getCenter();
-        if (center == null) {
-            return;
-        }
+    // TODO: delete?? i dont what to draw nothing in starcraft
+    public void draw(Graphics2D g) {
+        Position center = getPosition();
 
-        RBWListener.game.drawText(CoordinateType.Map, center.x, center.y, getSquadSupply() + " - " + getEnemySupply());
-        RBWListener.game.drawCircle(CoordinateType.Map, 16 + center.x, 16 + center.y, getSpread(), Color.Red, false);
+        Color color = RBWListener.game.self().getColor();
+        RBWListener.game.drawCircle(CoordinateType.Map, 16 + center.x, 16 + center.y, getSpread(), color, false);
     }
 
-    // terry
     public int getSpread() {
-        int minX = 256 * 32;
-        int minY = 256 * 32;
-        int maxX = 0;
-        int maxY = 0;
+        Rectangle2D box = getBox();
+        double spread = Math.hypot(box.getX(), box.getY());
 
-        List<UnitDocument> units = unitsCenter.getSquadUnits(squadID);
-        for (UnitDocument unit : units) {
-            minX = Math.min(minX, unit.position.x);
-            minY = Math.min(minY, unit.position.y);
-            maxX = Math.max(maxX, unit.position.x);
-            maxY = Math.max(maxY, unit.position.y);
-        }
-
-        return Math.max(maxX - minX, maxY - minY) / 2;
+        return (int) spread;
     }
 
-    /**
-     * Get the center Position of the squad. If `real` is true, returns the center
-     * in
-     * real coordinates; otherwise, returns the center in tile coordinates.
-     * 
-     * @param real - real coordinateos or tile coordinates
-     * @return the center
-     */
-    public Position getCenter() {
-        int x = 0;
-        int y = 0;
-        List<UnitDocument> units = unitsCenter.getSquadUnits(squadID);
-        if (units.isEmpty())
-            return null;
-
-        for (UnitDocument unit : units) {
-            x += unit.position.x;
-            y += unit.position.y;
-        }
-
-        return new Position(x / units.size(), y / units.size());
+    public Rectangle2D getBox() {
+        List<UnitDocument> units = getAliveMembers();
+        List<Point2D> points = units.stream().<Point2D>map(u -> new Point2D.Double(u.position.x, u.position.y))
+                .toList();
+        Rectangle2D box = getBox(points);
+        return box;
     }
 
-    /**
-     * terry
-     * Distance from the center of squad to nearest enemy unit.
-     */
+    public static Rectangle2D getBox(List<Point2D> points) {
+        Point2D point2d = points.get(0);
+        Rectangle2D box = new Rectangle2D.Double(point2d.getX(), point2d.getY(), 0, 0);
+
+        for (int i = 1; i < points.size(); i++) {
+            Point2D point = points.get(i);
+            box.add(point.getX(), point.getY());
+        }
+        return box;
+    }
+
+    public Position getPosition() {
+        Rectangle2D box = getBox();
+        Position position = new Position((int) box.getCenterX(), (int) box.getCenterY());
+
+        return position;
+    }
+
     public double getEnemyDistance() {
         double distance = 128;
-
-        Position center = getCenter();
-        if (center == null) {
-            return distance;
-        }
-
-        for (UnitDocument enemy : unitsCenter.getEnemies()) {
-            double dx = enemy.position.x - center.x;
-            double dy = enemy.position.y - center.y;
-            distance = Math.min(Math.sqrt(dx * dx + dy * dy), distance);
-        }
-
-        return distance;
-    }
-
-    /**
-     * terry
-     * 
-     * @return
-     */
-    public double getBaseDistance() {
-        double distance = 128;
-
-        Position center = getCenter();
-        if (center == null) {
-            return distance;
-        }
-
-        for (UnitDocument unit : unitsCenter.getDocuments(UnitType.Terran_Command_Center)) {
-            double dx = unit.position.x - center.x;
-            double dy = unit.position.y - center.y;
-            distance = Math.min(Math.sqrt(dx * dx + dy * dy), distance);
+        Position center = getPosition();
+        for (UnitDocument enemy : UnitsCenter.getEnemies()) {
+            Position enemyPosition = enemy.position;
+            distance = Math.min(Point2D.distanceSq(center.x, center.y, enemyPosition.x, enemyPosition.x), distance);
         }
 
         return distance;
     }
 
     public void regroup(boolean attacking) {
-        Position center = getCenter();
-        if (center == null) {
-            return;
+        Position center = getPosition();
+        if (attacking) {
+            CommandQueue.addCommand(UnitCommandType.Attack_Move, this, center);
+        } else {
+            CommandQueue.addCommand(UnitCommandType.Right_Click_Position, this, center);
+
         }
-
-        List<UnitDocument> units = getSquadUnits();
-        for (UnitDocument unit : units) {
-            if (attacking) {
-                commandQueue.attackMove(unit.unitID, center);
-            } else {
-                commandQueue.rightClick(unit.unitID, center);
-            }
-        }
-    }
-
-    public int getSquadSupply() {
-        int supply = 0;
-        List<UnitDocument> units = unitsCenter.getSquadUnits(squadID);
-        for (UnitDocument unit : units)
-            supply += unit.unitType.supplyRequired() / 2;
-
-        return supply;
-    }
-
-    public int getEnemySupply() {
-        int threat = 0;
-
-        Position center = getCenter();
-        if (center == null) {
-            return threat;
-        }
-
-        List<UnitDocument> enemyUnits = unitsCenter.getDocuments();
-        for (UnitDocument unit : enemyUnits) {
-            if (unit.unitType.isWorker()) {
-                continue;
-            }
-
-            double dx = unit.position.x - center.x;
-            double dy = unit.position.y - center.y;
-
-            if (Math.sqrt(dx * dx + dy * dy) < 16) {
-                threat += unit.unitType.supplyRequired();
-
-                if (unit.unitType == UnitType.Protoss_Photon_Cannon
-                        || unit.unitType == UnitType.Terran_Bunker
-                        || unit.unitType == UnitType.Zerg_Sunken_Colony) {
-                    threat += 4;
-                }
-            }
-        }
-
-        return threat / 2;
     }
 
     /**

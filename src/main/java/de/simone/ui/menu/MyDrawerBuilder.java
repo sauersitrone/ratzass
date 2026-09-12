@@ -10,14 +10,13 @@ import javax.swing.UIManager;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 
+import de.simone.Main;
 import de.simone.gui.BehaviorTreeView;
 import de.simone.gui.CommandQueueView;
-import de.simone.gui.EnvView;
-import de.simone.gui.LogView;
+import de.simone.gui.CombatCenterView;
 import de.simone.gui.LogisticCenterView;
 import de.simone.gui.StarCraftMapView;
 import de.simone.gui.UnitsCenterView;
-import de.simone.ui.Demo;
 import de.simone.ui.forms.FormAvatarIcon;
 import de.simone.ui.forms.FormColorPicker;
 import de.simone.ui.forms.FormDashboard;
@@ -128,7 +127,7 @@ public class MyDrawerBuilder extends SimpleDrawerBuilder {
     public SimpleFooterData getSimpleFooterData() {
         return new SimpleFooterData()
                 .setTitle("Swing Modal Dialog")
-                .setDescription("Version " + Demo.DEMO_VERSION);
+                .setDescription("Version " + Main.VERSION);
     }
 
     @Override
@@ -136,15 +135,6 @@ public class MyDrawerBuilder extends SimpleDrawerBuilder {
         Option option = super.createOption();
         option.setOpacity(0.3f);
         return option;
-    }
-
-    private static EnvView envView;
-
-    public static EnvView getEnvView() {
-        if (envView == null)
-            envView = new EnvView();
-
-        return envView;
     }
 
     public static MenuOption createSimpleMenuOption() {
@@ -157,7 +147,7 @@ public class MyDrawerBuilder extends SimpleDrawerBuilder {
                 new Item("Units center", "dashboard.svg", UnitsCenterView.class),
                 new Item("Behavior Tree", "BehaviorTree2.svg", BehaviorTreeView.class),
                 new Item("StarCraft Map", "dashboard.svg", StarCraftMapView.class),
-                new Item("Log View", "dashboard.svg", LogView.class),
+                new Item("Log View", "dashboard.svg", CombatCenterView.class),
                 new Item("Command Queue", "dashboard.svg", CommandQueueView.class),
 
                 new Item.Label("MAIN"),
@@ -206,7 +196,7 @@ public class MyDrawerBuilder extends SimpleDrawerBuilder {
         simpleMenuOption.setMenuValidation(new MyMenuValidation());
 
         simpleMenuOption.addMenuEvent((action, index) -> {
-            System.out.println("Drawer menu selected " + Arrays.toString(index));
+            // System.out.println("Drawer menu selected " + Arrays.toString(index));
             Class<?> itemClass = action.getItem().getItemClass();
             if ("About".equals(action.getItem().getName())) {
                 action.consume();

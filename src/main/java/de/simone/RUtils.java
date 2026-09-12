@@ -4,13 +4,9 @@ import java.io.InputStream;
 import java.util.logging.Level;
 
 import com.badlogic.gdx.ai.btree.BehaviorTree;
-import com.badlogic.gdx.ai.btree.LeafTask;
-import com.badlogic.gdx.ai.btree.Task;
 import com.badlogic.gdx.ai.btree.utils.BehaviorTreeParser;
 
 import de.simone.btree.Blackboard;
-import de.simone.btree.combat.CombatTask;
-import de.simone.btree.logistic.LogisticTask;
 import lombok.extern.java.Log;
 
 @Log
@@ -33,7 +29,7 @@ public class RUtils {
             Runtime.getRuntime().exec(command);
             Thread.sleep(150);
         } catch (Exception e) {
-            log.log(Level.SEVERE, "", e);
+            log.log(Level.SEVERE, e.getMessage());
         }
     }
 
@@ -58,7 +54,8 @@ public class RUtils {
     public static BehaviorTree<Blackboard> parseFile(String treeFile) {
         try (InputStream inputStream = RUtils.class.getResourceAsStream("/" + treeFile)) {
             Blackboard blackboard = new Blackboard();
-            BehaviorTreeParser<Blackboard> parser = new BehaviorTreeParser<Blackboard>(BehaviorTreeParser.DEBUG_HIGH);
+            // BehaviorTreeParser<Blackboard> parser = new BehaviorTreeParser<Blackboard>(BehaviorTreeParser.DEBUG_HIGH);
+            BehaviorTreeParser<Blackboard> parser = new BehaviorTreeParser<Blackboard>();
             BehaviorTree<Blackboard> behaviorTree = parser.parse(inputStream, blackboard);
             return behaviorTree;
         } catch (Exception e) {

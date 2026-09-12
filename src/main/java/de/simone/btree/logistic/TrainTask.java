@@ -22,7 +22,6 @@ public class TrainTask extends LogisticTask {
 
         if (getStatus() == Status.RUNNING) {
             Status status= getBuildOrderStatus(key);
-            System.out.println(toString() + " "+ status);
             return status;
         }
 

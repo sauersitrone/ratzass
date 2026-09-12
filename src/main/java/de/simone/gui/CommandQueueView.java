@@ -6,7 +6,6 @@ import java.util.List;
 
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
-import javax.swing.Timer;
 
 import com.github.freva.asciitable.AsciiTable;
 import com.github.freva.asciitable.Column;
@@ -28,11 +27,10 @@ public class CommandQueueView extends Form implements CommandQueueListener {
         JPanel header = UIUtils.getHeader("Command Queue", "Displays the command queue in real-time.");
 
         textArea = UIUtils.getConsoleTextArea();
-        JPanel north = UIUtils.getInVerticalPanel(MyDrawerBuilder.getEnvView(), header);
-        add(north, BorderLayout.NORTH);
+        add(header, BorderLayout.NORTH);
         add(textArea, BorderLayout.CENTER);
 
-        update(CommandQueue.getInstance().getCommands());
+        update(CommandQueue.getCommands());
     }
 
     @Override

@@ -18,7 +18,6 @@ import de.simone.command.CombatCenter;
 import de.simone.command.CommandQueue;
 import de.simone.command.LogisticCenter;
 import de.simone.command.UnitsCenter;
-import de.simone.ui.MainJFrame;
 import de.simone.ui.menu.MyDrawerBuilder;
 import de.simone.ui.system.FormManager;
 import de.simone.ui.utils.DemoPreferences;
@@ -30,14 +29,12 @@ public class Main extends JFrame {
 
     public Main() {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        Thread printingHook = new Thread(() -> System.out.println("In the middle of a shutdown"));
-        Runtime.getRuntime().addShutdownHook(printingHook);
-
+        // Thread printingHook = new Thread(() -> RUtils.endStarcraftProcess());
+        // Runtime.getRuntime().addShutdownHook(printingHook);
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent windowEvent) {
                 RUtils.endStarcraftProcess();
-                System.out.println("Main.Main().new WindowAdapter() {...}.windowClosed()");
                 System.exit(0);
             }
         });
@@ -61,7 +58,7 @@ public class Main extends JFrame {
         FlatLaf.registerCustomDefaultsSource("ui.icons.themes");
         UIManager.put("defaultFont", FontUtils.getCompositeFont(FlatRobotoFont.FAMILY, Font.PLAIN, 13));
         DemoPreferences.setupLaf();
-        EventQueue.invokeLater(() -> new MainJFrame().setVisible(true));
+        EventQueue.invokeLater(() -> new Main().setVisible(true));
 
         RBWListener.init();
 

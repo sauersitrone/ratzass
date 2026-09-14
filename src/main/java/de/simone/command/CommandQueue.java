@@ -192,6 +192,14 @@ public class CommandQueue {
             }
 
             command.status = success ? OrderStatus.Completed : OrderStatus.Error;
+            if (command.status == OrderStatus.Error) {
+                command.message = "Minerals:" + RBWListener.currentMinerals +
+                        ", Gas:" + RBWListener.currentGas +
+                        ", Supply:" + RBWListener.currentSupplyUsed +
+                        ", Total Supply:" + RBWListener.currentSupplyTotal;
+
+            }
+
             listeners.forEach(listener -> listener.update(commands));
         }
     }
@@ -338,7 +346,7 @@ public class CommandQueue {
             addCommand(command);
 
             return command;
-        }  
+        }
 
         // if the unit to build is a building, find a suitable location
         TilePosition tilePosition = RBWListener.game.self().getStartLocation();

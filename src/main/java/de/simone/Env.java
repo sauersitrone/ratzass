@@ -6,27 +6,6 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Properties;
 
-import lombok.extern.java.Log;
-
-/**
- * Configuration Properties
- * 
- * Agent Settings
- * - ABLBotName (String): Name of the ABL bot to instantiate
- * - BuildOrderScript (String): path of the build order to run
- *
- * Game Settings
- * - GameSettings.IgnoreBases (boolean): disbale BWTA?
- * - GameSettings.ShowGUI (boolean): show the agent GUI?
- * - GameSettings.AutoRestart (boolean): restart games on game end?
- * - GameSettings.UseManners (boolean): quit when loss is detected?
- * - GameSettings.Fastest (boolean): setSpeed(0)?
- * - GameSettings.UserInput (boolean): enable the user to perform actions?
- * - GameSettings.QuitOnGameEnd (boolean): end this process when the game ends?
- * - GameSettings.AutoCamera (boolean): Enables automatic camera positioning
- * 
- */
-@Log
 public class Env   {
     public enum BehaviorTreeStatus {
         Running, Suspended, Stepping;
@@ -36,20 +15,12 @@ public class Env   {
     public static String chaosLauncherPath;
     public static BehaviorTreeStatus treeStatus = BehaviorTreeStatus.Running;
 
-    private long lastCameraUpdate = 0;
-    private int drawBuildLocations = 0;
-    private boolean drawParticles = false;
-    private int delay = 0;
-    private int quitFrame = 0;
     private static File configFile;
 
     // game settings
-    public static boolean autoRestart = false;
-    public static boolean useManners = false;
-    public static int speed = 0; // 42 = fastest, 67 = normal, 167 = slowest
+    public static int speed = 50; 
     public static boolean userInput = true;
     public static boolean fogOfWar = false;
-    public static boolean quitOnGameEnd = false;
     public static boolean autoCamera = false;
 
     // StarCraft map drawing settings
@@ -78,11 +49,8 @@ public class Env   {
             properties.load(Env.class.getResourceAsStream("/config.properties"));
             chaosLauncherPath = properties.getProperty("GameSettings.chaosLauncherPath");
             ignoreBases = Boolean.parseBoolean(properties.getProperty("GameSettings.IgnoreBases"));
-            autoRestart = Boolean.parseBoolean(properties.getProperty("GameSettings.AutoRestart"));
-            useManners = Boolean.parseBoolean(properties.getProperty("GameSettings.UseManners"));
             speed = Integer.parseInt(properties.getProperty("GameSettings.speed"));
             userInput = Boolean.parseBoolean(properties.getProperty("GameSettings.UserInput"));
-            quitOnGameEnd = Boolean.parseBoolean(properties.getProperty("GameSettings.QuitOnGameEnd"));
             autoCamera = Boolean.parseBoolean(properties.getProperty("GameSettings.AutoCamera"));
             fogOfWar = Boolean.parseBoolean(properties.getProperty("GameSettings.fogOfWar"));
             drawIDs = Boolean.parseBoolean(properties.getProperty("GameSettings.map.drawIDs"));
@@ -108,11 +76,8 @@ public class Env   {
         try (FileOutputStream fos = new FileOutputStream(configFile)) {
             properties.setProperty("GameSettings.chaosLauncherPath", chaosLauncherPath);
             properties.setProperty("GameSettings.IgnoreBases", Boolean.toString(ignoreBases));
-            properties.setProperty("GameSettings.AutoRestart", Boolean.toString(autoRestart));
-            properties.setProperty("GameSettings.UseManners", Boolean.toString(useManners));
             properties.setProperty("GameSettings.speed", Integer.toString(speed));
             properties.setProperty("GameSettings.UserInput", Boolean.toString(userInput));
-            properties.setProperty("GameSettings.QuitOnGameEnd", Boolean.toString(quitOnGameEnd));
             properties.setProperty("GameSettings.AutoCamera", Boolean.toString(autoCamera));
             properties.setProperty("GameSettings.fogOfWar", Boolean.toString(fogOfWar));
             properties.setProperty("GameSettings.map.drawIDs", Boolean.toString(drawIDs));

@@ -5,12 +5,11 @@ import java.util.List;
 
 import bwapi.BWClient;
 import bwapi.Color;
-import bwapi.CoordinateType;
 import bwapi.DefaultBWListener;
+import bwapi.Flag;
 import bwapi.Game;
 import bwapi.Player;
 import bwapi.Position;
-import bwapi.Text;
 import bwapi.Unit;
 import bwem.BWEM;
 import de.simone.command.CommandQueue;
@@ -52,6 +51,9 @@ public class RBWListener extends DefaultBWListener {
         game = bwClient.getGame();
         startTime = LocalDateTime.now();
         game.setRevealAll(!Env.fogOfWar);
+        if (Env.userInput)
+            game.enableFlag(Flag.UserInput);
+
         bwem = new BWEM(game);
         bwem.initialize();
         bwem.getMap().assignStartingLocationsToSuitableBases();
@@ -81,7 +83,8 @@ public class RBWListener extends DefaultBWListener {
             RBWListener.game.drawBoxMap(left, up, right, down, color);
         }
 
-        // RBWListener.game.drawText(CoordinateType.Screen, 8, 16, "FPS: " + game.getFPS(), Text.Blue);
+        // RBWListener.game.drawText(CoordinateType.Screen, 8, 16, "FPS: " +
+        // game.getFPS(), Text.Blue);
 
         // command dispatch & logistic
         if (gameSeconds - lastCenterComm >= 0.1) {

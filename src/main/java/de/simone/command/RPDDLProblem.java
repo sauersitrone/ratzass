@@ -8,7 +8,7 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 
 import bwapi.UnitType;
-import de.simone.RBWListener;
+import de.simone.StarCraftException;
 
 /**
  * Define the pddl problem to solve by a buildOrder.
@@ -24,6 +24,12 @@ public class RPDDLProblem {
                 )
 
                 (:init
+                    ; Mineral & Gas allways are considered constant for the initial state. 
+                    ; the solver must compute the solution  with no resources. if e.g a merine is needed, and we 
+                    ; habe 10 mineral units, the solver will compute that to create the marine, is needed only 40 units, 
+                    ; which is incorrect (in reality)
+                    (= (Gas_quantity) 0)
+                    (= (Mineral_quantity) 0)
                     <init>
                 )
 
@@ -54,8 +60,6 @@ public class RPDDLProblem {
         List<Pair<String, Integer>> updatedList = new ArrayList<>();
         for (Pair<String, Integer> pair : list) {
             String key = pair.getKey();
-            key = key.equals(UnitType.Resource_Mineral_Field.toString()) ? "Mineral" : key;
-            key = key.equals(UnitType.Resource_Vespene_Geyser.toString()) ? "Gas" : key;
             updatedList.add(Pair.of(key, pair.getValue()));
         }
         return updatedList;
@@ -65,7 +69,6 @@ public class RPDDLProblem {
         List<String> updatedObjects = new ArrayList<>();
         for (String object : objects) {
             String objName = "" + object;
-            objName = objName.startsWith("Resource_") ? objName.substring(9) : objName;
             objName = objName.endsWith("_Field") ? objName.substring(0, objName.length() - 6) : objName;
             updatedObjects.add(objName);
         }
@@ -75,12 +78,12 @@ public class RPDDLProblem {
     public String getPDDLProblem() {
         resolve();
         if (objects.isEmpty() || init.isEmpty() || goal.isEmpty()) {
-            throw new IllegalStateException("PDDL problem is empty. Please add objects, init, and goal statements.");
+            throw new StarCraftException("PDDL problem is empty. Please add objects, init, and goal statements.");
         }
 
         String template = "" + PROBLEM_TEMPLATE;
 
-        // Add objects marine_0 marine_1 - terran_marine
+        // Add objects. e.g: marine_0 marine_1 - terran_marine
         removeObjectPrefixes();
         StringBuilder objectsBuilder = new StringBuilder();
         for (String object : objects) {
@@ -88,8 +91,8 @@ public class RPDDLProblem {
         }
         template = template.replace("<objects>", objectsBuilder.toString().trim());
 
-        // Add init (= (unit_quantity) 0)
-        init = removePrefixes(init);
+        // Add init. e.g: (= (unit_quantity) 0)
+        // init = removePrefixes(init);
         StringBuilder initBuilder = new StringBuilder();
         for (Pair<String, Integer> pair : init) {
             String varName = pair.getKey() + "_quantity";
@@ -98,8 +101,8 @@ public class RPDDLProblem {
         }
         template = template.replace("<init>", initBuilder.toString().trim());
 
-        // Add goal (>= (unit_quantity) 1)
-        goal = removePrefixes(goal);
+        // Add goal. e.g: (>= (unit_quantity) 1)
+        // goal = removePrefixes(goal);
         StringBuilder goalBuilder = new StringBuilder();
         for (Pair<String, Integer> goalStatement : goal) {
             String varName = goalStatement.getKey() + "_quantity";
@@ -165,10 +168,7 @@ public class RPDDLProblem {
     private void resolveTest() {
         printProblem = true;
         for (UnitType unitType : UnitType.values()) {
-            if (unitType.toString().startsWith("Terran_")
-                    || unitType == UnitType.Resource_Mineral_Field
-                    || unitType == UnitType.Resource_Vespene_Geyser) {
-
+            if (unitType.toString().startsWith("Terran_")) {
                 Pair<UnitType, Integer> unitTest = unitsTest.stream()
                         .filter(pair -> pair.getKey() == unitType)
                         .findFirst()
@@ -189,13 +189,5 @@ public class RPDDLProblem {
                 init.add(Pair.of(unitType.toString(), count));
             }
         }
-
-        // TODO: set mineral and gas constant=0 direct in string
-
-        // use this "unused" types to mark mineral and gas
-        updateObjectList(UnitType.Resource_Mineral_Field, -10);
-        updateObjectList(UnitType.Resource_Vespene_Geyser, -10);
-        init.add(Pair.of(UnitType.Resource_Mineral_Field.toString(), -10));
-        init.add(Pair.of(UnitType.Resource_Vespene_Geyser.toString(), -10));
     }
 }

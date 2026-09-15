@@ -1,7 +1,9 @@
 package de.simone.gui;
 
+import java.awt.Color;
 import java.awt.FlowLayout;
 
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -14,36 +16,63 @@ import de.simone.RBWListener;
 
 public class ControlPanel extends JPanel {
 
-    private JCheckBox autoRestart;
-    private JCheckBox useManners;
+    private JButton restartGame;
+    private JButton pauseResumeGame;
     private JCheckBox fogOfWar;
-    private JCheckBox quitOnGameEnd;
+    private JCheckBox userInput;
     private JCheckBox autoCamera;
     private JSlider speed;
     private JLabel codeSpeed;
+    private JLabel minerals;
+    private JLabel gas;
 
-    public ControlPanel()  {
+    public ControlPanel() {
         setLayout(new FlowLayout(FlowLayout.LEFT));
 
-        Timer timer = new Timer(1000, e -> codeSpeed.setText("Code Speed: " + RBWListener.codeSpeed + "ms"));
+        Timer timer = new Timer(100, e -> {
+            codeSpeed.setText("Code Speed: " + RBWListener.codeSpeed + "ms");
+            minerals.setText("Minerals: " + RBWListener.currentMinerals);
+            gas.setText("Gas: " + RBWListener.currentGas);
+        });
         timer.start();
 
-        autoRestart = UIUtils.getPropertyCheckBox("Auto Restart", Env.autoRestart, e -> Env.autoRestart = autoRestart.isSelected());
-        useManners = UIUtils.getPropertyCheckBox("Use Manners", Env.useManners, e -> Env.useManners = useManners.isSelected());
-        fogOfWar = UIUtils.getPropertyCheckBox("Fog of War", Env.fogOfWar, e -> Env.fogOfWar = fogOfWar.isSelected());
-        quitOnGameEnd = UIUtils.getPropertyCheckBox("Quit on Game End", Env.quitOnGameEnd, e -> Env.quitOnGameEnd = quitOnGameEnd.isSelected());
-        autoCamera = UIUtils.getPropertyCheckBox("Auto Camera", Env.autoCamera, e -> Env.autoCamera = autoCamera.isSelected());
+        restartGame = new JButton("Restart Game");
+        restartGame.addActionListener(e -> {
+            RBWListener.game.restartGame();
+        });
+        pauseResumeGame = new JButton("Pause Game");
+        pauseResumeGame.addActionListener(e -> {
+            if(RBWListener.game.isPaused()) {
+                pauseResumeGame.setText("Pause Game");
+                RBWListener.game.resumeGame();
+            } else {
+                RBWListener.game.pauseGame();
+                pauseResumeGame.setText("Resume Game");
+            }
+        });
+        fogOfWar = UIUtils.getPropertyCheckBox("Fog of War", Env.fogOfWar,
+                e -> Env.fogOfWar = fogOfWar.isSelected());
+        userInput = UIUtils.getPropertyCheckBox("User Input", Env.userInput,
+                e -> Env.userInput = userInput.isSelected());
+        autoCamera = UIUtils.getPropertyCheckBox("Auto Camera", Env.autoCamera,
+                e -> Env.autoCamera = autoCamera.isSelected());
         speed = UIUtils.getSlider(0, 100, Env.speed, e -> Env.speed = speed.getValue());
         speed.setBorder(new TitledBorder("Game Speed"));
         codeSpeed = new JLabel("Code Speed: 0ms");
-        
-        add(autoRestart);
-        add(useManners);
+        minerals = new JLabel("Minerals: " + RBWListener.currentMinerals);
+        minerals.setForeground(Color.blue);
+        gas = new JLabel("Gas: " + RBWListener.currentGas);
+        gas.setForeground(Color.green);
+
+        add(restartGame);
+        add(pauseResumeGame);
         add(fogOfWar);
-        add(quitOnGameEnd);
+        add(userInput);
         add(autoCamera);
         add(speed);
         add(codeSpeed);
+        add(minerals);
+        add(gas);
         setBorder(new TitledBorder("Main controls"));
 
     }

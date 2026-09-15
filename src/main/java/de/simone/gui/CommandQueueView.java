@@ -13,7 +13,6 @@ import com.github.freva.asciitable.Column;
 import de.simone.command.Command;
 import de.simone.command.CommandQueue;
 import de.simone.command.CommandQueueListener;
-import de.simone.ui.menu.MyDrawerBuilder;
 import de.simone.ui.system.Form;
 
 public class CommandQueueView extends Form implements CommandQueueListener {
@@ -41,6 +40,7 @@ public class CommandQueueView extends Form implements CommandQueueListener {
         new Column().header("targetId").with(c -> "" +c.targetId),
         new Column().header("order").with(c -> c.order.toString()),
         new Column().header("Position").with(c -> "" + c.position),
+        new Column().header("Tile Position").with(c -> "" + c.tilePosition),
         new Column().header("Status").with(c -> c.status.toString()),
         new Column().header("Message").with(c -> c.message))));
     }

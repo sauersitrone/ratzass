@@ -49,7 +49,7 @@ public class UIUtils {
 
     public static JCheckBox getPropertyCheckBox(String text, boolean selected, ActionListener listener) {
         JCheckBox checkBox = getCheckBox(text, selected, listener);
-        checkBox.addActionListener(e -> {
+        checkBox.addChangeListener(e -> {
             Env.save();
         });
         return checkBox;

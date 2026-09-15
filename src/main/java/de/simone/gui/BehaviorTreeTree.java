@@ -9,6 +9,7 @@ import java.util.Map;
 
 import javax.swing.JLabel;
 import javax.swing.JTree;
+import javax.swing.Timer;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeCellRenderer;
@@ -20,11 +21,18 @@ import de.simone.btree.combat.CombatTask;
 import de.simone.btree.logistic.LogisticTask;
 
 public class BehaviorTreeTree extends JTree {
+
     static class NodeInfo {
+        final Task<?> task;
         String label;
         Task.Status status;
 
         NodeInfo(String label, Task.Status status) {
+            this(null, label, status);
+        }
+
+        NodeInfo(Task<?> task, String label, Task.Status status) {
+            this.task = task;
             this.label = label;
             this.status = status;
         }
@@ -32,6 +40,7 @@ public class BehaviorTreeTree extends JTree {
 
     private final DefaultTreeModel treeModel;
     private final Map<String, DefaultMutableTreeNode> nodeMap = new HashMap<>();
+    private final Timer updateTimer;
     private BehaviorTree<?> behaviorTree;
     private Dimension dimension;
 
@@ -43,6 +52,8 @@ public class BehaviorTreeTree extends JTree {
         setCellRenderer(new ExecutingTaskRenderer());
         setRootVisible(true);
         buildTree();
+        updateTimer = new Timer(100, e -> refreshNode((DefaultMutableTreeNode) treeModel.getRoot()));
+        updateTimer.start();
     }
 
     public static String getNodeName(Task<?> task) {
@@ -73,7 +84,7 @@ public class BehaviorTreeTree extends JTree {
 
     private DefaultMutableTreeNode createNode(Task<?> task) {
         String label = getNodeName(task);
-        NodeInfo nodeInfo = new NodeInfo(label, task.getStatus());
+        NodeInfo nodeInfo = new NodeInfo(task, label, task.getStatus());
         DefaultMutableTreeNode node = new DefaultMutableTreeNode(nodeInfo);
         nodeMap.put(label, node);
         for (int i = 0; i < task.getChildCount(); i++) {
@@ -82,12 +93,27 @@ public class BehaviorTreeTree extends JTree {
         return node;
     }
 
+    private void refreshNode(DefaultMutableTreeNode node) {
+        NodeInfo nodeInfo = (NodeInfo) node.getUserObject();
+        if (nodeInfo.task != null) {
+            String label = getNodeName(nodeInfo.task);
+            Task.Status status = nodeInfo.task.getStatus();
+            // if (!label.equals(nodeInfo.label) || status != nodeInfo.status) {
+                nodeInfo.label = label;
+                nodeInfo.status = status;
+                treeModel.nodeChanged(node);
+            // }
+        }
+        for (int i = 0; i < node.getChildCount(); i++) {
+            refreshNode((DefaultMutableTreeNode) node.getChildAt(i));
+        }
+    }
+
     private class ExecutingTaskRenderer extends JLabel implements TreeCellRenderer {
         private String htmlTemplate = "<html>%s %s</html>";
 
         public ExecutingTaskRenderer() {
             super();
-            // setFont(new Font("Courier New", Font.PLAIN, 14));
             setFont(new Font("Consolas", Font.PLAIN, 14));
         }
 

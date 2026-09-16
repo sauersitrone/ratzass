@@ -46,6 +46,7 @@ public class ControlPanel extends JPanel {
                 pauseResumeGame.setText("Pause Game");
                 RBWListener.game.resumeGame();
             } else {
+                System.out.println("ControlPanel.ControlPanel()");
                 RBWListener.game.pauseGame();
                 pauseResumeGame.setText("Resume Game");
             }

@@ -1,6 +1,7 @@
 package de.simone.command;
 
 import java.awt.Graphics2D;
+import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -12,17 +13,27 @@ import com.badlogic.gdx.ai.btree.BehaviorTree;
 import bwapi.Color;
 import bwapi.CoordinateType;
 import bwapi.Position;
+import bwapi.Unit;
 import bwapi.UnitCommandType;
 import bwapi.UnitType;
 import de.simone.RBWListener;
 import de.simone.RUtils;
-import de.simone.btree.Blackboard;
+import de.simone.SimplifyPolyline;
 
+/**
+ * This class provides a structured way to manage a group of units as a single
+ * tactical entity in the game.
+ * 
+ * although a Squad is a Military unit from 8 to 14 personnel (US/NATO doctrine:
+ * 9 to 13 or ~12 soldiers) here is the representaion of a group of units in the
+ * game. The size of this tactical unit is dictated by the fictional
+ * {@link #SquadType}.
+ * 
+ */
 public class Squad {
     public enum SquadStatus {
-        Assembling, Assembled, Attack, Regroup, Retreat
+        None, Assembling, Assembled, Moving, Ready
     }
-
     public enum SquadType {
         Patrol, Strike, Combat
     }
@@ -56,37 +67,57 @@ public class Squad {
         coolSquadNames.add("Yankee");
         coolSquadNames.add("Zulu");
     }
+    public static int patrolRadius = 32 * 10; // explore 10 tiles radius;
 
     public String squadID;
     public UnitCommandType currentCommand = UnitCommandType.Unknown;
-    public SquadStatus status = SquadStatus.Assembling;
+    public SquadStatus status = SquadStatus.None;
     public SquadType type = SquadType.Patrol;
-    public BehaviorTree<Blackboard> behaviorTree;
-    public List<Point2D> positionsTracking = new ArrayList<>();
+    public BehaviorTree<Squad> behaviorTree;
 
+    // used to anotate the retreat position
+    public Position targetPosition;
+
+    private List<Point2D> positionsTracking = new ArrayList<>();
     private List<UnitType> members = new ArrayList<>();
 
     public Squad(SquadType type, List<UnitType> members) {
-        this.behaviorTree = RUtils.parseFile("squad.tree");
+        this.behaviorTree = RUtils.getBehaviorTree("squad.tree", this);
         this.type = type;
         this.members = members;
         Collections.shuffle(coolSquadNames);
         this.squadID = coolSquadNames.remove(0);
     }
 
+    public void updateStatus() {
+        // update the status, so the running behavior tree has the correct context.
+        if (isAlive())
+            status = SquadStatus.None;
+
+        // check if the squad has reached the target position
+        if (targetPosition != null && isSquadInPosition(targetPosition))
+            status = SquadStatus.Ready;
+
+    }
+
     public boolean isAlive() {
-        List<UnitDocument> units = new ArrayList<>(UnitsCenter.getSquadUnits(squadID));
+        List<DogTag> units = new ArrayList<>(UnitsCenter.getSquadUnits(squadID));
         units.removeIf(u -> !u.isAlive);
         return !units.isEmpty();
     }
 
-    public List<UnitDocument> getSquadUnits() {
-        List<UnitDocument> units = UnitsCenter.getSquadUnits(squadID);
+    /**
+     * return all the units. dead or alive.
+     * 
+     * @return - all units
+     */
+    public List<DogTag> getSquadUnits() {
+        List<DogTag> units = UnitsCenter.getSquadUnits(squadID);
         return units;
     }
 
-    public List<UnitDocument> getAliveMembers() {
-        List<UnitDocument> units = new ArrayList<>(getSquadUnits());
+    public List<DogTag> getAliveMembers() {
+        List<DogTag> units = new ArrayList<>(getSquadUnits());
         units.removeIf(u -> !u.isAlive);
 
         // fail save. if the squad has no alive members no more calculations are allows.
@@ -102,7 +133,7 @@ public class Squad {
     public void recruitMembers() {
         List<UnitType> requiredUnits = getRequiredUnits();
         for (UnitType unitType : requiredUnits) {
-            UnitDocument unit = UnitsCenter.getDocument(unitType);
+            DogTag unit = UnitsCenter.getDogTag(unitType);
             if (unit != null) {
                 unit.squadID = squadID;
             }
@@ -116,13 +147,13 @@ public class Squad {
     }
 
     /**
-     * returna a list of unit types that are required for this squad based on the
+     * return a list of unit types that are required for this squad based on the
      * predefined list of members and the current units in the squad.
      * 
      * @return - the needed unit types.
      */
     public List<UnitType> getRequiredUnits() {
-        List<UnitDocument> freeUnits = new ArrayList<>(UnitsCenter.getDocuments());
+        List<DogTag> freeUnits = new ArrayList<>(UnitsCenter.getDogTags());
         freeUnits.removeIf(u -> !"".equals(u.squadID));
 
         List<UnitType> myUnits = getSquadUnits().stream().map(u -> u.unitType).toList();
@@ -136,7 +167,7 @@ public class Squad {
     // TODO: change the merge strategy by resupply, so the squad can wait for new
     // fresh units
     public void mergeSquads(Squad sourceSquad) {
-        List<UnitDocument> units = getSquadUnits();
+        List<DogTag> units = getSquadUnits();
         units.forEach(u -> u.squadID = squadID);
         this.squadID += "-" + sourceSquad.squadID;
         regroup(true);
@@ -148,14 +179,35 @@ public class Squad {
         return position2;
     }
 
-    public void performCommand(UnitCommandType commandType, Position position) {
+    public boolean isSquadInPosition(Position position) {
+        Position center = getPosition();
+        return Point2D.distanceSq(center.x, center.y, position.x, position.y) <= patrolRadius;
+    }
+
+    public void retreat() {
+        targetPosition = getRetreatPosition(this, patrolRadius);
+        CommandQueue.addCommand(UnitCommandType.Right_Click_Position, this, targetPosition);
+        CombatCenter.sendCommunication(this, "Retreating ...");
+        status = SquadStatus.Moving;
+    }
+
+    public void move(Position position) {
         trackPosition();
-        CommandQueue.addCommand(UnitCommandType.Right_Click_Position, this, position);
+        targetPosition = new Position(position.x, position.y);
+        CommandQueue.addCommand(UnitCommandType.Right_Click_Position, this, targetPosition);
+        CombatCenter.sendCommunication(this, "Moving ...");
+        status = SquadStatus.Moving;
+    }
+
+    public void attack(Position position) {
+        trackPosition();
+        CommandQueue.addCommand(UnitCommandType.Attack_Move, this, position);
+        CombatCenter.sendCommunication(this, "Ohhhh YEAHHH !");
     }
 
     public boolean canAttackAir() {
-        List<UnitDocument> units = getAliveMembers();
-        for (UnitDocument unit : units) {
+        List<DogTag> units = getAliveMembers();
+        for (DogTag unit : units) {
             if (unit.unitType.airWeapon().targetsAir())
                 return true;
         }
@@ -172,47 +224,11 @@ public class Squad {
     }
 
     public int getSpread() {
-        Rectangle2D box = getBox();
+        List<Unit> units = getAliveMembers().stream().map(d -> d.unit).toList();
+        Rectangle2D box = CombatCenter.getBox(units);
         double spread = Math.hypot(box.getX(), box.getY());
 
         return (int) spread;
-    }
-
-    public Rectangle2D getBox() {
-        List<UnitDocument> units = getAliveMembers();
-        List<Point2D> points = units.stream().<Point2D>map(u -> new Point2D.Double(u.position.x, u.position.y))
-                .toList();
-        Rectangle2D box = getBox(points);
-        return box;
-    }
-
-    public static Rectangle2D getBox(List<Point2D> points) {
-        Point2D point2d = points.get(0);
-        Rectangle2D box = new Rectangle2D.Double(point2d.getX(), point2d.getY(), 0, 0);
-
-        for (int i = 1; i < points.size(); i++) {
-            Point2D point = points.get(i);
-            box.add(point.getX(), point.getY());
-        }
-        return box;
-    }
-
-    public Position getPosition() {
-        Rectangle2D box = getBox();
-        Position position = new Position((int) box.getCenterX(), (int) box.getCenterY());
-
-        return position;
-    }
-
-    public double getEnemyDistance() {
-        double distance = 128;
-        Position center = getPosition();
-        for (UnitDocument enemy : UnitsCenter.getEnemies()) {
-            Position enemyPosition = enemy.position;
-            distance = Math.min(Point2D.distanceSq(center.x, center.y, enemyPosition.x, enemyPosition.x), distance);
-        }
-
-        return distance;
     }
 
     public void regroup(boolean attacking) {
@@ -223,6 +239,14 @@ public class Squad {
             CommandQueue.addCommand(UnitCommandType.Right_Click_Position, this, center);
 
         }
+    }
+
+    public Position getPosition() {
+        List<Unit> units = getAliveMembers().stream().map(d -> d.unit).toList();
+        Rectangle2D box = CombatCenter.getBox(units);
+        Position position = new Position((int) box.getCenterX(), (int) box.getCenterY());
+
+        return position;
     }
 
     /**
@@ -237,7 +261,7 @@ public class Squad {
      */
     public static List<Position> calculateLine(Squad squad, double angle) {
         List<Position> line = new ArrayList<>();
-        List<UnitDocument> units = squad.getAliveMembers();
+        List<DogTag> units = squad.getAliveMembers();
         if (units.isEmpty())
             return line;
 
@@ -270,7 +294,7 @@ public class Squad {
      */
     public static List<Position> calculateColumn(Squad squad, double angle) {
         List<Position> line = new ArrayList<>();
-        List<UnitDocument> units = squad.getAliveMembers();
+        List<DogTag> units = squad.getAliveMembers();
         if (units.isEmpty())
             return line;
 
@@ -289,6 +313,41 @@ public class Squad {
         }
 
         return line;
+    }
+
+    /**
+     * return a retreat position for the given squad at the specified distance. the
+     * retreat position is calculated based on the squad's recent movement history.
+     * 
+     * @param squad    - the squad
+     * @param distance - the distance
+     * @return - the position
+     */
+    private static Position getRetreatPosition(Squad squad, int distance) {
+        List<Point2D> positions = new ArrayList<>(squad.positionsTracking);
+        positions = SimplifyPolyline.simplify(positions, Squad.patrolRadius, false);
+
+        Path2D path = new Path2D.Double();
+        for (int i = 0; i < positions.size(); i++) {
+            Point2D point2d = positions.get(i);
+            if (i == 0)
+                path.moveTo(point2d.getX(), point2d.getY());
+
+            path.lineTo(point2d.getX(), point2d.getY());
+        }
+
+        // look for the point more close to the distance
+        double count = 0D;
+        Point2D prevPoint = positions.get(positions.size() - 1);
+        for (int i = positions.size() - 1; i >= 0; i--) {
+            Point2D point2d = positions.get(i);
+            count += point2d.distance(prevPoint);
+            prevPoint = point2d;
+            if (count >= distance)
+                break;
+        }
+
+        return new Position((int) prevPoint.getX(), (int) prevPoint.getY());
     }
 
 }

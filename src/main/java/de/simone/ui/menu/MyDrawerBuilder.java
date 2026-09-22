@@ -1,7 +1,5 @@
 package de.simone.ui.menu;
 
-import java.util.Arrays;
-
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -11,25 +9,13 @@ import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 import de.simone.Main;
-import de.simone.gui.BehaviorTreeView;
-import de.simone.gui.CommandQueueView;
-import de.simone.gui.CombatCenterView;
-import de.simone.gui.LogisticCenterView;
-import de.simone.gui.StarCraftMapView;
-import de.simone.gui.UnitsCenterView;
-import de.simone.ui.forms.FormAvatarIcon;
-import de.simone.ui.forms.FormColorPicker;
-import de.simone.ui.forms.FormDashboard;
-import de.simone.ui.forms.FormDateTime;
-import de.simone.ui.forms.FormInput;
-import de.simone.ui.forms.FormModal;
-import de.simone.ui.forms.FormMultiSelect;
-import de.simone.ui.forms.FormPagination;
-import de.simone.ui.forms.FormResponsiveLayout;
+import de.simone.ui.forms.BehaviorTreeView;
+import de.simone.ui.forms.CombatCenterView;
+import de.simone.ui.forms.CommandQueueView;
 import de.simone.ui.forms.FormSetting;
-import de.simone.ui.forms.FormSlidePane;
-import de.simone.ui.forms.FormTable;
-import de.simone.ui.forms.FormToast;
+import de.simone.ui.forms.LogisticCenterView;
+import de.simone.ui.forms.StarCraftMapView;
+import de.simone.ui.forms.UnitsCenterView;
 import de.simone.ui.model.ModelUser;
 import de.simone.ui.system.AllForms;
 import de.simone.ui.system.Form;
@@ -127,7 +113,7 @@ public class MyDrawerBuilder extends SimpleDrawerBuilder {
     public SimpleFooterData getSimpleFooterData() {
         return new SimpleFooterData()
                 .setTitle("Swing Modal Dialog")
-                .setDescription("Version " + Main.VERSION);
+                .setDescription("Version " + Main.APP_VERSION);
     }
 
     @Override
@@ -143,32 +129,12 @@ public class MyDrawerBuilder extends SimpleDrawerBuilder {
 
         MenuItem[] items = new MenuItem[] {
                 new Item.Label("Ratzass"),
-                new Item("Logistic center", "dashboard.svg", LogisticCenterView.class),
-                new Item("Units center", "dashboard.svg", UnitsCenterView.class),
-                new Item("Behavior Tree", "BehaviorTree2.svg", BehaviorTreeView.class),
-                new Item("StarCraft Map", "dashboard.svg", StarCraftMapView.class),
-                new Item("Log View", "dashboard.svg", CombatCenterView.class),
-                new Item("Command Queue", "dashboard.svg", CommandQueueView.class),
-
-                new Item.Label("MAIN"),
-                new Item("Dashboard", "dashboard.svg", FormDashboard.class),
-                new Item.Label("SWING UI"),
-                new Item("Forms", "forms.svg")
-                        .subMenu("Input", FormInput.class)
-                        .subMenu("Table", FormTable.class)
-                        .subMenu("Responsive Layout", FormResponsiveLayout.class),
-                new Item("Components", "components.svg")
-                        .subMenu("Modal", FormModal.class)
-                        .subMenu("Toast", FormToast.class)
-                        .subMenu("Date Time", FormDateTime.class)
-                        .subMenu("Color Picker", FormColorPicker.class)
-                        .subMenu("Avatar Icon", FormAvatarIcon.class)
-                        .subMenu("Slide Pane", FormSlidePane.class),
-                new Item("Swing Pack", "pack.svg")
-                        .subMenu("Pagination", FormPagination.class)
-                        .subMenu("MultiSelect", FormMultiSelect.class),
-                new Item("Chat", "chat.svg"),
-                new Item("Calendar", "calendar.svg"),
+                new Item("Logistic center", "local_shipping.svg", LogisticCenterView.class),
+                new Item("Units center", "people_size_decrease.svg", UnitsCenterView.class),
+                new Item("Behavior Tree", "account_tree.svg", BehaviorTreeView.class),
+                new Item("StarCraft Map", "map.svg", StarCraftMapView.class),
+                new Item("Combat Center", "swords.svg", CombatCenterView.class),
+                new Item("Command Queue", "record_voice_over.svg", CommandQueueView.class),
                 new Item("Setting", "setting.svg", FormSetting.class),
                 new Item("About", "about.svg"),
                 new Item("Logout", "logout.svg")

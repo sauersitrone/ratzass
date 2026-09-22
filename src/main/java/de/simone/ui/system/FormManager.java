@@ -6,9 +6,9 @@ import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.util.ColorFunctions;
 
-import de.simone.gui.LogisticCenterView;
-import de.simone.ui.auth.Login;
 import de.simone.ui.component.About;
+import de.simone.ui.forms.Login;
+import de.simone.ui.forms.LogisticCenterView;
 import de.simone.ui.menu.MyDrawerBuilder;
 import de.simone.ui.model.ModelUser;
 import de.simone.ui.utils.UndoRedo;

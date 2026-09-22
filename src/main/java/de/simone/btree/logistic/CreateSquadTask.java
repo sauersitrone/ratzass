@@ -6,7 +6,6 @@ import java.util.List;
 import com.badlogic.gdx.ai.btree.annotation.TaskAttribute;
 
 import bwapi.UnitType;
-import de.simone.command.CombatCenter;
 import de.simone.command.Squad;
 import de.simone.command.Squad.SquadStatus;
 import de.simone.command.Squad.SquadType;
@@ -34,7 +33,7 @@ public class CreateSquadTask extends LogisticTask {
         }
         
         if (currentSquad.status == SquadStatus.Assembled) {
-            CombatCenter.addSquad(currentSquad);
+
         }
         return currentSquad.status == SquadStatus.Assembling ? Status.RUNNING : Status.SUCCEEDED;
     }

@@ -1,11 +1,15 @@
-# import isDangerous:"de.simone.btree.combat.IsDangerousCondition"
+import isDangerous:"de.simone.btree.combat.IsDangerousCondition"
 import move:"de.simone.btree.combat.MoveTask"
 import isEnemyDetected:"de.simone.btree.combat.IsEnemyDetectedCondition"
-import attackMove:"de.simone.btree.combat.AttackMoveTask"
-import isThereACallForHelp:"de.simone.btree.combat.IsThereACallForHelpCondition"
+import attack:"de.simone.btree.combat.AttackTask"
+import isThereASupport:"de.simone.btree.combat.IsThereASupportCondition"
 import isSquadInBadShape:"de.simone.btree.combat.IsSquadInBadShapeCondition"
 import mergeSquads:"de.simone.btree.combat.MergeSquadsTask"
-import computePosition:"de.simone.btree.combat.ComputePositionTask"
+import requestPermition:"de.simone.btree.combat.RequestPermitionTask"
+import isFavorable:"de.simone.btree.combat.IsFavorableCondition"
+import isSupportNeeded:"de.simone.btree.combat.IsSupportNeededCondition"
+import isSquadInCombat:"de.simone.btree.combat.IsSquadInCombatCondition"
+import focusFire:"de.simone.btree.combat.FocusFireTask"
 
 # a idea of random position is to create a raious with center on the command center, patrol the area and increase radious if the are is visible
 # subtree name:"patrol"
@@ -13,47 +17,45 @@ root
     #selector can be used to check the behaviors from highest to lowest priority.
     selector
         #execute a series of conditions and actions in a specific order. It succeeds only when all its children succeed.
+        # squad is been annihilated
+        sequence
+            isSquadInBadShape
+            retreat
+            # add in logistic the build bunkers on the chocks points
+            # add if the squad reach base, check bunker and jump in if it is available
         # survival
         sequence
-            # isDangerous
-            computePosition area:"RetreatArea"
-            move area:"RetreatArea"
-        # call for help
-        # sequence
-        #     isSquadInBadShape
-        #     computePosition area:"CallForHelp"
-        # combat
+            isDangerous
+            retreat
+            requestPermition to:"CallSupport"
+            # may merge with a nearby squad to increase survivability
+        # response to call for support
         sequence
+            isSupportNeeded
+            move to:"CallSupport"
+        # combat with numeric advantage
+        sequence
+            # add more patrol behaviors like:
+            # - request PrevetiveAttack to arrast the enemy 
+            # - request AttackMision if combatCenter detect something (like supply depot. i presume destroy a supply depot disrupts the enemy economy)
             isEnemyDetected
-            computePosition area:"EnemyPosition"
-            attackMove area:"EnemyPosition"
+            selector
+                # the squad is engaging in combat. apply military doctrines
+                sequence
+                    isSquadInCombat
+                    focusFire
+                sequence
+                    isFavorable
+                    requestPermition to:"AttackPosition"
+                    attack to:"AttackPosition"
+                sequence
+                    requestPermition to:"CallSupport"
+                    requestPermition to:"AttackPosition"
+                    attack to:"AttackPosition"
         #patrol
         sequence
-            computePosition area:"RandomPosition"
-            attackMove area:"RandomPosition"
-
-# subtree name:"attack"
-#     selector
-        # # survival
-        # sequence
-        #     isDangerous
-        #     move position:"RetreatArea"
-        # # if the squad is in bad shape, merge with another squad
-        # sequence
-        #     isSquadInBadShape
-        #     move position:"ClosestSquad"
-        #     mergeSquads
-        # # combat
-        # sequence
-        #     isEnemyDetected
-        #     attackMove position:"LastKnownEnemyPosition"
-        # # answer for help
-        # sequence
-        #     isThereACallForHelp
-        #     move position:"HelpCall"
-        # # search for enemy
-        # sequence    
-        #     attackMove position:"SearchArea"
+            requestPermition to:"PatrolPosition"
+            attack to:"PatrolPosition"
 
 # Tree definition 
 # root

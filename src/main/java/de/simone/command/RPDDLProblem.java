@@ -30,6 +30,7 @@ public class RPDDLProblem {
                     ; which is incorrect (in reality)
                     (= (Gas_quantity) 0)
                     (= (Mineral_quantity) 0)
+                    (= (Supply_quantity) 0)
                     <init>
                 )
 

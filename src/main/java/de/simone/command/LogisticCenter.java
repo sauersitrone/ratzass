@@ -28,20 +28,21 @@ import de.simone.command.StarCraftConstants.OrderStatus;
  * desired state.
  */
 public class LogisticCenter {
-
     private static String domain;
     private static String problem;
     private static String planner;
     private static List<LogisticCenterListener> listeners = new ArrayList<>();
-    public static BehaviorTree<Blackboard> behaviorTree;
-    public static List<BuildOrder> buildOrders = new ArrayList<>();
+    private static List<BuildOrder> buildOrders = new ArrayList<>();
     private static RENHSP renhsp = new RENHSP(false);
+
+    public static BehaviorTree<Blackboard> behaviorTree;
 
     static {
         domain = RUtils.getResourceFile("./starcraft-domain.pddl");
-        planner = "opt-blind";
-        // planner = "sat-hmrp";
-        behaviorTree = RUtils.parseFile("logistic.tree");
+        // planner = "opt-blind";
+        planner = "sat-hmrp";
+        Blackboard blackboard = new Blackboard();
+        behaviorTree = RUtils.getBehaviorTree("logistic.tree", blackboard);
     }
 
     public static boolean areMyOrdersReady(UnitType unitType, int quantity) {
@@ -62,16 +63,15 @@ public class LogisticCenter {
     }
 
     /**
-     * Called by RBWListener every x seconds. This method will:
-     * - ensure that the SCVs are gathering resources
+     * perform/coordinate the necessary logistics actions. This method will:
+     * - ensure that the SCVs are working
      * - check if there are any pending build or train orders
      * - start the next pending order if possible.
      * - check if there is a need to build supply depots and add them to the build
      * order if necessary.
      * - notify all registered listeners about the updated build orders.
      */
-    public static void update() {
-
+    public static void heartBeat() {
         // ensure the scv are working
         Unit unit = UnitsCenter.getIdleTerranSCV();
 
@@ -147,8 +147,7 @@ public class LogisticCenter {
                 .filter(o -> o.action == BuildActionName.build && o.unitType == UnitType.Terran_Supply_Depot
                         && (o.status == OrderStatus.Completed || o.status == OrderStatus.Running))
                 .findFirst();
-        if (!optional.isPresent() && RBWListener.currentSupplyTotal
-                - RBWListener.currentSupplyUsed < StarCraftConstants.TERRAN_MIN_SUPPLY) {
+        if (!optional.isPresent() && RBWListener.currentSupplyLeft < StarCraftConstants.TERRAN_MIN_SUPPLY) {
             addBuildOrder(UnitType.Terran_Supply_Depot, 1, true);
         }
 
@@ -158,14 +157,14 @@ public class LogisticCenter {
     }
 
     /**
-     * create a plan for the buildOrder using the PDDL planner. The plan will be a
-     * list of actions to be executed in order to achieve the desired state of the
-     * game. this acction chante the status of the buildOrder to ERROR if no plan is
-     * found. see the message attribute of the buildOrder for more information.
+     * create a plan for the specified unit type and quantity using the PDDL
+     * planner. The plan or result of this method will be a list of actions to be
+     * executed in order to achieve the desired state of the
+     * game.
      * 
-     * @param buildOrder - the order
-     * @return a list of build orders to be executed in order to achieve the desired
-     *         state of the game.
+     * @param unitType - the type of unit
+     * @param quantity - the number of units
+     * @return the plan
      */
     public static List<BuildOrder> addBuildOrder(UnitType unitType, int quantity) {
         return addBuildOrder(unitType, quantity, false);
@@ -181,9 +180,13 @@ public class LogisticCenter {
             throw new StarCraftException("An order for " + quantity + " of " + unitType + " is already in.");
         }
 
-        // the goal muss express the total units (e.g if i want to build 1 SCV, and i
-        // already have 1, the goal must be 2, not 1)
-        Pair<UnitType, Integer> pair = Pair.of(unitType, quantity);
+        // the order quantity express the desired number of units to be built. but the
+        // planner needs the total number of units as the goal (desired + current). (e.g
+        // if i want to build
+        // 1 SCV, and i already have 1, the goal must be 2)
+        int units = UnitsCenter.getUnitCount(unitType) + quantity;
+
+        Pair<UnitType, Integer> pair = Pair.of(unitType, units);
         RPDDLProblem pddlProblem = new RPDDLProblem(pair);
         pddlProblem.printProblem = true;
         problem = pddlProblem.getPDDLProblem();
@@ -231,21 +234,23 @@ public class LogisticCenter {
         }
     }
 
+    /**
+     * Adds a listener to the logistic center that will be notified of updates to
+     * the build orders.
+     * 
+     * @param listener - the listener
+     */
     public static void addListener(LogisticCenterListener listener) {
         listeners.add(listener);
     }
 
     // public static void main(String[] args) {
-    // LogisticCenter logistics = new LogisticCenter();
-
-    // PddlProblem pddlProblem = new PddlProblem(new Pair<>(UnitType.Terran_SCV,
-    // 2));
-    // pddlProblem.isTest = true;
-    // pddlProblem.unitsTest.add(new Pair<>(UnitType.Resource_Mineral_Field, 1));
-    // pddlProblem.unitsTest.add(new Pair<>(UnitType.Resource_Vespene_Geyser, 1));
-    // pddlProblem.unitsTest.add(new Pair<>(UnitType.Terran_Command_Center, 1));
-    // pddlProblem.unitsTest.add(new Pair<>(UnitType.Terran_SCV, 1));
-    // logistics.problem = pddlProblem.getPDDLProblem();
-    // logistics.solve();
+    //     RPDDLProblem pddlProblem = new RPDDLProblem(Pair.of(UnitType.Terran_Bunker, 1));
+    //     pddlProblem.isTest = true;
+    //     pddlProblem.unitsTest.add(Pair.of(UnitType.Terran_Command_Center, 1));
+    //     pddlProblem.unitsTest.add(Pair.of(UnitType.Terran_SCV, 1));
+    //     LogisticCenter.problem = pddlProblem.getPDDLProblem();
+    //    List<String> plan = LogisticCenter.solve();
+    //    plan.forEach(System.out::println);
     // }
 }

@@ -26,12 +26,14 @@ public class RBWListener extends DefaultBWListener {
     public static LogisticCenter logisticCenter;
     public static int currentMinerals = 0;
     public static int currentGas = 0;
-    public static int currentSupplyTotal = 0;
-    public static int currentSupplyUsed = 0;
+    private static int currentSupplyTotal = 0;
+    private static int currentSupplyUsed = 0;
+    public static int currentSupplyLeft = 0;
     public static double gameSeconds;
     public static double lastBehaviorTreeStep;
     public static double lastCenterComm;
     public static int codeSpeed;
+    public static boolean isPaused = false;
 
     // Store the current units status
 
@@ -50,8 +52,8 @@ public class RBWListener extends DefaultBWListener {
     public void onStart() {
         game = bwClient.getGame();
         startTime = LocalDateTime.now();
-        game.setRevealAll(!Env.fogOfWar);
-        if (Env.userInput)
+        game.setRevealAll(!Config.fogOfWar);
+        if (Config.userInput)
             game.enableFlag(Flag.UserInput);
 
         bwem = new BWEM(game);
@@ -62,14 +64,19 @@ public class RBWListener extends DefaultBWListener {
     @Override
     public void onFrame() {
         Player self = game.self();
-        game.setLocalSpeed(Env.speed);
+        game.setLocalSpeed(Config.speed);
         gameSeconds = game.getFrameCount() / 23.81;
+        if (isPaused)
+            game.pauseGame();
+        else
+            game.resumeGame();
 
         // update current resources
         currentGas = self.gas();
         currentMinerals = self.minerals();
         currentSupplyTotal = self.supplyTotal();
         currentSupplyUsed = self.supplyUsed();
+        currentSupplyLeft = currentSupplyTotal - currentSupplyUsed;
 
         // test
         if (CommandQueue.currentCommand != null) {
@@ -91,14 +98,14 @@ public class RBWListener extends DefaultBWListener {
             lastCenterComm = gameSeconds;
             long t1 = System.currentTimeMillis();
 
-            UnitsCenter.update();
-            LogisticCenter.update();
+            UnitsCenter.controlPersonal();
+            LogisticCenter.heartBeat();
             CommandQueue.dispatchCommands();
-
+            
             RUtils.step(LogisticCenter.behaviorTree);
             List<Squad> squads = UnitsCenter.getSquads();
             for (Squad squad : squads) {
-                // dispach only for Squad with alive units
+                squad.updateStatus();
                 if (squad.isAlive())
                     RUtils.step(squad.behaviorTree);
             }

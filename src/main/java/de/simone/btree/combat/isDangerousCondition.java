@@ -1,24 +1,23 @@
 package de.simone.btree.combat;
 
-import java.util.List;
-
-import bwapi.Position;
-import bwapi.Unit;
+import de.simone.command.CombatCenter;
 import de.simone.command.Squad;
-import de.simone.command.UnitsCenter;
 
-public class isDangerousCondition extends CombatTask {
+/**
+ * a Squad is in a dangerous situation  if the firepower of the enemy
+ * units is greater than the firepower of the squad's units.
+ */
+public class IsDangerousCondition extends CombatTask {
 
     @Override
     public Status execute() {
         Squad squad = getObject();
-        int myUnits = squad.getAliveMembers().size();
-        Position center = squad.getPosition();
-        List<Unit> enemies = UnitsCenter.getEnemyUnits(center, 200);
-        Status status = enemies.size() > myUnits ? Status.SUCCEEDED : Status.FAILED;
-        
-        if(status == Status.SUCCEEDED)
-        sendCommunication("We are in dangerous situation !!");
+        int firepower = CombatCenter.computeFirePower(squad);
+
+        Status status = firepower < 0 ? Status.SUCCEEDED : Status.FAILED;
+
+        if (status == Status.SUCCEEDED)
+            sendCommunication("We are in dangerous situation !!");
 
         return status;
     }

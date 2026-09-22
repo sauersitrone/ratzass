@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
@@ -13,10 +14,10 @@ import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 import de.simone.Main;
-import de.simone.gui.ControlPanel;
 import de.simone.ui.component.FormSearchButton;
 import de.simone.ui.component.MemoryBar;
 import de.simone.ui.component.RefreshLine;
+import de.simone.ui.forms.ControlPanel;
 import de.simone.ui.icons.SVGIconUIColor;
 import net.miginfocom.swing.MigLayout;
 import raven.modal.Drawer;
@@ -79,7 +80,7 @@ public class MainForm extends JPanel {
         panel.putClientProperty(FlatClientProperties.STYLE, "background:$Menu.background;");
 
         // demo version
-        JLabel lbDemoVersion = new JLabel("Version: " + Main.VERSION);
+        JLabel lbDemoVersion = new JLabel("Version: " + Main.APP_VERSION);
         lbDemoVersion.putClientProperty(FlatClientProperties.STYLE, "" +
                 "foreground:$Label.disabledForeground;");
         lbDemoVersion.setIcon(new SVGIconUIColor("ui/icons/git.svg", 1f, "Label.disabledForeground"));
@@ -121,15 +122,29 @@ public class MainForm extends JPanel {
 
     private Component createMain() {
         mainPanel = new JPanel(new BorderLayout());
-        envView = new ControlPanel();
-        mainPanel.add(envView, BorderLayout.NORTH);
+        mainControlPanel = new ControlPanel();
+        northPanel =  new JPanel(new MigLayout("wrap,top", "[fill]"));
+        northPanel.add(mainControlPanel);
+        mainPanel.add(northPanel, BorderLayout.NORTH);
         return mainPanel;
     }
 
     public void setForm(Form form) {
         mainPanel.removeAll();
-        mainPanel.add(envView, BorderLayout.NORTH);
-        mainPanel.add(form);
+        northPanel.removeAll();
+
+        JComponent title = form.getTitle();
+        if(title != null)
+            northPanel.add(title);
+
+        northPanel.add(mainControlPanel);
+
+        JComponent controls = form.getControls();
+        if(controls != null)
+            northPanel.add(controls);
+
+        mainPanel.add(northPanel, BorderLayout.NORTH);
+        mainPanel.add(form, BorderLayout.CENTER);
         mainPanel.repaint();
         mainPanel.revalidate();
 
@@ -148,7 +163,8 @@ public class MainForm extends JPanel {
 
     private JPanel mainPanel;
     private RefreshLine refreshLine;
-    private ControlPanel envView;
+    private ControlPanel mainControlPanel;
+    private JPanel northPanel;
     private JButton buttonUndo;
     private JButton buttonRedo;
     private JButton buttonRefresh;

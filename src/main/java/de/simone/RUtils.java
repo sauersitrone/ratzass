@@ -1,26 +1,40 @@
 package de.simone;
 
 import java.io.InputStream;
+import java.net.URL;
+import java.util.List;
 import java.util.logging.Level;
+
+import javax.swing.ImageIcon;
 
 import com.badlogic.gdx.ai.btree.BehaviorTree;
 import com.badlogic.gdx.ai.btree.utils.BehaviorTreeParser;
 
-import de.simone.btree.Blackboard;
 import lombok.extern.java.Log;
 
 @Log
 public class RUtils {
 
+    private static List<String> validImages = List.of(".png", ".jpg", ".jpeg", ".gif", ".bmp");
+
+    /**
+     * Starts the Starcraft process using Chaoslauncher. Ensures that any existing
+     * Starcraft and Chaoslauncher processes are terminated before starting a new
+     * one.
+     * NOTE:
+     * Make sure Chaoslauncher -> Settings -> "Run Starcraft on Startup" is checked
+     */
     public static void startStarcraftProcess() {
         endStarcraftProcess();
-        // Make sure Chaoslauncher -> Settings -> "Run Starcraft on Startup" is checked
-        executeInCommandLine(new String[]{Env.chaosLauncherPath});
+        executeInCommandLine(new String[] { Config.chaosLauncherPath });
     }
 
+    /**
+     * Ends the Starcraft and Chaoslauncher processes if they are running.
+     */
     public static void endStarcraftProcess() {
-        executeInCommandLine(new String[]{"taskkill", "/IM", "StarCraft.exe", "/T", "/F"});
-        executeInCommandLine(new String[]{"taskkill", "/IM", "Chaoslauncher.exe", "/T", "/F"});
+        executeInCommandLine(new String[] { "taskkill", "/IM", "StarCraft.exe", "/T", "/F" });
+        executeInCommandLine(new String[] { "taskkill", "/IM", "Chaoslauncher.exe", "/T", "/F" });
     }
 
     private static void executeInCommandLine(String[] command) {
@@ -33,30 +47,57 @@ public class RUtils {
         }
     }
 
+    /**
+     * Returns the file path of the specified resource file. The file must be
+     * located in the resources folder.
+     * 
+     * @param fileName - the name
+     * @return the file
+     */
     public static String getResourceFile(String fileName) {
-        ClassLoader classLoader = RUtils.class.getClassLoader();
-        String fileName2 = classLoader.getResource(fileName).getFile();
+        try {
+            ClassLoader classLoader = Main.class.getClassLoader();
+            URL url = classLoader.getResource(fileName);
+            String file = url.toURI().toString();
+            file = file.substring(6);
+            file = file.replaceAll("%20", " ");
+            return file;
+        } catch (Exception e) {
+            log.log(Level.SEVERE, e.getMessage());
+            return null;
+        }
+    }
 
-        fileName2 = fileName2.substring(1);
-        fileName2 = fileName2.replace("%20", " ");
-        return fileName2;
+    public static ImageIcon getImageIcon(String fileName) {
+        // try the file name as is first
+        String filePath = getResourceFile(fileName);
+        if (filePath != null) {
+            return new ImageIcon(filePath);
+        }
+
+        // try appending valid image extensions to the file name
+        for (String extension : validImages) {
+            filePath = getResourceFile(fileName + extension);
+            if (filePath != null) {
+                return new ImageIcon(filePath);
+            }
+        }
+        return null;
     }
 
     /**
-     * Parses a behavior tree file and returns the corresponding BehaviorTree
-     * instance.
-     *
-     * @param <E>        - the type of the blackboard
-     * @param treeFile   - the file name
-     * @param blackboard - the blackboard
-     * @return the parsed BehaviorTree instance, or null if parsing fails
+     * Returns a behavior tree parsed from the specified tree file using the
+     * provided backboard.
+     * 
+     * @param <T>       - the type of the backboard
+     * @param treeFile  - the path
+     * @param backboard - the backboard
+     * @return the behavior tree, or null if an error occurs
      */
-    public static BehaviorTree<Blackboard> parseFile(String treeFile) {
+    public static <T> BehaviorTree<T> getBehaviorTree(String treeFile, T backboard) {
         try (InputStream inputStream = RUtils.class.getResourceAsStream("/" + treeFile)) {
-            Blackboard blackboard = new Blackboard();
-            // BehaviorTreeParser<Blackboard> parser = new BehaviorTreeParser<Blackboard>(BehaviorTreeParser.DEBUG_HIGH);
-            BehaviorTreeParser<Blackboard> parser = new BehaviorTreeParser<Blackboard>();
-            BehaviorTree<Blackboard> behaviorTree = parser.parse(inputStream, blackboard);
+            BehaviorTreeParser<T> parser = new BehaviorTreeParser<T>(BehaviorTreeParser.DEBUG_NONE);
+            BehaviorTree<T> behaviorTree = parser.parse(inputStream, backboard);
             return behaviorTree;
         } catch (Exception e) {
             log.log(Level.SEVERE, "", e);
@@ -71,12 +112,12 @@ public class RUtils {
      * @param behaviorTree - the tree
      */
     public static void step(BehaviorTree<?> behaviorTree) {
-        if (Env.treeStatus == Env.BehaviorTreeStatus.Running) {
+        if (Config.treeStatus == Config.BehaviorTreeStatus.Running) {
             behaviorTree.step();
-        } else if (Env.treeStatus == Env.BehaviorTreeStatus.Stepping) {
+        } else if (Config.treeStatus == Config.BehaviorTreeStatus.Stepping) {
             behaviorTree.step();
-            Env.treeStatus = Env.BehaviorTreeStatus.Suspended;
-        } else if (Env.treeStatus == Env.BehaviorTreeStatus.Suspended) {
+            Config.treeStatus = Config.BehaviorTreeStatus.Suspended;
+        } else if (Config.treeStatus == Config.BehaviorTreeStatus.Suspended) {
             // Do nothing
         }
     }

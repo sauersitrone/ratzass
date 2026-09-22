@@ -1,27 +1,39 @@
 ---------------------------------------------
 Force technology level als gidelines for behabior tree
 ---------------------------------------------
-# Level 1: Basic Infantry & Scouting: This level covers the opening minutes of the match. It focuses on securing your main base, starting your economy, and building a basic defense against early rushes.
-#     Required Structures: Command Center, Supply Depot, Barracks, Refinery.
-#     Units Available: SCV, Marine.
-#     Strategic Focus: Scouting the enemy, walling off your ramp, and establishing your first gas income.
-# Level 2: Advanced Biological Utility: This level introduces specialized infantry and essential medical support. It allows Terran to field the powerful biological army core known as "Bio."
-#     Required Structures: Academy.
-#     Units Available: Medic, Firebat, Ghost (requires Academy, but rarely used this early).Key Upgrades: Stimpack, Shell Shock (Marine range), Caduceus Reactor (Medic energy).
-#     Strategic Focus: Securing a natural expansion, defending against early Zerg aggression, or executing early Marine/Medic pressure.
-# Level 3: Mechanical Core & Siege Warfare: This level marks the transition into "Mech" or provides heavy fire support for biological forces. It unlocks the most iconic defensive and offensive tool in the Terran arsenal.
-#     Required Structures: Factory, Machine Shop (Factory Add-on), Armory.
-#     Units Available: Vulture, Siege Tank, Goliath.Key Upgrades: Siege Mode, Spider Mines, Ion Thrusters (Vulture speed), Charon Boosters (Goliath air range).
-#     Strategic Focus: Establishing strong defensive lines with Siege Tanks, map control via Vulture mines, and beginning Vehicle attack/armor upgrades at the Armory.
-# Level 4: Aviation & Tactical Mobility: This level unlocks control of the skies. It provides Terran with crucial scouting information, air defense, and the ability to bypass terrain to harass enemy bases.
-#     Required Structures: Starport, Control Tower (Starport Add-on).
-#     Units Available: Wraith, Dropship, Valkyrie.Key Upgrades: Apollo Reactor (Wraith energy), Cloaking Field.
-#     Strategic Focus: Executing Dropship harassment, counteracting enemy air units (like Zerg Mutalisks), and gaining map vision.
-# Level 5: High-Tech Science & Capital Ships: The final level represents the absolute pinnacle of Terran technology. It utilizes powerful spellcasters to neutralize enemy high-tier threats and massive capital ships to break stalemates.
-#     Required Structures: Science Facility, Physics Lab (Add-on), Covert Ops (Add-on).
-#     Units Available: Science Vessel, Battlecruiser, Ghost (with Nuclear Strike capability).
-#     Key Upgrades: Irradiate, EMP Shockwave, Yamato Gun, Cloaking Field (Ghost), Ocular Implants.
-#     Strategic Focus: Using Science Vessels to counter Zerg Lurkers/Defilers or Protoss shields, and transitioning into a maxed-out Battlecruiser fleet in ultra-late game scenarios.
+Level 1: Basic Infantry & Scouting: This level covers the opening minutes of the match. It focuses on securing your main base, starting your economy, and building a basic defense against early rushes.
+    Required Structures: Command Center, Supply Depot, Barracks, Refinery.
+    Units Available: SCV, Marine.
+    Strategic Focus: Scouting the enemy, walling off your ramp, and establishing your first gas income.
+Level 2: Advanced Biological Utility: This level introduces specialized infantry and essential medical support. It allows Terran to field the powerful biological army core known as "Bio."
+    Required Structures: Academy.
+    Units Available: Medic, Firebat, Ghost (requires Academy, but rarely used this early).Key Upgrades: Stimpack, Shell Shock (Marine range), Caduceus Reactor (Medic energy).
+    Strategic Focus: Securing a natural expansion, defending against early Zerg aggression, or executing early Marine/Medic pressure.
+Level 3: Mechanical Core & Siege Warfare: This level marks the transition into "Mech" or provides heavy fire support for biological forces. It unlocks the most iconic defensive and offensive tool in the Terran arsenal.
+    Required Structures: Factory, Machine Shop (Factory Add-on), Armory.
+    Units Available: Vulture, Siege Tank, Goliath.Key Upgrades: Siege Mode, Spider Mines, Ion Thrusters (Vulture speed), Charon Boosters (Goliath air range).
+    Strategic Focus: Establishing strong defensive lines with Siege Tanks, map control via Vulture mines, and beginning Vehicle attack/armor upgrades at the Armory.
+Level 4: Aviation & Tactical Mobility: This level unlocks control of the skies. It provides Terran with crucial scouting information, air defense, and the ability to bypass terrain to harass enemy bases.
+    Required Structures: Starport, Control Tower (Starport Add-on).
+    Units Available: Wraith, Dropship, Valkyrie.Key Upgrades: Apollo Reactor (Wraith energy), Cloaking Field.
+    Strategic Focus: Executing Dropship harassment, counteracting enemy air units (like Zerg Mutalisks), and gaining map vision.
+Level 5: High-Tech Science & Capital Ships: The final level represents the absolute pinnacle of Terran technology. It utilizes powerful spellcasters to neutralize enemy high-tier threats and massive capital ships to break stalemates.
+    Required Structures: Science Facility, Physics Lab (Add-on), Covert Ops (Add-on).
+    Units Available: Science Vessel, Battlecruiser, Ghost (with Nuclear Strike capability).
+    Key Upgrades: Irradiate, EMP Shockwave, Yamato Gun, Cloaking Field (Ghost), Ocular Implants.
+    Strategic Focus: Using Science Vessels to counter Zerg Lurkers/Defilers or Protoss shields, and transitioning into a maxed-out Battlecruiser fleet in ultra-late game scenarios.
+
+---------------------------------------------
+Gliederung militärischer Einheiten
+---------------------------------------------
+- Trupp / Fire Team (3 bis 4 Soldaten): Die kleinste taktische Einheit. Sie wird meist von einem Feldwebeldienstgrad (Corporal oder Sergeant) geleitet.
+- Gruppe / Squad (8 bis 12 Soldaten): Besteht meist aus zwei separaten Trupps und wird von einem Staff Sergeant angeführt.
+- Zug / Platoon (30 bis 50 Soldaten): Umfasst meist drei bis vier Gruppen. Geführt von einem Offizier (Lieutenant / Leutnant) und einem erfahrenen Hauptfeldwebel.
+- Kompanie / Company (100 bis 250 Soldaten): Besteht aus drei bis fünf Zügen. Sie bildet die kleinste Einheit mit einem eigenen Verwaltungsstab und wird von einem Hauptmann (Captain) oder Major kommandiert.
+- Bataillon / Battalion (300 bis 1.000 Soldaten): Umfasst vier bis sechs Kompanien. Geführt von einem Oberstleutnant (Lieutenant Colonel). Ein Bataillon kann unabhängig operieren.
+- Regiment / Brigade (1.500 bis 5.000 Soldaten): Besteht aus mehreren Bataillonen. Geführt von einem Oberst (Colonel) oder Brigadegeneral.
+- Division / Division (10.000 bis 20.000 Soldaten): Besteht aus drei bis vier Brigaden und verfügt über eigene Unterstützungsverbände (z. B. eigene Artillerie und Hubschrauber). Geführt von einem Generalmajor.
+- Korps / Corps (20.000 bis 45.000+ Soldaten): Umfasst zwei oder mehr Divisionen. Geführt von einem Generalleutnant.
 
 ---------------------------------------------
 google svg icons parameters 
@@ -29,9 +41,9 @@ google svg icons parameters
 Weight:     300
 Grade:      200
 Optical Size: 48px
-in drawer 
-Size: 400
-color: #B7B7B7
+
+in project, edit file:
+height="48px" width="48px" fill="#969696"
 
 ---------------------------------------------
 prompt to create the sintaxys highlight for the .tree file format

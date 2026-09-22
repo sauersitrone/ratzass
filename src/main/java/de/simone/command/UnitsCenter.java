@@ -13,16 +13,15 @@ import de.simone.RBWListener;
 import de.simone.UnitEvent;
 import tech.tablesaw.api.Table;
 
-
 /**
- * Tracks units, unit events, discovered unit documents, and combat squads.
+ * Manages and tracks all units, unit events, and combat squads.
  * Provides access to friendly and enemy units and notifies listeners about unit
  * event updates.
  */
 public class UnitsCenter {
 
     private static ArrayList<Squad> squads = new ArrayList<Squad>();
-    private static Map<Integer, UnitDocument> unitDocuments = new TreeMap<>();
+    private static Map<Integer, DogTag> dogTags = new TreeMap<>();
     private static List<UnitsCenterListener> listeners = new ArrayList<>();
     public static Table unitEventsTable;
     static {
@@ -30,16 +29,14 @@ public class UnitsCenter {
         UnitEvent.createColumns(unitEventsTable);
     }
 
-    // public UnitsCenter() {
-    // unitEventsTable = Table.create("Unit Events");
-    // UnitEvent.createColumns(unitEventsTable);
-    // }
-
     public static void addListener(UnitsCenterListener listener) {
         listeners.add(listener);
     }
 
-    public static void update() {
+    /**
+     * Call by RBWListener on every x frames to update the status of all units.
+     */
+    public static void controlPersonal() {
         // update the units status, current command and so on
         List<Unit> units = RBWListener.game.getAllUnits();
         for (Unit unit : units) {
@@ -64,8 +61,8 @@ public class UnitsCenter {
         unitEvent.update(unitEventsTable);
         listeners.forEach(l -> l.updated(unitEventsTable));
 
-        UnitDocument doc = new UnitDocument(unit);
-        unitDocuments.put(doc.unitID, doc);
+        DogTag tag = new DogTag(unit);
+        dogTags.put(tag.unit.getID(), tag);
     }
 
     public static void onUnitDestroy(Unit unit) {
@@ -74,39 +71,39 @@ public class UnitsCenter {
         unitEvent.update(unitEventsTable);
         listeners.forEach(l -> l.updated(unitEventsTable));
 
-        UnitDocument doc = unitDocuments.get(unit.getID());
-        if (doc != null)
-            doc.isAlive = false;
+        DogTag tag = dogTags.get(unit.getID());
+        if (tag != null)
+            tag.isAlive = false;
     }
 
     //
-    public static List<UnitDocument> getDocuments() {
-        return unitDocuments.values().stream().filter(u -> !u.isEnemy).toList();
+    public static List<DogTag> getDogTags() {
+        return dogTags.values().stream().filter(u -> !u.isEnemy).toList();
     }
 
     //
-    public static List<UnitDocument> getDocuments(UnitType unitType) {
-        return getDocuments().stream().filter(u -> !u.isEnemy && u.unitType == unitType).toList();
+    public static List<DogTag> getDogTags(UnitType unitType) {
+        return getDogTags().stream().filter(u -> !u.isEnemy && u.unitType == unitType).toList();
     }
 
     //
-    public static UnitDocument getDocument(UnitType unitType) {
-        List<UnitDocument> units = getDocuments(unitType);
+    public static DogTag getDogTag(UnitType unitType) {
+        List<DogTag> units = getDogTags(unitType);
         if (!units.isEmpty())
             return units.getFirst();
 
         return null;
     }
 
-    public static List<UnitDocument> getEnemies() {
-        return unitDocuments.values().stream().filter(u -> u.isEnemy).toList();
+    public static List<DogTag> getEnemies() {
+        return dogTags.values().stream().filter(u -> u.isEnemy).toList();
     }
 
     public static int getEnemyUnitCount(UnitType unitType) {
         return (int) getEnemies().stream().filter(u -> u.unitType == unitType).count();
     }
 
-    public static List<UnitDocument> getEnemyUnits(UnitType unitType) {
+    public static List<DogTag> getEnemyUnits(UnitType unitType) {
         return getEnemies().stream().filter(u -> u.unitType == unitType).toList();
     }
 
@@ -137,8 +134,8 @@ public class UnitsCenter {
     }
 
     //
-    public static List<UnitDocument> getSquadUnits(String squadID) {
-        List<UnitDocument> list = getDocuments();
+    public static List<DogTag> getSquadUnits(String squadID) {
+        List<DogTag> list = getDogTags();
         return list.stream().filter(u -> u.squadID.equals(squadID)).toList();
     }
 
@@ -164,8 +161,8 @@ public class UnitsCenter {
     }
 
     public static List<Unit> getUnits() {
-        boolean isAlly = !RBWListener.game.self().isEnemy(RBWListener.game.self());
-        List<Unit> units = RBWListener.game.getAllUnits().stream().filter(u -> isAlly).toList();
+        List<Unit> units = RBWListener.game.getAllUnits().stream()
+                .filter(u -> !u.getPlayer().isEnemy(RBWListener.game.self())).toList();
         return units;
     }
 
@@ -188,16 +185,29 @@ public class UnitsCenter {
         return count;
     }
 
-    public static List<Unit> getEnemyUnits(Position center, int radious) {
-        boolean isEnemy = RBWListener.game.self().isEnemy(RBWListener.game.self());
-        List<Unit> units = RBWListener.game.getUnitsInRadius(center, radious);
-        List<Unit> enemies = units.stream().filter(u -> isEnemy).toList();
+    /**
+     * Return a list of enemy units currently in sight of the given unit.
+     * 
+     * @param unit - the unit
+     * @return - the enemies
+     */
+    public static List<Unit> getEnemyUnits(Unit unit) {
+        Position center = unit.getPosition();
+        List<Unit> units = RBWListener.game.getUnitsInRadius(center, unit.getType().sightRange());
+        List<Unit> enemies = units.stream().filter(u -> u.getPlayer().isEnemy(RBWListener.game.self())).toList();
         return enemies;
     }
 
+    // public static List<Unit> getEnemyUnits(Position center, int radious) {
+    // boolean isEnemy = RBWListener.game.self().isEnemy(RBWListener.game.self());
+    // List<Unit> units = RBWListener.game.getUnitsInRadius(center, radious);
+    // List<Unit> enemies = units.stream().filter(u -> isEnemy).toList();
+    // return enemies;
+    // }
+
     public static List<Unit> getEnemyUnits() {
-        boolean isEnemy = RBWListener.game.self().isEnemy(RBWListener.game.self());
-        List<Unit> units = RBWListener.game.getAllUnits().stream().filter(u -> isEnemy).toList();
+        List<Unit> units = RBWListener.game.getAllUnits().stream()
+                .filter(u -> u.getPlayer().isEnemy(RBWListener.game.self())).toList();
         return units;
     }
 }

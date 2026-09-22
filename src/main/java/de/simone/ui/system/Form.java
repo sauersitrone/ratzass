@@ -22,6 +22,24 @@ public class Form extends JPanel {
     public void formRefresh() {
     }
 
+    /**
+     * Return the title component of this form
+     * @return the title
+     * @author Terry
+     */
+    public JComponent getTitle() {
+        return null;
+    }
+
+    /**
+     * Return the controls component of this form
+     * @return the controls
+     * @author Terry
+     */
+    public JComponent getControls() {
+        return null;
+    }
+
     protected boolean formCheck() {
         if (oldTheme != UIManager.getLookAndFeel()) {
             oldTheme = UIManager.getLookAndFeel();

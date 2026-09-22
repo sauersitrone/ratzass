@@ -40,6 +40,10 @@ public class CommandQueue {
         listeners.add(listener);
     }
 
+    /**
+     * Call by RBWListener on every x frames to dispatch all pending commands to the
+     * starcraft game.
+     */
     public static void dispatchCommands() {
         Game bwapi = RBWListener.bwClient.getGame();
 
@@ -195,8 +199,7 @@ public class CommandQueue {
             if (command.status == OrderStatus.Error) {
                 command.message = "Minerals:" + RBWListener.currentMinerals +
                         ", Gas:" + RBWListener.currentGas +
-                        ", Supply:" + RBWListener.currentSupplyUsed +
-                        ", Total Supply:" + RBWListener.currentSupplyTotal;
+                        ", Supply:" + RBWListener.currentSupplyLeft;
 
             }
 
@@ -206,8 +209,8 @@ public class CommandQueue {
 
     public static List<Command> addCommand(UnitCommandType command, Squad squad, Position position) {
         List<Command> addedCommands = new ArrayList<>();
-        for (UnitDocument unit : squad.getAliveMembers()) {
-            Command command2 = new Command(command, unit.unitID, position);
+        for (DogTag tag : squad.getAliveMembers()) {
+            Command command2 = new Command(command, tag.unit.getID(), position);
             addCommand(command2);
             addedCommands.add(command2);
         }
@@ -235,20 +238,20 @@ public class CommandQueue {
         Command command = new Command(UnitCommandType.Gather, -1, -1, null);
 
         // select idle SCV
-        Unit rUnit = UnitsCenter.getIdleTerranSCV();
-        if (rUnit == null) {
+        Unit dTag = UnitsCenter.getIdleTerranSCV();
+        if (dTag == null) {
             return logFail(command, "No SCV available to gather resources.");
         }
 
         // select closest resource
         Unit resourceUnit = null;
         if (resourceType == ResourceType.Mineral) {
-            resourceUnit = RBWListener.game.getClosestUnit(rUnit.getPosition(), UnitFilter.IsMineralField);
+            resourceUnit = RBWListener.game.getClosestUnit(dTag.getPosition(), UnitFilter.IsMineralField);
         } else {
-            resourceUnit = RBWListener.game.getClosestUnit(rUnit.getPosition(), UnitFilter.IsRefinery);
+            resourceUnit = RBWListener.game.getClosestUnit(dTag.getPosition(), UnitFilter.IsRefinery);
         }
 
-        return addCommand(UnitCommandType.Gather, rUnit.getID(), resourceUnit.getID(), null);
+        return addCommand(UnitCommandType.Gather, dTag.getID(), resourceUnit.getID(), null);
     }
 
     public static void gather(int unitID, int targetID) {
@@ -269,8 +272,8 @@ public class CommandQueue {
      * 
      */
     public static void rightClick(Squad squad, Position position) {
-        for (UnitDocument unit : squad.getAliveMembers()) {
-            addCommand(UnitCommandType.Right_Click_Position, unit.unitID, -1, position);
+        for (DogTag tag : squad.getAliveMembers()) {
+            addCommand(UnitCommandType.Right_Click_Position, tag.unit.getID(), -1, position);
         }
     }
 
@@ -295,12 +298,12 @@ public class CommandQueue {
         }
 
         // resolve facility
-        Unit rUnit = UnitsCenter.resolveTrainer(unitType);
-        if (rUnit == null) {
+        Unit dTag = UnitsCenter.resolveTrainer(unitType);
+        if (dTag == null) {
             logFail(command, "No Facility available to train " + unitType);
             return command;
         }
-        command.unitId = rUnit.getID();
+        command.unitId = dTag.getID();
         command.unitType = unitType;
         addCommand(command);
         return command;
@@ -310,7 +313,7 @@ public class CommandQueue {
         Command command = addCommand(UnitCommandType.Build, -1, -1, null);
         command.unitType = unitType;
 
-        // fail save to forece the corrent pddl domain action
+        // fail save to force the corrent pddl domain action
         if (!unitType.isBuilding()) {
             logFail(command, "the UnitType " + command.unitType + " is not a building.");
             return command;
@@ -348,11 +351,20 @@ public class CommandQueue {
             return command;
         }
 
+        // if the unit to build is a bunker, find a suitable location
+        // if (unitType == UnitType.Terran_Bunker) {
+        //     TilePosition bunkerPosition = RBWListener.game.self().getStartLocation();
+        //     bunkerPosition = RBWListener.game.getBuildLocation(command.unitType, bunkerPosition);
+        //     command.tilePosition = bunkerPosition;
+        //     addCommand(command);
+
+        //     return command;
+        // }
+
         // if the unit to build is a building, find a suitable location
         TilePosition tilePosition = RBWListener.game.self().getStartLocation();
         tilePosition = RBWListener.game.getBuildLocation(command.unitType, tilePosition);
         command.tilePosition = tilePosition;
-        System.out.println("CommandQueue.build() " + tilePosition);
         addCommand(command);
 
         return command;

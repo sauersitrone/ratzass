@@ -15,6 +15,7 @@
     (:functions
         (Mineral_quantity)
         (Gas_quantity)
+        (Supply_quantity)
         (Terran_Command_Center_quantity)
         (Terran_SCV_quantity)
         (Terran_Marine_quantity)
@@ -102,14 +103,16 @@
 
     (:action train-Terran_SCV
         :parameters ()
-        :precondition (and (>= (Mineral_quantity) 50) (>= (Terran_Command_Center_quantity) 1))
-        :effect (and (decrease (Mineral_quantity) 50) (increase (Terran_SCV_quantity) 1))
+        :precondition (and (>= (Mineral_quantity) 50) (>= (Terran_Command_Center_quantity) 1)
+            (>= (Supply_quantity) 2))
+        :effect (and (decrease (Mineral_quantity) 50) (increase (Terran_SCV_quantity) 1) (decrease (Supply_quantity) 2))
     )
 
     (:action train-Terran_Marine
         :parameters ()
-        :precondition (and (>= (Mineral_quantity) 50) (>= (Terran_Barracks_quantity) 1))
-        :effect (and (decrease (Mineral_quantity) 50) (increase (Terran_Marine_quantity) 1))
+        :precondition (and (>= (Mineral_quantity) 50) (>= (Terran_Barracks_quantity) 1)
+            (>= (Supply_quantity) 2))
+        :effect (and (decrease (Mineral_quantity) 50) (increase (Terran_Marine_quantity) 1) (decrease (Supply_quantity) 2))
     )
 
     (:action build-Terran_Barracks
@@ -131,25 +134,28 @@
     (:action train-Terran_Ghost
         :parameters ()
         :precondition (and
-            (>= (Mineral_quantity) 25)
-            (>= (Gas_quantity) 75)
-            (>= (Terran_Academy_quantity) 1)
-            (>= (Terran_Covert_Ops_quantity) 1)
-            (>= (Terran_Barracks_quantity) 1)
+            (>= (Mineral_quantity) 25) (>= (Gas_quantity) 75) (>= (Terran_Academy_quantity) 1) (>= (Terran_Covert_Ops_quantity) 1)
+            (>= (Terran_Barracks_quantity) 1) (>= (Supply_quantity) 2)
         )
-        :effect (and (decrease (Mineral_quantity) 25) (decrease (Gas_quantity) 75) (increase (Terran_Ghost_quantity) 1))
+        :effect (and
+            (decrease (Mineral_quantity) 25) (decrease (Gas_quantity) 75) (increase (Terran_Ghost_quantity) 1)
+            (decrease (Supply_quantity) 2))
     )
 
     (:action train-Terran_Vulture
         :parameters ()
-        :precondition (and (>= (Mineral_quantity) 75) (>= (Terran_Factory_quantity) 1))
-        :effect (and (decrease (Mineral_quantity) 75) (increase (Terran_Vulture_quantity) 1))
+        :precondition (and (>= (Mineral_quantity) 75) (>= (Terran_Factory_quantity) 1)
+            (>= (Supply_quantity) 4))
+        :effect (and (decrease (Mineral_quantity) 75) (increase (Terran_Vulture_quantity) 1) (decrease (Supply_quantity) 4))
     )
 
     (:action train-Terran_Goliath
         :parameters ()
-        :precondition (and (>= (Mineral_quantity) 100) (>= (Gas_quantity) 50) (>= (Terran_Factory_quantity) 1))
-        :effect (and (decrease (Mineral_quantity) 100) (decrease (Gas_quantity) 50) (increase (Terran_Goliath_quantity) 1))
+        :precondition (and (>= (Mineral_quantity) 100) (>= (Gas_quantity) 50) (>= (Terran_Factory_quantity) 1)
+            (>= (Supply_quantity) 4))
+        :effect (and
+            (decrease (Mineral_quantity) 100) (decrease (Gas_quantity) 50) (increase (Terran_Goliath_quantity) 1)
+            (decrease (Supply_quantity) 4))
     )
 
     (:action train-Terran_Goliath_Turret
@@ -164,13 +170,15 @@
             (>= (Mineral_quantity) 150)
             (>= (Gas_quantity) 100)
             (>= (Terran_Factory_quantity) 1)
+            (>= (Supply_quantity) 4)
         )
         :effect (and
             (decrease (Mineral_quantity) 150)
             (decrease (Gas_quantity) 100)
             (increase
                 (Terran_Siege_Tank_Tank_Mode_quantity)
-                1))
+                1)
+            (decrease (Supply_quantity) 4))
     )
 
     (:action train-Terran_Siege_Tank_Tank_Mode_Turret
@@ -183,14 +191,22 @@
 
     (:action train-Terran_Wraith
         :parameters ()
-        :precondition (and (>= (Mineral_quantity) 150) (>= (Gas_quantity) 100) (>= (Terran_Starport_quantity) 1))
-        :effect (and (decrease (Mineral_quantity) 150) (decrease (Gas_quantity) 100) (increase (Terran_Wraith_quantity) 1))
+        :precondition (and (>= (Mineral_quantity) 150) (>= (Gas_quantity) 100) (>= (Terran_Starport_quantity) 1)
+            (>= (Supply_quantity) 4))
+        :effect (and
+            (decrease (Mineral_quantity) 150) (decrease (Gas_quantity) 100) (increase (Terran_Wraith_quantity) 1)
+            (decrease (Supply_quantity) 4))
     )
 
     (:action train-Terran_Science_Vessel
         :parameters ()
-        :precondition (and (>= (Mineral_quantity) 100) (>= (Gas_quantity) 225) (>= (Terran_Starport_quantity) 1) (>= (Terran_Control_Tower_quantity) 1) (>= (Terran_Science_Facility_quantity) 1))
-        :effect (and (decrease (Mineral_quantity) 100) (decrease (Gas_quantity) 225) (increase (Terran_Science_Vessel_quantity) 1))
+        :precondition (and
+            (>= (Mineral_quantity) 100) (>= (Gas_quantity) 225) (>= (Terran_Starport_quantity) 1)
+            (>= (Terran_Control_Tower_quantity) 1) (>= (Terran_Science_Facility_quantity) 1)
+            (>= (Supply_quantity) 4))
+        :effect (and
+            (decrease (Mineral_quantity) 100) (decrease (Gas_quantity) 225)
+            (increase (Terran_Science_Vessel_quantity) 1) (decrease (Supply_quantity) 4))
     )
 
     (:action train-Hero_Gui_Montag
@@ -201,14 +217,23 @@
 
     (:action train-Terran_Dropship
         :parameters ()
-        :precondition (and (>= (Mineral_quantity) 100) (>= (Gas_quantity) 100) (>= (Terran_Starport_quantity) 1) (>= (Terran_Control_Tower_quantity) 1))
-        :effect (and (decrease (Mineral_quantity) 100) (decrease (Gas_quantity) 100) (increase (Terran_Dropship_quantity) 1))
+        :precondition (and
+            (>= (Mineral_quantity) 100) (>= (Gas_quantity) 100) (>= (Terran_Starport_quantity) 1)
+            (>= (Terran_Control_Tower_quantity) 1) (>= (Supply_quantity) 4))
+        :effect (and
+            (decrease (Mineral_quantity) 100) (decrease (Gas_quantity) 100) (increase (Terran_Dropship_quantity) 1)
+            (decrease (Supply_quantity) 4))
     )
 
     (:action train-Terran_Battlecruiser
         :parameters ()
-        :precondition (and (>= (Mineral_quantity) 400) (>= (Gas_quantity) 300) (>= (Terran_Starport_quantity) 1) (>= (Terran_Control_Tower_quantity) 1) (>= (Terran_Physics_Lab_quantity) 1))
-        :effect (and (decrease (Mineral_quantity) 400) (decrease (Gas_quantity) 300) (increase (Terran_Battlecruiser_quantity) 1))
+        :precondition (and
+            (>= (Mineral_quantity) 400) (>= (Gas_quantity) 300) (>= (Terran_Starport_quantity) 1)
+            (>= (Terran_Control_Tower_quantity) 1) (>= (Terran_Physics_Lab_quantity) 1)
+            (>= (Supply_quantity) 12))
+        :effect (and
+            (decrease (Mineral_quantity) 400)
+            (decrease (Gas_quantity) 300) (increase (Terran_Battlecruiser_quantity) 1) (decrease (Supply_quantity) 12))
     )
 
     (:action train-Terran_Vulture_Spider_Mine
@@ -219,8 +244,13 @@
 
     (:action train-Terran_Nuclear_Missile
         :parameters ()
-        :precondition (and (>= (Mineral_quantity) 200) (>= (Gas_quantity) 200) (>= (Terran_Nuclear_Silo_quantity) 1))
-        :effect (and (decrease (Mineral_quantity) 200) (decrease (Gas_quantity) 200) (increase (Terran_Nuclear_Missile_quantity) 1))
+        :precondition (and (>= (Mineral_quantity) 200) (>= (Gas_quantity) 200)
+            (>= (Terran_Nuclear_Silo_quantity) 1) (>= (Supply_quantity) 16))
+        :effect (and
+            (decrease (Mineral_quantity) 200)
+            (decrease (Gas_quantity) 200)
+            (increase (Terran_Nuclear_Missile_quantity) 1)
+            (decrease (Supply_quantity) 16))
     )
 
     (:action train-Terran_Civilian
@@ -323,24 +353,27 @@
 
     (:action train-Terran_Siege_Tank_Siege_Mode
         :parameters ()
-        :precondition (and (>= (Mineral_quantity) 150) (>= (Gas_quantity) 100) (>= (Terran_Factory_quantity) 1))
-        :effect (and (decrease (Mineral_quantity) 150) (decrease (Gas_quantity) 100) (increase
-                (Terran_Siege_Tank_Siege_Mode_quantity)
-                1))
+        :precondition (and (>= (Mineral_quantity) 150) (>= (Gas_quantity) 100)
+            (>= (Terran_Factory_quantity) 1) (>= (Supply_quantity) 4))
+        :effect (and (decrease (Mineral_quantity) 150) (decrease (Gas_quantity) 100)
+            (increase (Terran_Siege_Tank_Siege_Mode_quantity) 1)
+            (decrease (Supply_quantity) 4))
     )
 
     (:action train-Terran_Siege_Tank_Siege_Mode_Turret
         :parameters ()
         :precondition (and (>= (Mineral_quantity) 1) (>= (Gas_quantity) 1))
-        :effect (and (decrease (Mineral_quantity) 1) (decrease (Gas_quantity) 1) (increase
-                (Terran_Siege_Tank_Siege_Mode_Turret_quantity)
-                1))
+        :effect (and (decrease (Mineral_quantity) 1) (decrease (Gas_quantity) 1) 
+            (increase (Terran_Siege_Tank_Siege_Mode_Turret_quantity) 1))
     )
 
     (:action train-Terran_Firebat
         :parameters ()
-        :precondition (and (>= (Mineral_quantity) 50) (>= (Gas_quantity) 25) (>= (Terran_Academy_quantity) 1) (>= (Terran_Barracks_quantity) 1))
-        :effect (and (decrease (Mineral_quantity) 50) (decrease (Gas_quantity) 25) (increase (Terran_Firebat_quantity) 1))
+        :precondition (and
+            (>= (Mineral_quantity) 50) (>= (Gas_quantity) 25) (>= (Terran_Academy_quantity) 1)
+            (>= (Terran_Barracks_quantity) 1) (>= (Supply_quantity) 2))
+        :effect (and (decrease (Mineral_quantity) 50) (decrease (Gas_quantity) 25) (increase (Terran_Firebat_quantity) 1)
+            (decrease (Supply_quantity) 2))
     )
 
     (:action train-Spell_Scanner_Sweep
@@ -351,14 +384,21 @@
 
     (:action train-Terran_Medic
         :parameters ()
-        :precondition (and (>= (Mineral_quantity) 50) (>= (Gas_quantity) 25) (>= (Terran_Academy_quantity) 1) (>= (Terran_Barracks_quantity) 1))
-        :effect (and (decrease (Mineral_quantity) 50) (decrease (Gas_quantity) 25) (increase (Terran_Medic_quantity) 1))
+        :precondition (and
+            (>= (Mineral_quantity) 50) (>= (Gas_quantity) 25) (>= (Terran_Academy_quantity) 1)
+            (>= (Terran_Barracks_quantity) 1) (>= (Supply_quantity) 2))
+        :effect (and (decrease (Mineral_quantity) 50) (decrease (Gas_quantity) 25) (increase (Terran_Medic_quantity) 1)
+            (decrease (Supply_quantity) 2))
     )
 
     (:action train-Terran_Valkyrie
         :parameters ()
-        :precondition (and (>= (Mineral_quantity) 250) (>= (Gas_quantity) 125) (>= (Terran_Starport_quantity) 1) (>= (Terran_Control_Tower_quantity) 1))
-        :effect (and (decrease (Mineral_quantity) 250) (decrease (Gas_quantity) 125) (increase (Terran_Valkyrie_quantity) 1))
+        :precondition (and
+            (>= (Mineral_quantity) 250) (>= (Gas_quantity) 125) (>= (Terran_Starport_quantity) 1)
+            (>= (Terran_Control_Tower_quantity) 1) (>= (Supply_quantity) 6))
+        :effect (and
+            (decrease (Mineral_quantity) 250) (decrease (Gas_quantity) 125) (increase (Terran_Valkyrie_quantity) 1)
+            (decrease (Supply_quantity) 6))
     )
 
     (:action train-Hero_Samir_Duran
@@ -387,17 +427,15 @@
 
     (:action build-Terran_Comsat_Station
         :parameters ()
-        :precondition (and (>= (Mineral_quantity) 50) (>= (Gas_quantity) 50) (>= (Terran_Academy_quantity) 1) (>= (Terran_Command_Center_quantity) 1))
+        :precondition (and (>= (Mineral_quantity) 50) (>= (Gas_quantity) 50) (>= (Terran_Academy_quantity) 1)
+            (>= (Terran_Command_Center_quantity) 1))
         :effect (and (decrease (Mineral_quantity) 50) (decrease (Gas_quantity) 50) (increase (Terran_Comsat_Station_quantity) 1))
     )
 
     (:action build-Terran_Nuclear_Silo
         :parameters ()
         :precondition (and
-            (>= (Mineral_quantity) 100)
-            (>= (Gas_quantity) 100)
-            (>= (Terran_Covert_Ops_quantity) 1)
-            (>= (Terran_Command_Center_quantity) 1)
+            (>= (Mineral_quantity) 100) (>= (Gas_quantity) 100) (>= (Terran_Covert_Ops_quantity) 1) (>= (Terran_Command_Center_quantity) 1)
             (>= (Terran_Science_Facility_quantity) 1)
         )
         :effect (and (decrease (Mineral_quantity) 100) (decrease (Gas_quantity) 100) (increase (Terran_Nuclear_Silo_quantity) 1))
@@ -406,7 +444,10 @@
     (:action build-Terran_Supply_Depot
         :parameters ()
         :precondition (and (>= (Mineral_quantity) 100) (>= (Terran_SCV_quantity) 1))
-        :effect (and (decrease (Mineral_quantity) 100) (increase (Terran_Supply_Depot_quantity) 1))
+        :effect (and
+            (decrease (Mineral_quantity) 100)
+            (increase (Terran_Supply_Depot_quantity) 1)
+            (increase (Supply_quantity) 16))
     )
 
     (:action build-Terran_Academy
@@ -496,11 +537,11 @@
     (:action build-Special_Crashed_Norad_II
         :parameters ()
         :precondition (and (>= (Mineral_quantity) 800) (>= (Gas_quantity) 600))
-        :effect (and 
-            (decrease (Mineral_quantity) 800) 
+        :effect (and
+            (decrease (Mineral_quantity) 800)
             (decrease (Gas_quantity) 600)
             (increase (Special_Crashed_Norad_II_quantity) 1)
-            )
+        )
     )
 
     (:action build-Special_Ion_Cannon
@@ -547,5 +588,5 @@
         :precondition (and (>= (Mineral_quantity) 100) (>= (Terran_Engineering_Bay_quantity) 1) (<=(Terran_Infantry_Armor_quantity) 3))
         :effect (and (decrease (Mineral_quantity) 100) (increase (Terran_Infantry_Armor_quantity) 1))
     )
-    
+
 )

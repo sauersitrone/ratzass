@@ -25,11 +25,11 @@ import raven.modal.Drawer;
 
 public class Main extends JFrame {
 
-    public static final String APP_VERSION = "1.17";
-    public static final String APP_NAME   = "Ratzass";
-    public static final String APP_DESCRIPTION   = "StarCraft Brood War boot";
-    public static final String APP_LONG_DESCRIPTION   = "This is my StarCraft Brood War bot. I doit for personal use and now I am sharing it with the community.";
-    public static final String APP_GITHUB   = "https://github.com/sauersitrone/sitrone/";
+    public static final String APP_VERSION = "0.57";
+    public static final String APP_NAME = "Ratzass";
+    public static final String APP_DESCRIPTION = "StarCraft Brood War bot";
+    public static final String APP_LONG_DESCRIPTION = "Ratzass is a StarCraft Brood War bot built in Java with JBWAPI, designed for personal use and now shared with the community. Focused on automated gameplay and strategy execution, using ONLY Java-based tools and libraries for planning, logistics, combat, and interface support.";
+    public static final String APP_GITHUB = "https://github.com/sauersitrone/sitrone/";
 
     public Main() {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -44,7 +44,7 @@ public class Main extends JFrame {
         });
         getRootPane().putClientProperty(FlatClientProperties.FULL_WINDOW_CONTENT, true);
         Drawer.installDrawer(this, MyDrawerBuilder.getInstance());
-        FormManager.install(this);  
+        FormManager.install(this);
         setSize(new Dimension(1366, 800));
         setLocationRelativeTo(null);
     }

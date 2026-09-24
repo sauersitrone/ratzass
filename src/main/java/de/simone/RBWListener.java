@@ -35,10 +35,6 @@ public class RBWListener extends DefaultBWListener {
     public static int codeSpeed;
     public static boolean isPaused = false;
 
-    // Store the current units status
-
-    private long lastFrameTime = 0;
-
     private RBWListener() {
         bwClient = new BWClient(this);
         bwClient.startGame();
@@ -93,7 +89,12 @@ public class RBWListener extends DefaultBWListener {
         // RBWListener.game.drawText(CoordinateType.Screen, 8, 16, "FPS: " +
         // game.getFPS(), Text.Blue);
 
-        // command dispatch & logistic
+        /**
+         * heartbeat for units center, logistic center, and command queue.
+         * 
+         * NOTE: much of * the listener take into account, that this coed will be
+         * executed every 100ms
+         */
         if (gameSeconds - lastCenterComm >= 0.1) {
             lastCenterComm = gameSeconds;
             long t1 = System.currentTimeMillis();
@@ -101,23 +102,17 @@ public class RBWListener extends DefaultBWListener {
             UnitsCenter.controlPersonal();
             LogisticCenter.heartBeat();
             CommandQueue.dispatchCommands();
-            
-            RUtils.step(LogisticCenter.behaviorTree);
+
+            LogisticCenter.behaviorTree.step();
             List<Squad> squads = UnitsCenter.getSquads();
             for (Squad squad : squads) {
                 squad.updateStatus();
                 if (squad.isAlive())
-                    RUtils.step(squad.behaviorTree);
+                    squad.behaviorTree.step();
             }
 
             long t2 = System.currentTimeMillis();
             codeSpeed = (int) (t2 - t1);
-        }
-
-        // update gathered resources
-        if (System.currentTimeMillis() - lastFrameTime >= 5 * 1000) {
-            lastFrameTime = System.currentTimeMillis();
-
         }
     }
 

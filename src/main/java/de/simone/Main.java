@@ -32,6 +32,8 @@ public class Main extends JFrame {
     public static final String APP_GITHUB = "https://github.com/sauersitrone/sitrone/";
 
     public Main() {
+        setTitle(APP_DESCRIPTION);
+        setIconImage(RUtils.getImageIcon("FrameIcon.png").getImage());
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         // Thread printingHook = new Thread(() -> RUtils.endStarcraftProcess());
         // Runtime.getRuntime().addShutdownHook(printingHook);
@@ -51,7 +53,6 @@ public class Main extends JFrame {
 
     public static void main(String[] args) {
         new Config();
-        RUtils.startStarcraftProcess();
         new CommandQueue();
         new UnitsCenter();
         new LogisticCenter();
@@ -64,6 +65,7 @@ public class Main extends JFrame {
         DemoPreferences.setupLaf();
         EventQueue.invokeLater(() -> new Main().setVisible(true));
 
+        RUtils.startStarcraftProcess();
         RBWListener.init();
 
     }

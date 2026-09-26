@@ -2,8 +2,10 @@ package de.simone.btree.logistic;
 
 import java.util.List;
 
+import com.badlogic.gdx.ai.btree.Task;
 import com.badlogic.gdx.ai.btree.annotation.TaskAttribute;
 
+import de.simone.btree.Blackboard;
 import de.simone.command.Squad;
 import de.simone.command.Squad.SquadType;
 import de.simone.command.UnitsCenter;
@@ -26,5 +28,13 @@ public class IsSquadNeededCondition extends LogisticTask {
     @Override
     public String toString() {
         return super.toString() + " " + type.toString() + " count:" + count;
+    }
+
+    @Override
+    protected Task<Blackboard> copyTo(Task<Blackboard> task) {
+        IsSquadNeededCondition copy = (IsSquadNeededCondition) task;
+        copy.type = type;
+        copy.count = count;
+        return copy;
     }
 }

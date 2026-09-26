@@ -158,11 +158,11 @@
             (decrease (Supply_quantity) 4))
     )
 
-    (:action train-Terran_Goliath_Turret
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 1) (>= (Gas_quantity) 1))
-        :effect (and (decrease (Mineral_quantity) 1) (decrease (Gas_quantity) 1) (increase (Terran_Goliath_Turret_quantity) 1))
-    )
+    ; (:action train-Terran_Goliath_Turret
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 1) (>= (Gas_quantity) 1))
+    ;     :effect (and (decrease (Mineral_quantity) 1) (decrease (Gas_quantity) 1) (increase (Terran_Goliath_Turret_quantity) 1))
+    ; )
 
     (:action train-Terran_Siege_Tank_Tank_Mode
         :parameters ()
@@ -181,13 +181,13 @@
             (decrease (Supply_quantity) 4))
     )
 
-    (:action train-Terran_Siege_Tank_Tank_Mode_Turret
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 1) (>= (Gas_quantity) 1))
-        :effect (and (decrease (Mineral_quantity) 1) (decrease (Gas_quantity) 1) (increase
-                (Terran_Siege_Tank_Tank_Mode_Turret_quantity)
-                1))
-    )
+    ; (:action train-Terran_Siege_Tank_Tank_Mode_Turret
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 1) (>= (Gas_quantity) 1))
+    ;     :effect (and (decrease (Mineral_quantity) 1) (decrease (Gas_quantity) 1) (increase
+    ;             (Terran_Siege_Tank_Tank_Mode_Turret_quantity)
+    ;             1))
+    ; )
 
     (:action train-Terran_Wraith
         :parameters ()
@@ -209,11 +209,11 @@
             (increase (Terran_Science_Vessel_quantity) 1) (decrease (Supply_quantity) 4))
     )
 
-    (:action train-Hero_Gui_Montag
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 100) (>= (Gas_quantity) 50))
-        :effect (and (decrease (Mineral_quantity) 100) (decrease (Gas_quantity) 50) (increase (Hero_Gui_Montag_quantity) 1))
-    )
+    ; (:action train-Hero_Gui_Montag
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 100) (>= (Gas_quantity) 50))
+    ;     :effect (and (decrease (Mineral_quantity) 100) (decrease (Gas_quantity) 50) (increase (Hero_Gui_Montag_quantity) 1))
+    ; )
 
     (:action train-Terran_Dropship
         :parameters ()
@@ -236,11 +236,11 @@
             (decrease (Gas_quantity) 300) (increase (Terran_Battlecruiser_quantity) 1) (decrease (Supply_quantity) 12))
     )
 
-    (:action train-Terran_Vulture_Spider_Mine
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 1))
-        :effect (and (decrease (Mineral_quantity) 1) (increase (Terran_Vulture_Spider_Mine_quantity) 1))
-    )
+    ; (:action train-Terran_Vulture_Spider_Mine
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 1))
+    ;     :effect (and (decrease (Mineral_quantity) 1) (increase (Terran_Vulture_Spider_Mine_quantity) 1))
+    ; )
 
     (:action train-Terran_Nuclear_Missile
         :parameters ()
@@ -253,103 +253,103 @@
             (decrease (Supply_quantity) 16))
     )
 
-    (:action train-Terran_Civilian
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 0))
-        :effect (and (decrease (Mineral_quantity) 0) (increase (Terran_Civilian_quantity) 1))
-    )
+    ; (:action train-Terran_Civilian
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 0))
+    ;     :effect (and (decrease (Mineral_quantity) 0) (increase (Terran_Civilian_quantity) 1))
+    ; )
 
-    (:action train-Hero_Sarah_Kerrigan
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 50) (>= (Gas_quantity) 150))
-        :effect (and (decrease (Mineral_quantity) 50) (decrease (Gas_quantity) 150) (increase (Hero_Sarah_Kerrigan_quantity) 1))
-    )
+    ; (:action train-Hero_Sarah_Kerrigan
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 50) (>= (Gas_quantity) 150))
+    ;     :effect (and (decrease (Mineral_quantity) 50) (decrease (Gas_quantity) 150) (increase (Hero_Sarah_Kerrigan_quantity) 1))
+    ; )
 
-    (:action train-Hero_Alan_Schezar
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 200) (>= (Gas_quantity) 100))
-        :effect (and (decrease (Mineral_quantity) 200) (decrease (Gas_quantity) 100) (increase (Hero_Alan_Schezar_quantity) 1))
-    )
+    ; (:action train-Hero_Alan_Schezar
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 200) (>= (Gas_quantity) 100))
+    ;     :effect (and (decrease (Mineral_quantity) 200) (decrease (Gas_quantity) 100) (increase (Hero_Alan_Schezar_quantity) 1))
+    ; )
 
-    (:action train-Hero_Alan_Schezar_Turret
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 1) (>= (Gas_quantity) 1))
-        :effect (and (decrease (Mineral_quantity) 1) (decrease (Gas_quantity) 1) (increase
-                (Hero_Alan_Schezar_Turret_quantity)
-                1))
-    )
+    ; (:action train-Hero_Alan_Schezar_Turret
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 1) (>= (Gas_quantity) 1))
+    ;     :effect (and (decrease (Mineral_quantity) 1) (decrease (Gas_quantity) 1) (increase
+    ;             (Hero_Alan_Schezar_Turret_quantity)
+    ;             1))
+    ; )
 
-    (:action train-Hero_Jim_Raynor_Vulture
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 150))
-        :effect (and (decrease (Mineral_quantity) 150) (increase (Hero_Jim_Raynor_Vulture_quantity) 1))
-    )
+    ; (:action train-Hero_Jim_Raynor_Vulture
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 150))
+    ;     :effect (and (decrease (Mineral_quantity) 150) (increase (Hero_Jim_Raynor_Vulture_quantity) 1))
+    ; )
 
-    (:action train-Hero_Jim_Raynor_Marine
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 50))
-        :effect (and (decrease (Mineral_quantity) 50) (increase (Hero_Jim_Raynor_Marine_quantity) 1))
-    )
+    ; (:action train-Hero_Jim_Raynor_Marine
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 50))
+    ;     :effect (and (decrease (Mineral_quantity) 50) (increase (Hero_Jim_Raynor_Marine_quantity) 1))
+    ; )
 
-    (:action train-Hero_Tom_Kazansky
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 400) (>= (Gas_quantity) 200))
-        :effect (and (decrease (Mineral_quantity) 400) (decrease (Gas_quantity) 200) (increase (Hero_Tom_Kazansky_quantity) 1))
-    )
+    ; (:action train-Hero_Tom_Kazansky
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 400) (>= (Gas_quantity) 200))
+    ;     :effect (and (decrease (Mineral_quantity) 400) (decrease (Gas_quantity) 200) (increase (Hero_Tom_Kazansky_quantity) 1))
+    ; )
 
-    (:action train-Hero_Magellan
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 50) (>= (Gas_quantity) 600))
-        :effect (and (decrease (Mineral_quantity) 50) (decrease (Gas_quantity) 600) (increase (Hero_Magellan_quantity) 1))
-    )
+    ; (:action train-Hero_Magellan
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 50) (>= (Gas_quantity) 600))
+    ;     :effect (and (decrease (Mineral_quantity) 50) (decrease (Gas_quantity) 600) (increase (Hero_Magellan_quantity) 1))
+    ; )
 
-    (:action train-Hero_Edmund_Duke_Tank_Mode
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 300) (>= (Gas_quantity) 200))
-        :effect (and (decrease (Mineral_quantity) 300) (decrease (Gas_quantity) 200) (increase (Hero_Edmund_Duke_Tank_Mode_quantity) 1))
-    )
+    ; (:action train-Hero_Edmund_Duke_Tank_Mode
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 300) (>= (Gas_quantity) 200))
+    ;     :effect (and (decrease (Mineral_quantity) 300) (decrease (Gas_quantity) 200) (increase (Hero_Edmund_Duke_Tank_Mode_quantity) 1))
+    ; )
 
-    (:action train-Hero_Edmund_Duke_Tank_Mode_Turret
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 1) (>= (Gas_quantity) 1))
-        :effect (and (decrease (Mineral_quantity) 1) (decrease (Gas_quantity) 1) (increase
-                (Hero_Edmund_Duke_Tank_Mode_Turret_quantity)
-                1))
-    )
+    ; (:action train-Hero_Edmund_Duke_Tank_Mode_Turret
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 1) (>= (Gas_quantity) 1))
+    ;     :effect (and (decrease (Mineral_quantity) 1) (decrease (Gas_quantity) 1) (increase
+    ;             (Hero_Edmund_Duke_Tank_Mode_Turret_quantity)
+    ;             1))
+    ; )
 
-    (:action train-Hero_Edmund_Duke_Siege_Mode
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 300) (>= (Gas_quantity) 200))
-        :effect (and (decrease (Mineral_quantity) 300) (decrease (Gas_quantity) 200) (increase
-                (Hero_Edmund_Duke_Siege_Mode_quantity)
-                1))
-    )
+    ; (:action train-Hero_Edmund_Duke_Siege_Mode
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 300) (>= (Gas_quantity) 200))
+    ;     :effect (and (decrease (Mineral_quantity) 300) (decrease (Gas_quantity) 200) (increase
+    ;             (Hero_Edmund_Duke_Siege_Mode_quantity)
+    ;             1))
+    ; )
 
-    (:action train-Hero_Edmund_Duke_Siege_Mode_Turret
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 1) (>= (Gas_quantity) 1))
-        :effect (and (decrease (Mineral_quantity) 1) (decrease (Gas_quantity) 1) (increase
-                (Hero_Edmund_Duke_Siege_Mode_Turret_quantity)
-                1))
-    )
+    ; (:action train-Hero_Edmund_Duke_Siege_Mode_Turret
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 1) (>= (Gas_quantity) 1))
+    ;     :effect (and (decrease (Mineral_quantity) 1) (decrease (Gas_quantity) 1) (increase
+    ;             (Hero_Edmund_Duke_Siege_Mode_Turret_quantity)
+    ;             1))
+    ; )
 
-    (:action train-Hero_Arcturus_Mengsk
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 800) (>= (Gas_quantity) 600))
-        :effect (and (decrease (Mineral_quantity) 800) (decrease (Gas_quantity) 600) (increase (Hero_Arcturus_Mengsk_quantity) 1))
-    )
+    ; (:action train-Hero_Arcturus_Mengsk
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 800) (>= (Gas_quantity) 600))
+    ;     :effect (and (decrease (Mineral_quantity) 800) (decrease (Gas_quantity) 600) (increase (Hero_Arcturus_Mengsk_quantity) 1))
+    ; )
 
-    (:action train-Hero_Hyperion
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 800) (>= (Gas_quantity) 600))
-        :effect (and (decrease (Mineral_quantity) 800) (decrease (Gas_quantity) 600) (increase (Hero_Hyperion_quantity) 1))
-    )
+    ; (:action train-Hero_Hyperion
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 800) (>= (Gas_quantity) 600))
+    ;     :effect (and (decrease (Mineral_quantity) 800) (decrease (Gas_quantity) 600) (increase (Hero_Hyperion_quantity) 1))
+    ; )
 
-    (:action train-Hero_Norad_II
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 800) (>= (Gas_quantity) 600))
-        :effect (and (decrease (Mineral_quantity) 800) (decrease (Gas_quantity) 600) (increase (Hero_Norad_II_quantity) 1))
-    )
+    ; (:action train-Hero_Norad_II
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 800) (>= (Gas_quantity) 600))
+    ;     :effect (and (decrease (Mineral_quantity) 800) (decrease (Gas_quantity) 600) (increase (Hero_Norad_II_quantity) 1))
+    ; )
 
     (:action train-Terran_Siege_Tank_Siege_Mode
         :parameters ()
@@ -360,12 +360,12 @@
             (decrease (Supply_quantity) 4))
     )
 
-    (:action train-Terran_Siege_Tank_Siege_Mode_Turret
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 1) (>= (Gas_quantity) 1))
-        :effect (and (decrease (Mineral_quantity) 1) (decrease (Gas_quantity) 1) 
-            (increase (Terran_Siege_Tank_Siege_Mode_Turret_quantity) 1))
-    )
+    ; (:action train-Terran_Siege_Tank_Siege_Mode_Turret
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 1) (>= (Gas_quantity) 1))
+    ;     :effect (and (decrease (Mineral_quantity) 1) (decrease (Gas_quantity) 1) 
+    ;         (increase (Terran_Siege_Tank_Siege_Mode_Turret_quantity) 1))
+    ; )
 
     (:action train-Terran_Firebat
         :parameters ()
@@ -376,11 +376,11 @@
             (decrease (Supply_quantity) 2))
     )
 
-    (:action train-Spell_Scanner_Sweep
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 0))
-        :effect (and (decrease (Mineral_quantity) 0) (increase (Spell_Scanner_Sweep_quantity) 1))
-    )
+    ; (:action train-Spell_Scanner_Sweep
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 0))
+    ;     :effect (and (decrease (Mineral_quantity) 0) (increase (Spell_Scanner_Sweep_quantity) 1))
+    ; )
 
     (:action train-Terran_Medic
         :parameters ()
@@ -401,23 +401,23 @@
             (decrease (Supply_quantity) 6))
     )
 
-    (:action train-Hero_Samir_Duran
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 200) (>= (Gas_quantity) 75))
-        :effect (and (decrease (Mineral_quantity) 200) (decrease (Gas_quantity) 75) (increase (Hero_Samir_Duran_quantity) 1))
-    )
+    ; (:action train-Hero_Samir_Duran
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 200) (>= (Gas_quantity) 75))
+    ;     :effect (and (decrease (Mineral_quantity) 200) (decrease (Gas_quantity) 75) (increase (Hero_Samir_Duran_quantity) 1))
+    ; )
 
-    (:action train-Hero_Alexei_Stukov
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 200) (>= (Gas_quantity) 75))
-        :effect (and (decrease (Mineral_quantity) 200) (decrease (Gas_quantity) 75) (increase (Hero_Alexei_Stukov_quantity) 1))
-    )
+    ; (:action train-Hero_Alexei_Stukov
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 200) (>= (Gas_quantity) 75))
+    ;     :effect (and (decrease (Mineral_quantity) 200) (decrease (Gas_quantity) 75) (increase (Hero_Alexei_Stukov_quantity) 1))
+    ; )
 
-    (:action train-Hero_Gerard_DuGalle
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 800) (>= (Gas_quantity) 600))
-        :effect (and (decrease (Mineral_quantity) 800) (decrease (Gas_quantity) 600) (increase (Hero_Gerard_DuGalle_quantity) 1))
-    )
+    ; (:action train-Hero_Gerard_DuGalle
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 800) (>= (Gas_quantity) 600))
+    ;     :effect (and (decrease (Mineral_quantity) 800) (decrease (Gas_quantity) 600) (increase (Hero_Gerard_DuGalle_quantity) 1))
+    ; )
 
     (:action build-Terran_Command_Center
         :parameters ()
@@ -492,11 +492,11 @@
         :effect (and (decrease (Mineral_quantity) 50) (decrease (Gas_quantity) 50) (increase (Terran_Physics_Lab_quantity) 1))
     )
 
-    (:action build-Unused_Terran1
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 1) (>= (Gas_quantity) 1))
-        :effect (and (decrease (Mineral_quantity) 1) (decrease (Gas_quantity) 1) (increase (Unused_Terran1_quantity) 1))
-    )
+    ; (:action build-Unused_Terran1
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 1) (>= (Gas_quantity) 1))
+    ;     :effect (and (decrease (Mineral_quantity) 1) (decrease (Gas_quantity) 1) (increase (Unused_Terran1_quantity) 1))
+    ; )
 
     (:action build-Terran_Machine_Shop
         :parameters ()
@@ -504,11 +504,11 @@
         :effect (and (decrease (Mineral_quantity) 50) (decrease (Gas_quantity) 50) (increase (Terran_Machine_Shop_quantity) 1))
     )
 
-    (:action build-Unused_Terran2
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 1) (>= (Gas_quantity) 1))
-        :effect (and (decrease (Mineral_quantity) 1) (decrease (Gas_quantity) 1) (increase (Unused_Terran2_quantity) 1))
-    )
+    ; (:action build-Unused_Terran2
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 1) (>= (Gas_quantity) 1))
+    ;     :effect (and (decrease (Mineral_quantity) 1) (decrease (Gas_quantity) 1) (increase (Unused_Terran2_quantity) 1))
+    ; )
 
     (:action build-Terran_Engineering_Bay
         :parameters ()
@@ -534,55 +534,55 @@
         :effect (and (decrease (Mineral_quantity) 100) (increase (Terran_Bunker_quantity) 1))
     )
 
-    (:action build-Special_Crashed_Norad_II
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 800) (>= (Gas_quantity) 600))
-        :effect (and
-            (decrease (Mineral_quantity) 800)
-            (decrease (Gas_quantity) 600)
-            (increase (Special_Crashed_Norad_II_quantity) 1)
-        )
-    )
+    ; (:action build-Special_Crashed_Norad_II
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 800) (>= (Gas_quantity) 600))
+    ;     :effect (and
+    ;         (decrease (Mineral_quantity) 800)
+    ;         (decrease (Gas_quantity) 600)
+    ;         (increase (Special_Crashed_Norad_II_quantity) 1)
+    ;     )
+    ; )
 
-    (:action build-Special_Ion_Cannon
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 200))
-        :effect (and (decrease (Mineral_quantity) 200) (increase (Special_Ion_Cannon_quantity) 1))
-    )
+    ; (:action build-Special_Ion_Cannon
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 200))
+    ;     :effect (and (decrease (Mineral_quantity) 200) (increase (Special_Ion_Cannon_quantity) 1))
+    ; )
 
-    (:action build-Special_Psi_Disrupter
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 1000) (>= (Gas_quantity) 400))
-        :effect (and (decrease (Mineral_quantity) 1000) (decrease (Gas_quantity) 400) (increase (Special_Psi_Disrupter_quantity) 1))
-    )
+    ; (:action build-Special_Psi_Disrupter
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 1000) (>= (Gas_quantity) 400))
+    ;     :effect (and (decrease (Mineral_quantity) 1000) (decrease (Gas_quantity) 400) (increase (Special_Psi_Disrupter_quantity) 1))
+    ; )
 
-    (:action build-Unused_Marker
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 50) (>= (Gas_quantity) 50))
-        :effect (and (decrease (Mineral_quantity) 50) (decrease (Gas_quantity) 50) (increase (Unused_Marker_quantity) 1))
-    )
+    ; (:action build-Unused_Marker
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 50) (>= (Gas_quantity) 50))
+    ;     :effect (and (decrease (Mineral_quantity) 50) (decrease (Gas_quantity) 50) (increase (Unused_Marker_quantity) 1))
+    ; )
 
-    (:action build-Special_Beacon
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 50) (>= (Gas_quantity) 50))
-        :effect (and (decrease (Mineral_quantity) 50) (decrease (Gas_quantity) 50) (increase (Special_Beacon_quantity) 1))
-    )
+    ; (:action build-Special_Beacon
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 50) (>= (Gas_quantity) 50))
+    ;     :effect (and (decrease (Mineral_quantity) 50) (decrease (Gas_quantity) 50) (increase (Special_Beacon_quantity) 1))
+    ; )
 
-    (:action build-Special_Flag_Beacon
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 50) (>= (Gas_quantity) 50))
-        :effect (and (decrease (Mineral_quantity) 50) (decrease (Gas_quantity) 50) (increase (Special_Flag_Beacon_quantity) 1))
-    )
+    ; (:action build-Special_Flag_Beacon
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 50) (>= (Gas_quantity) 50))
+    ;     :effect (and (decrease (Mineral_quantity) 50) (decrease (Gas_quantity) 50) (increase (Special_Flag_Beacon_quantity) 1))
+    ; )
 
-    (:action build-Special_Power_Generator
-        :parameters ()
-        :precondition (and (>= (Mineral_quantity) 200) (>= (Gas_quantity) 50))
-        :effect (and
-            (decrease (Mineral_quantity) 200)
-            (decrease (Gas_quantity) 50)
-            (increase (Special_Power_Generator_quantity) 1)
-        )
-    )
+    ; (:action build-Special_Power_Generator
+    ;     :parameters ()
+    ;     :precondition (and (>= (Mineral_quantity) 200) (>= (Gas_quantity) 50))
+    ;     :effect (and
+    ;         (decrease (Mineral_quantity) 200)
+    ;         (decrease (Gas_quantity) 50)
+    ;         (increase (Special_Power_Generator_quantity) 1)
+    ;     )
+    ; )
     (:action upgrade-Terran_Infantry_Armor
         :parameters ()
         :precondition (and (>= (Mineral_quantity) 100) (>= (Terran_Engineering_Bay_quantity) 1) (<=(Terran_Infantry_Armor_quantity) 3))

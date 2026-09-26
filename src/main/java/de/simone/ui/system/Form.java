@@ -44,6 +44,11 @@ public class Form extends JPanel {
         if (oldTheme != UIManager.getLookAndFeel()) {
             oldTheme = UIManager.getLookAndFeel();
             SwingUtilities.updateComponentTreeUI(this);
+            // terry: title/controls are not children of this panel, so they need updating separately
+            if (getTitle() != null)
+                SwingUtilities.updateComponentTreeUI(getTitle());
+            if (getControls() != null)
+                SwingUtilities.updateComponentTreeUI(getControls());
             return true;
         }
         return false;

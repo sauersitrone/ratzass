@@ -31,21 +31,22 @@ public class ControlPanel extends JPanel {
     public ControlPanel() {
         setLayout(new FlowLayout(FlowLayout.LEFT));
 
-        Timer timer = new Timer(100, e -> {
+        Timer timer = new Timer(50, e -> {
             codeSpeed.setText("Code Speed: " + RBWListener.codeSpeed + "ms");
             minerals.setText("Minerals: " + RBWListener.currentMinerals);
             gas.setText("Gas: " + RBWListener.currentGas);
-            supply.setText("Supply: " + RBWListener.currentSupplyLeft);
+            supply.setText("Supply: " + RBWListener.currentSupplyUsed + "/" + RBWListener.currentSupplyTotal + "("
+                + RBWListener.currentSupplyLeft + ")");
         });
         timer.start();
 
-        restartGame = new JButton("Restart Game");
-        restartGame.addActionListener(e -> {
-            RBWListener.game.restartGame();
-        });
+        // restartGame = new JButton("Restart Game");
+        // restartGame.addActionListener(e -> {
+        // RBWListener.game.restartGame();
+        // });
         pauseResumeGame = new JButton("Pause Game");
         pauseResumeGame.addActionListener(e -> {
-            if(RBWListener.game.isPaused()) {
+            if (RBWListener.game.isPaused()) {
                 pauseResumeGame.setText("Pause Game");
                 RBWListener.isPaused = false;
             } else {
@@ -66,10 +67,10 @@ public class ControlPanel extends JPanel {
         minerals.setForeground(Color.blue);
         gas = new JLabel("Gas: " + RBWListener.currentGas);
         gas.setForeground(Color.green);
-        supply = new JLabel("Supply: " + RBWListener.currentSupplyLeft);
+        supply = new JLabel("Supply: -" );
         supply.setForeground(Color.GRAY);
 
-        add(restartGame);
+        // add(restartGame);
         add(pauseResumeGame);
         add(fogOfWar);
         add(userInput);

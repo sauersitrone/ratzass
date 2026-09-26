@@ -43,7 +43,6 @@ public class BehaviorTreeTree extends JTree {
     private final Map<String, DefaultMutableTreeNode> nodeMap = new HashMap<>();
     private BehaviorTree<?> behaviorTree;
     private Dimension dimension;
-    // private Timer updateTimer;
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public BehaviorTreeTree(BehaviorTree<?> behaviorTree) {
@@ -69,9 +68,6 @@ public class BehaviorTreeTree extends JTree {
         setCellRenderer(new ExecutingTaskRenderer());
         setRootVisible(true);
         buildTree();
-        // updateTimer = new Timer(100, e -> refreshNode((DefaultMutableTreeNode)
-        // treeModel.getRoot()));
-        // updateTimer.start();
     }
 
     public static String getNodeName(Task<?> task) {
@@ -84,7 +80,6 @@ public class BehaviorTreeTree extends JTree {
 
     private void buildTree() {
         DefaultMutableTreeNode rootNode = ((DefaultMutableTreeNode) treeModel.getRoot());
-        // rootNode.removeAllChildren();
         nodeMap.clear();
         if (behaviorTree != null) {
             for (int i = 0; i < behaviorTree.getChildCount(); i++) {
@@ -94,7 +89,6 @@ public class BehaviorTreeTree extends JTree {
 
         treeModel.reload();
 
-        // getRowCount() grows while expanding, so this expands the whole tree
         for (int row = 0; row < getRowCount(); row++) {
             expandRow(row);
         }
@@ -116,11 +110,9 @@ public class BehaviorTreeTree extends JTree {
         if (nodeInfo.task != null) {
             String label = getNodeName(nodeInfo.task);
             Task.Status status = nodeInfo.task.getStatus();
-            // if (!label.equals(nodeInfo.label) || status != nodeInfo.status) {
             nodeInfo.label = label;
             nodeInfo.status = status;
             treeModel.nodeChanged(node);
-            // }
         }
         for (int i = 0; i < node.getChildCount(); i++) {
             refreshNode((DefaultMutableTreeNode) node.getChildAt(i));

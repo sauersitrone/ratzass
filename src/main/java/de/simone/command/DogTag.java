@@ -10,7 +10,6 @@ public class DogTag implements Comparable<DogTag> {
     public Unit unit = null;
     public boolean isEnemy = false;
     public boolean isAlive = true;
-    // public int unitID = -1;
     public int targetID = -1;
     public String squadID = "";
     public UnitType unitType = UnitType.None;
@@ -19,7 +18,6 @@ public class DogTag implements Comparable<DogTag> {
 
     public DogTag(Unit unit) {
         this.unit = unit;
-        // this.unitID = unit.getID();
         this.unitType = unit.getType();
         this.position = unit.getPosition();
         this.isEnemy = RBWListener.game.self().isEnemy(unit.getPlayer());

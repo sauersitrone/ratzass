@@ -13,6 +13,8 @@ import bwapi.UnitCommandType;
 import bwapi.UnitFilter;
 import bwapi.UnitType;
 import bwapi.UpgradeType;
+import bwem.BWMap;
+import bwem.ChokePoint;
 import de.simone.RBWListener;
 import de.simone.command.StarCraftConstants.OrderStatus;
 import lombok.extern.java.Log;
@@ -32,34 +34,32 @@ public class CommandQueue {
     private static ArrayList<Command> commands = new ArrayList<Command>();
     private static ArrayList<CommandQueueListener> listeners = new ArrayList<CommandQueueListener>();
 
-    public static List<Command> getCommands() {
-        return commands;
-    }
-
     public static void addListener(CommandQueueListener listener) {
         listeners.add(listener);
     }
 
     /**
-     * Call by RBWListener on every x frames to dispatch all pending commands to the
+     * Call by RBWListener on every x frames to dispatch all queued commands to the
      * starcraft game.
      */
     public static void dispatchCommands() {
-        Game bwapi = RBWListener.bwClient.getGame();
+        Game game = RBWListener.bwClient.getGame();
 
         for (Command command : commands) {
-            if (command.status != OrderStatus.Pending)
+            if (command.status != OrderStatus.Queued)
                 continue;
 
+            currentCommand = command;
             boolean success = true;
+            boolean ignored = false;
 
             Unit unit = null;
             if (command.unitId != -1)
-                unit = bwapi.getUnit(command.unitId);
+                unit = game.getUnit(command.unitId);
 
             Unit targetUnit = null;
             if (command.targetId != -1)
-                targetUnit = bwapi.getUnit(command.targetId);
+                targetUnit = game.getUnit(command.targetId);
 
             switch (command.order) {
                 case None:
@@ -77,7 +77,15 @@ public class CommandQueue {
                     success = unit.buildAddon(command.unitType);
                     break;
                 case UnitCommandType.Train:
-                    success = unit.train(command.unitType);
+                    // the eassy way to check if a trainner can accept more units in to check if it
+                    // throws an IndexOutOfBoundsException. if so, silend ignore the command and the
+                    // command.status remain Queued until more room are available
+                    try {
+                        success = unit.train(command.unitType);
+                    } catch (IndexOutOfBoundsException e) {
+                        command.message = "Trainer is full";
+                        ignored = true;
+                    }
                     break;
                 case UnitCommandType.Research:
                     success = unit.research(command.techType);
@@ -195,6 +203,12 @@ public class CommandQueue {
                     break;
             }
 
+            // silent ignore
+            if (ignored) {
+                listeners.forEach(listener -> listener.update(commands));
+                return;
+            }
+
             command.status = success ? OrderStatus.Completed : OrderStatus.Error;
             if (command.status == OrderStatus.Error) {
                 command.message = "Minerals:" + RBWListener.currentMinerals +
@@ -226,7 +240,7 @@ public class CommandQueue {
     private static void addCommand(Command command) {
         // iff exist the same command with status pending, return silently
         Optional<Command> optional = commands.stream()
-                .filter(c -> c.order == command.order && c.status == OrderStatus.Pending).findFirst();
+                .filter(c -> c.order == command.order && c.status == OrderStatus.Queued).findFirst();
         if (optional.isPresent())
             return;
 
@@ -332,14 +346,7 @@ public class CommandQueue {
         // if the unit to build is a refinery, find the closest geyser
         if (unitType == UnitType.Terran_Refinery) {
             List<Unit> geysers = RBWListener.game.getGeysers();
-            Unit closestGeyser = null;
-            for (Unit geyser : geysers) {
-                if (closestGeyser == null
-                        || geyser.getDistance(unit.getPosition()) < closestGeyser.getDistance(unit.getPosition())) {
-                    closestGeyser = geyser;
-                }
-            }
-
+            Unit closestGeyser = UnitsCenter.getClosest(geysers, unit);
             if (closestGeyser == null) {
                 logFail(command, "No Geyser available to build " + command.unitType);
                 return command;
@@ -351,14 +358,32 @@ public class CommandQueue {
             return command;
         }
 
-        // if the unit to build is a bunker, find a suitable location
+        // if the unit to build is a bunker, find a suitable location.
         // if (unitType == UnitType.Terran_Bunker) {
-        //     TilePosition bunkerPosition = RBWListener.game.self().getStartLocation();
-        //     bunkerPosition = RBWListener.game.getBuildLocation(command.unitType, bunkerPosition);
-        //     command.tilePosition = bunkerPosition;
-        //     addCommand(command);
+        //     BWMap map = RBWListener.bwem.getMap();
+        //     TilePosition startPosition = RBWListener.game.self().getStartLocation();
 
-        //     return command;
+        //     // check chokepoints
+        //     List<ChokePoint> chokePoints = map.getChokePoints();
+        //     ChokePoint chokePoint = null;
+        //     double distance = Integer.MAX_VALUE;
+        //     for (ChokePoint cp : chokePoints) {
+        //         TilePosition cpPosition = cp.getCenter().toTilePosition();
+        //         double dist = startPosition.getDistance(cpPosition);
+        //         if (dist < distance) {
+        //             chokePoint = cp;
+        //             distance = dist;
+        //         }
+        //     }
+
+        //     if (chokePoint != null) {
+        //         command.tilePosition = chokePoint.getCenter().toTilePosition();
+        //         addCommand(command);
+        //         return command;
+        //     }
+
+            // if no chokepoint, fall back to the start location
+            // command.message = "No chokepoint available to build " + command.unitType;
         // }
 
         // if the unit to build is a building, find a suitable location

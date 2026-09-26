@@ -1,8 +1,9 @@
 package de.simone.command;
 
-import tech.tablesaw.api.Table;
+
+import java.util.List;
 
 public interface UnitsCenterListener {
 
-    public void updated(Table units);
+    public void updatePersonal(List<DogTag> units);
 }

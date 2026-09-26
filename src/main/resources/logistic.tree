@@ -1,43 +1,55 @@
 import isUnitNeeded:"de.simone.btree.logistic.IsUnitNeededCondition"
+import isCombatUnitNeeded:"de.simone.btree.logistic.IsCombatUnitNeededCondition"
 import train:"de.simone.btree.logistic.TrainTask"
 import createSquad:"de.simone.btree.logistic.CreateSquadTask"
 import trainForceTo:"de.simone.btree.logistic.TrainForceToTask"
 import isSquadNeeded:"de.simone.btree.logistic.IsSquadNeededCondition"
+import loadBunkers:"de.simone.btree.logistic.LoadBunkersTask"
 
 root
-    selector
-        # build at leas a refinery
+    selector 
+
+        # build the bare minimum infrastructure
         sequence
-            isUnitNeeded unitType:"Terran_Refinery" count:1
-            train unitType:"Terran_Refinery" count:1
-            isUnitNeeded unitType:"Terran_SCV" count:6
-            train unitType:"Terran_SCV" count:3
-        # create the fist patrol squad
+            isUnitNeeded        unitType:"Terran_Refinery" count:1
+            train               unitType:"Terran_Refinery" count:1
+            train               unitType:"Terran_Bunker" count:1
+            isUnitNeeded        unitType:"Terran_SCV" count:7
+            train               unitType:"Terran_SCV" count:7
+
+        # create defences and first patrol squad
         sequence
-            trainForceTo level:1
-            # create defenses
-            train unitType:"Terran_Marine" count:12
-            train unitType:"Terran_Bunker" count:3
-            # create first patrol squad
-            isSquadNeeded type:"Patrol" count:10
-            train unitType:"Terran_Marine" count:10
-            createSquad type:"Patrol" members:"10*Terran_Marine"
-        # create a platoon squad
+            trainForceTo        level:1
+
+            # Create the bunker and populate it with marines
+            isCombatUnitNeeded  unitType:"Terran_Marine" count:4
+            train               unitType:"Terran_Marine" count:4
+            isUnitNeeded        unitType:"Terran_Bunker" count:1
+            train               unitType:"Terran_Bunker" count:1
+            loadBunkers   
+
+            # Create first patrol squad
+            isSquadNeeded       type:"Patrol" count:1
+            train               unitType:"Terran_Marine" count:10
+            createSquad         type:"Patrol" members:"10*Terran_Marine"
+
+        # Create a platoon squad
         sequence
-            trainForceTo level:2
-            isSquadNeeded type:"Strike" count:20
-            train unitType:"Terran_Marine" count:10
-            train unitType:"Terran_Medic" count:5
-            train unitType:"Terran_Firebat" count:5
-            createSquad type:"Strike" members:"10*Terran_Marine,5*Terran_Medic,5*Terran_Firebat"
+            trainForceTo        level:2
+            isSquadNeeded       type:"Strike" count:20
+            train               unitType:"Terran_Marine" count:10
+            train               unitType:"Terran_Medic" count:5
+            train               unitType:"Terran_Firebat" count:5
+            createSquad         type:"Strike" members:"10*Terran_Marine,5*Terran_Medic,5*Terran_Firebat"
+        
         # Mechanized squad
-        sequence
-            trainForceTo level:3
-            isSquadNeeded type:"Combat" count:30
-            train unitType:"Terran_SCV" count:1
-            train unitType:"Terran_Marine" count:10
-            train unitType:"Terran_Medic" count:4
-            train unitType:"Terran_Firebat" count:5
-            train unitType:"Terran_Siege_Tank_Tank_Mode" count:5
-            train unitType:"Terran_Goliath" count:5
-            createSquad type:"Combat" members:"Terran_SCV,4*Terran_Medic,5*Terran_Firebat,5*Terran_Siege_Tank_Tank_Mode,5*Terran_Goliath,10*Terran_Marine"
+        # sequence
+        #     trainForceTo        level:3
+        #     isSquadNeeded        type:"Combat" count:30
+        #     train               unitType:"Terran_SCV" count:1
+        #     train               unitType:"Terran_Marine" count:10
+        #     train               unitType:"Terran_Medic" count:4
+        #     train               unitType:"Terran_Firebat" count:5
+        #     train               unitType:"Terran_Siege_Tank_Tank_Mode" count:5
+        #     train               unitType:"Terran_Goliath" count:5
+        #     createSquad         type:"Combat" members:"Terran_SCV,4*Terran_Medic,5*Terran_Firebat,5*Terran_Siege_Tank_Tank_Mode,5*Terran_Goliath,10*Terran_Marine"

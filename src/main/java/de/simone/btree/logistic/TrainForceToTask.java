@@ -1,26 +1,31 @@
 package de.simone.btree.logistic;
 
-import java.util.List;
-
+import com.badlogic.gdx.ai.btree.Task;
 import com.badlogic.gdx.ai.btree.annotation.TaskAttribute;
 
 import bwapi.UnitType;
 import de.simone.btree.Blackboard;
-import de.simone.command.BuildOrder;
-import de.simone.command.LogisticCenter;
 import de.simone.command.DogTag;
+import de.simone.command.LogisticCenter;
 import de.simone.command.UnitsCenter;
 
+/**
+ * traint the military force to a specified level. this leaf is used as first in
+ * a sequence because it returns silently if the required level is already met.
+ * this allow to check if Squads need resupply units.
+ */
 public class TrainForceToTask extends LogisticTask {
 
     @TaskAttribute(required = true)
     public int level;
 
+    private String voucher;
+
     @Override
     public Status execute() {
 
         if (getStatus() == Status.RUNNING) {
-            return getBuildOrderStatus("" + level);
+            return getBuildOrderStatus(voucher);
         }
 
         if (level == 1) {
@@ -70,13 +75,18 @@ public class TrainForceToTask extends LogisticTask {
     }
 
     private void submitOrder(UnitType unitType, int count) {
-        List<BuildOrder> orders = LogisticCenter.addBuildOrder(unitType, count);
-        Blackboard blackboard = getObject();
-        blackboard.orders.put("" +level, orders);
+        voucher = LogisticCenter.addBuildOrder(unitType, count);
     }
 
     @Override
     public String toString() {
         return super.toString() + " level:" + level;
+    }
+
+    @Override
+    protected Task<Blackboard> copyTo(Task<Blackboard> task) {
+        TrainForceToTask copy = (TrainForceToTask) task;
+        copy.level = level;
+        return copy;
     }
 }

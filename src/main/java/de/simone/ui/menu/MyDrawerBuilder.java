@@ -1,5 +1,9 @@
 package de.simone.ui.menu;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -37,8 +41,9 @@ import raven.modal.utils.FlatLafStyleUtils;
 
 public class MyDrawerBuilder extends SimpleDrawerBuilder {
 
-    private static MyDrawerBuilder instance;
     private ModelUser user;
+    private static MyDrawerBuilder instance;
+    private static List<Form> starcraftForms = new ArrayList<>();
 
     public static MyDrawerBuilder getInstance() {
         if (instance == null) {
@@ -178,12 +183,29 @@ public class MyDrawerBuilder extends SimpleDrawerBuilder {
                 return;
             }
             Class<? extends Form> formClass = (Class<? extends Form>) itemClass;
-            FormManager.showForm(AllForms.getForm(formClass));
+
+            // is one of starCraft forms?
+            Optional<Form> optional = starcraftForms.stream().filter(f -> f.getClass().equals(formClass)).findFirst();
+            if (optional.isPresent()) {
+                FormManager.showForm(optional.get());
+            } else {
+            //     // else, standar show
+                FormManager.showForm(AllForms.getForm(formClass));
+            }
         });
 
         simpleMenuOption.setMenus(items)
                 .setBaseIconPath("ui/drawer/icon")
                 .setIconScale(0.45f);
+
+        // i need to instantiates all starcraft form to recive all events, if not,
+        // previous event will be lost if the user dont click the form on time
+        starcraftForms.add(new LogisticCenterView());
+        starcraftForms.add(new UnitsCenterView());
+        starcraftForms.add(new BehaviorTreeView());
+        // starcraftForms.add(new StarCraftMapView());
+        starcraftForms.add(new CombatCenterView());
+        starcraftForms.add(new CommandQueueView());
 
         return simpleMenuOption;
     }

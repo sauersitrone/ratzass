@@ -10,14 +10,11 @@ public interface StarCraftConstants {
     public static int DISTANCE_ARRIVED = 3; // TODO: Tune this...
     public static int FARM_SUPPLY = 8;
 
-    public static final int TERRAN_MIN_SUPPLY = 5;
-    public static final int TERRAN_MIN_SCV = 6;
-    public static final int SCV_GATHERING_MINERALS = 4;
     public static final int SCV_GATHERING_GAS = 2;
 
     // general status of a order (eg. buildOrder or combatOrder)
     public enum OrderStatus {
-        Pending,
+        Queued,
         Running, // only one order can be running at a time.
         Error,
         Completed

@@ -4,7 +4,11 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -34,8 +38,11 @@ public class LogisticCenter {
     private static List<LogisticCenterListener> listeners = new ArrayList<>();
     private static List<BuildOrder> buildOrders = new ArrayList<>();
     private static RENHSP renhsp = new RENHSP(false);
-
-    public static BehaviorTree<Blackboard> behaviorTree;
+    private static ExecutorService executorService;
+    private static int voucherIdx = 0;
+    // private static Future<List<BuildOrder>> futureOrder;
+    public static Map<String, List<BuildOrder>> orders = new TreeMap<>();
+    public final static BehaviorTree<Blackboard> behaviorTree;
 
     static {
         domain = RUtils.getResourceFile("./starcraft-domain.pddl");
@@ -43,22 +50,21 @@ public class LogisticCenter {
         planner = "sat-hmrp";
         Blackboard blackboard = new Blackboard();
         behaviorTree = RUtils.getBehaviorTree("logistic.tree", blackboard);
-    }
-
-    public static boolean areMyOrdersReady(UnitType unitType, int quantity) {
-        List<BuildOrder> list = buildOrders.stream().filter(o -> o.unitType == unitType && o.quantity == quantity)
-                .toList();
-        int ready = (int) list.stream().filter(o -> o.status == OrderStatus.Completed).count();
-        return ready == list.size();
+        executorService = Executors.newSingleThreadExecutor();
     }
 
     public static void onUnitComplete(Unit unit) {
+        // silent return if a enemy unit scaut my position
+        if (unit.getPlayer().isEnemy(RBWListener.game.self()))
+            return;
+
         Optional<BuildOrder> optional = buildOrders.stream()
-                .filter(ba -> ba.status == OrderStatus.Running && ba.unitType == unit.getType())
+                .filter(ba -> ba.getStatus() == OrderStatus.Running && ba.unitType == unit.getType())
                 .findFirst();
 
         if (optional.isPresent()) {
-            optional.get().status = OrderStatus.Completed;
+            BuildOrder order = optional.get();
+            order.setStatus(OrderStatus.Completed);
         }
     }
 
@@ -66,64 +72,84 @@ public class LogisticCenter {
      * perform/coordinate the necessary logistics actions. This method will:
      * - ensure that the SCVs are working
      * - check if there are any pending build or train orders
-     * - start the next pending order if possible.
-     * - check if there is a need to build supply depots and add them to the build
+     * - start the next queued order if possible.
      * order if necessary.
      * - notify all registered listeners about the updated build orders.
      */
     public static void heartBeat() {
-        // ensure the scv are working
+        /**
+         * ensure the scv are working
+         */
         Unit unit = UnitsCenter.getIdleTerranSCV();
-
-        Unit refinery = UnitsCenter.getUnits().stream().filter(u -> u.getType() == UnitType.Terran_Refinery).findFirst()
-                .orElse(null);
         if (unit != null) {
+            // at least 2 gathering gas
+            Unit refinery = UnitsCenter.getUnits().stream().filter(u -> u.getType() == UnitType.Terran_Refinery)
+                    .findFirst().orElse(null);
             int gGas = (int) UnitsCenter.getUnits().stream()
                     .filter(u -> u.getType() == UnitType.Terran_SCV && u.isGatheringGas()).count();
             if (gGas < StarCraftConstants.SCV_GATHERING_GAS && refinery != null) {
                 CommandQueue.gather(ResourceType.Gas);
             }
 
-            int gMinerals = (int) UnitsCenter.getUnits().stream()
-                    .filter(u -> u.getType() == UnitType.Terran_SCV && u.isGatheringMinerals()).count();
-            if (gMinerals < StarCraftConstants.SCV_GATHERING_MINERALS) {
-                CommandQueue.gather(ResourceType.Mineral);
-            }
+            // the rest, minerals
+            CommandQueue.gather(ResourceType.Mineral);
         }
 
-        // is there any pending gathering mineral action?
+        /**
+         * is there any queued gathering mineral action?
+         */
         Optional<BuildOrder> optional = buildOrders.stream()
-                .filter(ba -> ba.action == BuildActionName.gather_Mineral && ba.status == OrderStatus.Pending)
+                .filter(ba -> ba.action == BuildActionName.gather_Mineral
+                        && (ba.getStatus() == OrderStatus.Queued || ba.getStatus() == OrderStatus.Running))
                 .findFirst();
         if (optional.isPresent()) {
             // if yes, check if is there enough minerals to complete the action.
             BuildOrder buildOrder = optional.get();
+            buildOrder.setStatus(OrderStatus.Running);
             if (RBWListener.currentMinerals >= buildOrder.quantity) {
-                buildOrder.status = OrderStatus.Completed;
+                buildOrder.setStatus(OrderStatus.Completed);
             } else {
+                // listeners.forEach(l -> l.update(buildOrders));
                 return;
             }
         }
 
-        // is there any pending gathering gas action?
+        /**
+         * is there any queued gathering gas action?
+         */
         optional = buildOrders.stream()
-                .filter(ba -> ba.action == BuildActionName.gather_Gas && ba.status == OrderStatus.Pending)
+                .filter(ba -> ba.action == BuildActionName.gather_Gas
+                        && (ba.getStatus() == OrderStatus.Queued || ba.getStatus() == OrderStatus.Running))
                 .findFirst();
         if (optional.isPresent()) {
-            // if yes, check if is there enough minerals to complete the action.
+            // if yes, check if is there enough gas to complete the action.
             BuildOrder buildOrder = optional.get();
+            buildOrder.setStatus(OrderStatus.Running);
             if (RBWListener.currentGas >= buildOrder.quantity) {
-                buildOrder.status = OrderStatus.Completed;
+                buildOrder.setStatus(OrderStatus.Completed);
             } else {
+                // listeners.forEach(l -> l.update(buildOrders));
                 return;
             }
         }
 
-        // star the next pending build or train action
+        /**
+         * only 1 build at the time. this aboid selectind adjacents areas to 2 o more builds
+         */
+        optional = buildOrders.stream()
+                .filter(bo -> (bo.action == StarCraftConstants.BuildActionName.build)
+                        && bo.getStatus() == OrderStatus.Running)
+                .findFirst();
+        if (optional.isPresent())
+            return;
+
+        /**
+         * start the next queued build or train action
+         */
         optional = buildOrders.stream()
                 .filter(bo -> (bo.action == StarCraftConstants.BuildActionName.build
                         || bo.action == StarCraftConstants.BuildActionName.train)
-                        && bo.status == OrderStatus.Pending)
+                        && bo.getStatus() == OrderStatus.Queued)
                 .findFirst();
         if (optional.isPresent()) {
             BuildOrder buildOrder = optional.get();
@@ -131,29 +157,19 @@ public class LogisticCenter {
             if (buildOrder.action == StarCraftConstants.BuildActionName.train) {
                 Command command = CommandQueue.train(buildOrder.unitType);
                 buildOrder.message = command.message;
-                buildOrder.status = OrderStatus.Running;
+                buildOrder.setStatus(OrderStatus.Running);
             }
 
             // build
             if (buildOrder.action == StarCraftConstants.BuildActionName.build) {
                 Command command = CommandQueue.build(buildOrder.unitType);
                 buildOrder.message = command.message;
-                buildOrder.status = OrderStatus.Running;
+                buildOrder.setStatus(OrderStatus.Running);
             }
         }
 
-        // if no one ist pending, build supply if needed. this hast hight priority
-        optional = buildOrders.stream()
-                .filter(o -> o.action == BuildActionName.build && o.unitType == UnitType.Terran_Supply_Depot
-                        && (o.status == OrderStatus.Completed || o.status == OrderStatus.Running))
-                .findFirst();
-        if (!optional.isPresent() && RBWListener.currentSupplyLeft < StarCraftConstants.TERRAN_MIN_SUPPLY) {
-            addBuildOrder(UnitType.Terran_Supply_Depot, 1, true);
-        }
-
-        for (LogisticCenterListener listener : listeners) {
-            listener.updated(buildOrders);
-        }
+        // notify all listeners about the updated build orders
+        listeners.forEach(l -> l.update(buildOrders));
     }
 
     /**
@@ -166,72 +182,82 @@ public class LogisticCenter {
      * @param quantity - the number of units
      * @return the plan
      */
-    public static List<BuildOrder> addBuildOrder(UnitType unitType, int quantity) {
-        return addBuildOrder(unitType, quantity, false);
-    }
-
-    private static List<BuildOrder> addBuildOrder(UnitType unitType, int quantity, boolean highPriority) {
+    public static String addBuildOrder(UnitType unitType, int quantity) {
         // fail save
         Optional<BuildOrder> optional = buildOrders.stream()
                 .filter(bo -> bo.unitType == unitType && bo.quantity == quantity
-                        && (bo.status == OrderStatus.Pending || bo.status == OrderStatus.Running))
+                        && (bo.getStatus() == OrderStatus.Queued || bo.getStatus() == OrderStatus.Running))
                 .findFirst();
         if (optional.isPresent()) {
             throw new StarCraftException("An order for " + quantity + " of " + unitType + " is already in.");
         }
 
-        // the order quantity express the desired number of units to be built. but the
-        // planner needs the total number of units as the goal (desired + current). (e.g
-        // if i want to build
-        // 1 SCV, and i already have 1, the goal must be 2)
-        int units = UnitsCenter.getUnitCount(unitType) + quantity;
+        String voucher = "V-" + ++voucherIdx;
+        executorService.submit(() -> solve(voucher, unitType, quantity));
+        // futureOrder = executorService.submit(() -> solve(voucher, unitType,
+        // quantity));
 
-        Pair<UnitType, Integer> pair = Pair.of(unitType, units);
+        List<BuildOrder> buildOrders2 = new ArrayList<>();
+        orders.put(voucher, buildOrders2);
+        return voucher;
+    }
+
+    public static List<BuildOrder> getBuildOrders(String voucher) {
+        return orders.get(voucher);
+    }
+
+    private static List<BuildOrder> solve(String voucher, UnitType unitType, int quantity) {
+        // configure the PDDL problem for the given unit type and quantity
+        Pair<UnitType, Integer> pair = Pair.of(unitType, quantity);
         RPDDLProblem pddlProblem = new RPDDLProblem(pair);
         pddlProblem.printProblem = true;
         problem = pddlProblem.getPDDLProblem();
 
-        List<String> plan = solve();
-        List<BuildOrder> buildOrders2 = new ArrayList<>();
-        if (plan == null || plan.isEmpty()) {
-            throw new StarCraftException("No plan found for build order: " + unitType + " x" + quantity);
-        } else {
-            buildOrders2 = BuildOrder.getBuildOrders(plan);
-        }
-
-        // build order priority
-        if (highPriority) {
-            int i = 0;
-            // find the first non-completet task
-            for (i = 0; i < buildOrders.size(); i++) {
-                BuildOrder order = buildOrders.get(i);
-                if (order.status == OrderStatus.Pending || order.status == OrderStatus.Running)
-                    break;
-            }
-            buildOrders.addAll(i, buildOrders2);
-        } else {
-            buildOrders.addAll(buildOrders2);
-        }
-
-        for (LogisticCenterListener listener : listeners) {
-            listener.updated(buildOrders);
-        }
-
-        return buildOrders2;
-    }
-
-    private static List<String> solve() {
+        // parse and configure the planner
         String[] args1 = { "-o", domain, "-f", problem, "-planner", planner };
         renhsp.parseInput(args1);
         renhsp.configurePlanner();
-        if (renhsp.parsingDomainAndProblem(args1)) {
-            LinkedList<ImmutablePair<BigDecimal, TransitionGround>> plan = renhsp.planning();
-            List<String> planStrings = plan.stream().map(inpair -> inpair.getRight().getName()).toList();
-            return planStrings;
-        } else {
-            System.out.println("Error parsing domain and problem files.");
-            return null;
+        if (!renhsp.parsingDomainAndProblem(args1))
+            throw new StarCraftException("Error parsing domain and problem files.");
+
+        // solve the planning problem
+        LinkedList<ImmutablePair<BigDecimal, TransitionGround>> plan = renhsp.planning();
+        List<String> planStrings = plan.stream().map(inpair -> inpair.getRight().getName()).toList();
+
+        if (planStrings == null || planStrings.isEmpty())
+            throw new StarCraftException("No plan found for build order: " + unitType + " x" + quantity);
+
+        // convert the plan strings into build orders
+        List<BuildOrder> buildOrders2 = new ArrayList<>();
+        // TODO: test if the plan is better that way. without optimization may is faster
+        buildOrders2 = BuildOrder.getBuildOrders(planStrings);
+        // for (String action : planStrings) {
+        // BuildOrder buildOrder = new BuildOrder(UnitType.None, -1);
+        // if (action.equals("gather-Mineral") || action.equals("gather-Gas")) {
+        // buildOrder.action = action.equals("gather-Mineral") ?
+        // BuildActionName.gather_Mineral
+        // : BuildActionName.gather_Gas;
+        // buildOrder.quantity = action.equals("gather-Mineral") ?
+        // StarCraftConstants.MINERAL_LOAD
+        // : StarCraftConstants.GAS_LOAD;
+        // buildOrders2.add(buildOrder);
+        // continue;
+        // }
+
+        // String[] action_UnitName = action.split("-");
+        // buildOrder = new BuildOrder(UnitType.valueOf(action_UnitName[1]), 1);
+        // buildOrder.action = BuildActionName.valueOf(action_UnitName[0]);
+        // buildOrders2.add(buildOrder);
+        // }
+
+        List<BuildOrder> buildOrders3 = orders.get(voucher);
+        buildOrders3.addAll(buildOrders2);
+        buildOrders.addAll(buildOrders2);
+
+        for (LogisticCenterListener listener : listeners) {
+            listener.update(buildOrders);
         }
+        return buildOrders2;
     }
 
     /**
@@ -245,12 +271,13 @@ public class LogisticCenter {
     }
 
     // public static void main(String[] args) {
-    //     RPDDLProblem pddlProblem = new RPDDLProblem(Pair.of(UnitType.Terran_Bunker, 1));
-    //     pddlProblem.isTest = true;
-    //     pddlProblem.unitsTest.add(Pair.of(UnitType.Terran_Command_Center, 1));
-    //     pddlProblem.unitsTest.add(Pair.of(UnitType.Terran_SCV, 1));
-    //     LogisticCenter.problem = pddlProblem.getPDDLProblem();
-    //    List<String> plan = LogisticCenter.solve();
-    //    plan.forEach(System.out::println);
+    // RPDDLProblem pddlProblem = new RPDDLProblem(Pair.of(UnitType.Terran_Bunker,
+    // 1));
+    // pddlProblem.isTest = true;
+    // pddlProblem.unitsTest.add(Pair.of(UnitType.Terran_Command_Center, 1));
+    // pddlProblem.unitsTest.add(Pair.of(UnitType.Terran_SCV, 1));
+    // LogisticCenter.problem = pddlProblem.getPDDLProblem();
+    // List<String> plan = LogisticCenter.solve();
+    // plan.forEach(System.out::println);
     // }
 }

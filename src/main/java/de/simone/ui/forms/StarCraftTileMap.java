@@ -11,8 +11,6 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +19,6 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 
 import org.mapeditor.core.Map;
-import org.mapeditor.core.MapLayer;
 import org.mapeditor.core.MapObject;
 import org.mapeditor.core.ObjectGroup;
 import org.mapeditor.core.Orientation;
@@ -29,8 +26,6 @@ import org.mapeditor.core.Properties;
 import org.mapeditor.core.Tile;
 import org.mapeditor.core.TileLayer;
 import org.mapeditor.core.TileSet;
-import org.mapeditor.io.TMXMapReader;
-import org.mapeditor.io.TMXMapWriter;
 
 import bwapi.Game;
 import bwapi.Region;
@@ -38,6 +33,7 @@ import bwapi.TilePosition;
 import bwapi.Unit;
 import bwapi.UnitCommandType;
 import bwapi.WalkPosition;
+import bwem.Area;
 import bwem.ChokePoint;
 import de.simone.Config;
 import de.simone.RBWListener;
@@ -55,12 +51,8 @@ public class StarCraftTileMap extends JPanel
 
     private Game game;
 
-    /** pixels per map tile in the display */
-    private int tileSize = 6;
-    /** height of the resource status bar at the top */
-    private int panelHeight = 30;
-    private int textSize = 10;
-
+    private int tileSize = 32;
+    private int textSize = 20;
     private boolean influenceMap = false;
 
     // pan / zoom
@@ -68,18 +60,13 @@ public class StarCraftTileMap extends JPanel
     private double tx = 0, ty = 0;
     private int mx = 0, my = 0;
     private boolean mouseDown = false;
+    private int hoveredTileX = -1;
+    private int hoveredTileY = -1;
     private final Timer repaintTimer;
     private long lastRedraw = 0;
     double scaleAmount = 0.9;
 
-    // -------------------------------------------------------------------------
-    // libtiled data model
-    // -------------------------------------------------------------------------
-
-    /** Root Tiled map – owns all layers */
     private Map tiledMap;
-
-    /** TileSet with four colour-coded terrain tile variants */
     private TileSet tileSet;
 
     /**
@@ -104,6 +91,7 @@ public class StarCraftTileMap extends JPanel
 
     private TileLayer terrainLayer;
     private ObjectGroup regionsGroup;
+    private ObjectGroup areasGroup;
     private ObjectGroup chokepointsGroup;
     private ObjectGroup startSpotsGroup;
     private ObjectGroup mineralsGroup;
@@ -111,11 +99,7 @@ public class StarCraftTileMap extends JPanel
     private ObjectGroup enemyUnitsGroup;
     private ObjectGroup allyUnitsGroup;
     private ObjectGroup neutralUnitsGroup;
-
     private boolean mapInitialized = false;
-
-    /** when false, the game-state timer no longer overwrites the (loaded) tiledMap */
-    private boolean liveSync = true;
 
     public StarCraftTileMap() {
         this.game = RBWListener.game;
@@ -124,7 +108,7 @@ public class StarCraftTileMap extends JPanel
         addMouseListener(this);
 
         repaintTimer = new Timer(200, e -> {
-            if (game == null || !liveSync) {
+            if (game == null) {
                 return;
             }
             updateTiledMap();
@@ -133,82 +117,16 @@ public class StarCraftTileMap extends JPanel
         repaintTimer.start();
     }
 
-    public boolean isLiveSync() {
-        return liveSync;
-    }
-
-    public void setLiveSync(boolean liveSync) {
-        this.liveSync = liveSync;
-    }
-
-    /**
-     * Saves the current tiled map to the specified TMX file.
-     * 
-     * @param file - the file
-     * @throws IOException
-     */
-    public void saveMap(File file) throws IOException {
-        if (tiledMap == null) {
-            throw new IOException("No map to save yet.");
-        }
-        new TMXMapWriter().writeMap(tiledMap, file.getAbsolutePath());
-    }
-
-    /**
-     * Loads a tiled map from the specified TMX file, pausing live game-state updates.
-     * 
-     * @param file - the file
-     * @throws Exception
-     */
-    public void loadMap(File file) throws Exception {
-        Map loaded = new TMXMapReader().readMap(file.getAbsolutePath());
-        this.tiledMap = loaded;
-        rebindLayers();
-        this.mapInitialized = true;
-        this.liveSync = false;
-        repaint();
-    }
-
-    /** Re-resolves layer/tileset field references after a map has been loaded from disk. */
-    private void rebindLayers() {
-        tileSet = tiledMap.getTileSets().stream()
-                .filter(ts -> "terrain".equals(ts.getName()))
-                .findFirst().orElse(null);
-        if (tileSet != null) {
-            for (Tile tile : tileSet.getInternalTiles()) {
-                int id = tile.getId();
-                if (id >= 0 && id < terrainTiles.length) {
-                    terrainTiles[id] = tile;
-                }
-            }
-        }
-        for (MapLayer layer : tiledMap.getLayers()) {
-            String name = layer.getName();
-            if (layer instanceof TileLayer && "terrain".equals(name)) {
-                terrainLayer = (TileLayer) layer;
-            } else if (layer instanceof ObjectGroup) {
-                ObjectGroup group = (ObjectGroup) layer;
-                switch (name) {
-                    case "regions" -> regionsGroup = group;
-                    case "chokepoints" -> chokepointsGroup = group;
-                    case "starting_locations" -> startSpotsGroup = group;
-                    case "minerals" -> mineralsGroup = group;
-                    case "geysers" -> geysersGroup = group;
-                    case "enemy_units" -> enemyUnitsGroup = group;
-                    case "ally_units" -> allyUnitsGroup = group;
-                    case "neutral_units" -> neutralUnitsGroup = group;
-                    default -> {
-                    }
-                }
-            }
-        }
-    }
-
     private void initTiledMap() {
         int w = game.mapWidth();
         int h = game.mapHeight();
 
         tiledMap = new Map();
+        tiledMap.setVersion("1.0");
+        tiledMap.setTiledversion("1.4.3");
+        tiledMap.setInfinite(0);
+        tiledMap.setNextlayerid(1);
+        tiledMap.setNextobjectid(1);
         tiledMap.setOrientation(Orientation.ORTHOGONAL);
         tiledMap.setTileWidth(tileSize);
         tiledMap.setTileHeight(tileSize);
@@ -223,6 +141,7 @@ public class StarCraftTileMap extends JPanel
         for (int i = 0; i < TERRAIN_COLORS.length; i++) {
             Tile tile = new Tile();
             tile.setId(i);
+            tile.setType("");
             Properties props = new Properties();
             Color c = TERRAIN_COLORS[i];
             String hex = String.format("#%02x%02x%02x", c.getRed(), c.getGreen(), c.getBlue());
@@ -236,16 +155,19 @@ public class StarCraftTileMap extends JPanel
         // terrain tile layer
         terrainLayer = new TileLayer(tiledMap, w, h);
         terrainLayer.setName("terrain");
+        terrainLayer.setId(tiledMap.getNextlayerid());
+        tiledMap.setNextlayerid(tiledMap.getNextlayerid() + 1);
         tiledMap.addLayer(terrainLayer);
 
         // one ObjectGroup per entity category; colour is stored as hex string
         regionsGroup = addObjectGroup("regions", "#ffa500");
-        chokepointsGroup = addObjectGroup("chokepoints", "#8b008b");
-        startSpotsGroup = addObjectGroup("starting_locations", "#ffa500");
+        areasGroup = addObjectGroup("areas", "#00ff00");
+        chokepointsGroup = addObjectGroup("chokepoints", "#ffffff");
+        startSpotsGroup = addObjectGroup("starting_locations", "#8A2BE2");
         mineralsGroup = addObjectGroup("minerals", "#00ffff");
         geysersGroup = addObjectGroup("geysers", "#008000");
         enemyUnitsGroup = addObjectGroup("enemy_units", "#ff0000");
-        allyUnitsGroup = addObjectGroup("ally_units", "#ffff00");
+        allyUnitsGroup = addObjectGroup("ally_units", "#0000FF");
         neutralUnitsGroup = addObjectGroup("neutral_units", "#808080");
 
         mapInitialized = true;
@@ -253,23 +175,26 @@ public class StarCraftTileMap extends JPanel
 
     private ObjectGroup addObjectGroup(String name, String hexColor) {
         ObjectGroup group = new ObjectGroup(tiledMap);
+        group.setId(tiledMap.getNextlayerid());
+        tiledMap.setNextlayerid(tiledMap.getNextlayerid() + 1);
         group.setName(name);
         group.setColor(hexColor);
         tiledMap.addLayer(group);
         return group;
     }
 
-    // -------------------------------------------------------------------------
-    // per-frame model refresh
-    // -------------------------------------------------------------------------
+    private MapObject createMapObject(double x, double y, double width, double height, double rotation) {
+        MapObject object = new MapObject(x, y, width, height, rotation);
+        object.setId(tiledMap.getNextobjectid());
+        tiledMap.setNextobjectid(tiledMap.getNextobjectid() + 1);
+        return object;
+    }
 
     private void updateTiledMap() {
-        // if (Env.ignoreBases)
-        //     return;
-
         try {
             if (!mapInitialized)
                 initTiledMap();
+
             refreshTerrainLayer();
             refreshObjectGroups();
         } catch (Exception e) {
@@ -296,9 +221,7 @@ public class StarCraftTileMap extends JPanel
                 if (creep) {
                     idx = T_CREEP;
                 } else {
-                    int brightness = 70 * (walkable ? 1 : 0)
-                            + 60 * (buildable ? 1 : 0)
-                            + 50 * height;
+                    int brightness = 70 * (walkable ? 1 : 0) + 60 * (buildable ? 1 : 0) + 50 * height;
                     brightness = Math.max(0, Math.min(255, brightness));
                     idx = brightness < 50 ? T_DARK : brightness < 110 ? T_MID : T_LIGHT;
                 }
@@ -309,11 +232,12 @@ public class StarCraftTileMap extends JPanel
 
     /** Rebuilds every ObjectGroup from current game state. */
     private void refreshObjectGroups() {
-        refreshRegions();
-        refreshChokepoints();
-        refreshStartSpots();
         refreshResources();
         refreshUnits();
+        refreshRegions();
+        refreshAreas();
+        refreshChokepoints();
+        refreshStartSpots();
     }
 
     private void refreshRegions() {
@@ -323,19 +247,37 @@ public class StarCraftTileMap extends JPanel
 
         for (Region region : game.getAllRegions()) {
             // JBWAPI Region exposes a bounding box, not raw polygon points
-            int x = region.getBoundsLeft() / 32 * tileSize;
-            int y = region.getBoundsTop() / 32 * tileSize;
-            int w = (region.getBoundsRight() - region.getBoundsLeft()) / 32 * tileSize;
-            int h = (region.getBoundsBottom() - region.getBoundsTop()) / 32 * tileSize;
-            MapObject obj = new MapObject(x, y, w, h, 0);
+            int x = (int) region.getBoundsLeft();
+            int y = (int) region.getBoundsTop();
+            int w = (int) region.getBoundsRight() - region.getBoundsLeft();
+            int h = (int) region.getBoundsBottom() - region.getBoundsTop();
+            MapObject obj = createMapObject(x, y, w, h, 0);
             obj.setType("region");
             regionsGroup.addObject(obj);
         }
     }
 
+    private void refreshAreas() {
+        areasGroup.getObjects().clear();
+        if (!Config.drawAreas || RBWListener.bwem == null)
+            return;
+
+        for (Area area : RBWListener.bwem.getMap().getAreas()) {
+            TilePosition topLeft = area.getTopLeft();
+            TilePosition bottomRight = area.getBottomRight();
+            int x = topLeft.x * tileSize;
+            int y = topLeft.y * tileSize;
+            int width = (bottomRight.x - topLeft.x + 1) * tileSize;
+            int height = (bottomRight.y - topLeft.y + 1) * tileSize;
+            MapObject obj = createMapObject(x, y, width, height, 0);
+            obj.setType("area");
+            areasGroup.addObject(obj);
+        }
+    }
+
     private void refreshChokepoints() {
         chokepointsGroup.getObjects().clear();
-        if (!Config.drawChokepoints)
+        if (!Config.drawChokepoints || RBWListener.bwem == null)
             return;
 
         for (ChokePoint cp : RBWListener.bwem.getMap().getChokePoints()) {
@@ -354,7 +296,7 @@ public class StarCraftTileMap extends JPanel
             double cy = (double) center.y / 4 * tileSize - radius;
             int diameter = radius * 2;
 
-            MapObject obj = new MapObject(cx, cy, diameter, diameter, 0);
+            MapObject obj = createMapObject(cx, cy, diameter, diameter, 0);
             obj.setShape(new Ellipse2D.Double(0, 0, diameter, diameter));
             obj.setType("chokepoint");
             chokepointsGroup.addObject(obj);
@@ -367,7 +309,7 @@ public class StarCraftTileMap extends JPanel
             return;
 
         for (TilePosition loc : game.getStartLocations()) {
-            MapObject obj = new MapObject(loc.x * tileSize, loc.y * tileSize,
+            MapObject obj = createMapObject(loc.x * tileSize, loc.y * tileSize,
                     4.0 * tileSize, 3.0 * tileSize, 0);
             obj.setType("starting_location");
             startSpotsGroup.addObject(obj);
@@ -380,15 +322,14 @@ public class StarCraftTileMap extends JPanel
         if (!Config.drawResources)
             return;
 
-        for (Unit mineral : game.getMinerals()) {
-            MapObject obj = new MapObject(mineral.getX() * tileSize, mineral.getY() * tileSize,
-                    tileSize, tileSize, 0);
+        List<Unit> list = game.getMinerals();
+        for (Unit mineral : list) {
+            MapObject obj = createMapObject(mineral.getX(), mineral.getY(), tileSize, tileSize, 0);
             obj.setType("mineral");
             mineralsGroup.addObject(obj);
         }
         for (Unit geyser : game.getGeysers()) {
-            MapObject obj = new MapObject(geyser.getX() * tileSize, geyser.getY() * tileSize,
-                    geyser.getType().tileWidth() * tileSize,
+            MapObject obj = createMapObject(geyser.getX(), geyser.getY(), geyser.getType().tileWidth() * tileSize,
                     geyser.getType().tileHeight() * tileSize, 0);
             obj.setType("geyser");
             geysersGroup.addObject(obj);
@@ -399,8 +340,9 @@ public class StarCraftTileMap extends JPanel
         enemyUnitsGroup.getObjects().clear();
         if (Config.drawEnemyUnits) {
             for (Unit unit : game.getAllUnits()) {
-                MapObject obj = new MapObject(unit.getPosition().x * tileSize, unit.getPosition().y * tileSize,
-                        unit.getType().tileWidth() * tileSize,
+                if (unit.getPlayer() == null || !game.self().isEnemy(unit.getPlayer()))
+                    continue;
+                MapObject obj = createMapObject(unit.getX(), unit.getY(), unit.getType().tileWidth() * tileSize,
                         unit.getType().tileHeight() * tileSize, 0);
                 obj.setType("enemy_unit");
                 if (Config.drawIDs)
@@ -412,8 +354,9 @@ public class StarCraftTileMap extends JPanel
         allyUnitsGroup.getObjects().clear();
         if (Config.drawPlayerUnits) {
             for (Unit unit : game.getAllUnits()) {
-                MapObject obj = new MapObject(unit.getPosition().x * tileSize, unit.getPosition().y * tileSize,
-                        unit.getType().tileWidth() * tileSize,
+                if (unit.getPlayer() == null || unit.getPlayer().getID() != game.self().getID())
+                    continue;
+                MapObject obj = createMapObject(unit.getX(), unit.getY(), unit.getType().tileWidth() * tileSize,
                         unit.getType().tileHeight() * tileSize, 0);
                 obj.setType("ally_unit");
                 if (Config.drawIDs)
@@ -425,8 +368,7 @@ public class StarCraftTileMap extends JPanel
         neutralUnitsGroup.getObjects().clear();
         if (Config.drawNeutralUnits) {
             for (Unit unit : game.getNeutralUnits()) {
-                MapObject obj = new MapObject(unit.getX() * tileSize, unit.getY() * tileSize,
-                        unit.getType().tileWidth() * tileSize,
+                MapObject obj = createMapObject(unit.getX(), unit.getY(), unit.getType().tileWidth() * tileSize,
                         unit.getType().tileHeight() * tileSize, 0);
                 obj.setType("neutral_unit");
                 if (Config.drawIDs)
@@ -435,10 +377,6 @@ public class StarCraftTileMap extends JPanel
             }
         }
     }
-
-    // -------------------------------------------------------------------------
-    // rendering – reads from the libtiled model
-    // -------------------------------------------------------------------------
 
     @Override
     public void paint(Graphics g) {
@@ -455,11 +393,13 @@ public class StarCraftTileMap extends JPanel
         g2.scale(scale, scale);
 
         if (!influenceMap) {
-            // if (!Env.ignoreBases && mapInitialized) {
             if (mapInitialized) {
                 paintTerrainLayer(g2);
                 if (Config.drawRegions)
                     paintObjectGroupOutline(g2, regionsGroup);
+
+                if (Config.drawAreas)
+                    paintObjectGroupOutline(g2, areasGroup);
 
                 if (Config.drawChokepoints)
                     paintObjectGroupEllipses(g2, chokepointsGroup);
@@ -490,9 +430,32 @@ public class StarCraftTileMap extends JPanel
             paintInfluenceMap(g2);
         }
 
+        paintHoveredTile(g2);
+
         g2.scale(1.0 / scale, 1.0 / scale);
         g2.translate(-tx, -ty);
-        paintStatusPanel(g);
+    }
+
+    private void paintHoveredTile(Graphics2D g2) {
+        if (game == null || hoveredTileX < 0 || hoveredTileY < 0
+                || hoveredTileX >= game.mapWidth() || hoveredTileY >= game.mapHeight())
+            return;
+
+        int x = hoveredTileX * tileSize;
+        int y = hoveredTileY * tileSize;
+        String coordinates = hoveredTileX + "," + hoveredTileY;
+        int fontSize = 10;
+        Font font = new Font("Arial", Font.PLAIN, fontSize);
+        while (fontSize > 6 && g2.getFontMetrics(font).stringWidth(coordinates) > tileSize - 4) {
+            font = new Font("Arial", Font.PLAIN, --fontSize);
+        }
+
+        g2.setColor(new Color(255, 255, 0, 55));
+        g2.fillRect(x, y, tileSize, tileSize);
+        g2.setColor(Color.YELLOW);
+        g2.drawRect(x, y, tileSize, tileSize);
+        g2.setFont(font);
+        g2.drawString(coordinates, x + 2, y + g2.getFontMetrics().getAscent() + 2);
     }
 
     /**
@@ -508,61 +471,58 @@ public class StarCraftTileMap extends JPanel
                 Color c = Color.BLACK;
                 if (tile != null) {
                     String hex = tile.getProperties().getProperty("color");
-                    if (hex != null)
-                        c = Color.decode(hex);
+                    c = Color.decode(hex);
                 }
                 g2.setColor(c);
-                g2.fillRect(x * tileSize, panelHeight + y * tileSize, tileSize, tileSize);
+                g2.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
             }
         }
     }
 
-    /** Draws ObjectGroup objects as rectangle outlines (regions). */
     private void paintObjectGroupOutline(Graphics2D g2, ObjectGroup group) {
-        Color c = decodeGroupColor(group, Color.ORANGE);
+        String hex = group.getColor();
+        Color c = Color.decode(hex);
         for (MapObject mo : group) {
             if (Config.fillRegions) {
                 g2.setColor(c.darker());
-                g2.fillRect((int) mo.getX(), panelHeight + (int) mo.getY(),
+                g2.fillRect((int) mo.getX(), (int) mo.getY(),
                         mo.getWidth().intValue(), mo.getHeight().intValue());
             }
             g2.setColor(c);
-            g2.drawRect((int) mo.getX(), panelHeight + (int) mo.getY(),
+            g2.drawRect((int) mo.getX(), (int) mo.getY(),
                     mo.getWidth().intValue(), mo.getHeight().intValue());
         }
     }
 
-    /** Draws ObjectGroup objects whose shape is an Ellipse2D (chokepoints). */
     private void paintObjectGroupEllipses(Graphics2D g2, ObjectGroup group) {
-        g2.setColor(decodeGroupColor(group, Color.MAGENTA.darker()));
+        String hex = group.getColor();
+        Color c = Color.decode(hex);
+        g2.setColor(c);
         for (MapObject mo : group) {
-            g2.drawArc((int) mo.getX(), panelHeight + (int) mo.getY(),
+            g2.drawArc((int) mo.getX(), (int) mo.getY(),
                     mo.getWidth().intValue(), mo.getHeight().intValue(), 0, 360);
         }
     }
 
-    /**
-     * Draws ObjectGroup objects as filled rectangles (units, resources, start
-     * spots).
-     */
     private void paintObjectGroupFilled(Graphics2D g2, ObjectGroup group) {
-        g2.setColor(decodeGroupColor(group, Color.WHITE));
+        String hex = group.getColor();
+        Color c = Color.decode(hex);
+        g2.setColor(c);
         for (MapObject mo : group) {
-            g2.fillRect((int) mo.getX(), panelHeight + (int) mo.getY(),
+            g2.fillRect((int) mo.getX(), (int) mo.getY(),
                     mo.getWidth().intValue(), mo.getHeight().intValue());
         }
     }
 
-    /** Draws the unit ID label stored in MapObject.getName() for unit groups. */
     private void paintUnitLabels(Graphics2D g2) {
-        g2.setColor(Color.WHITE);
+        g2.setColor(Color.DARK_GRAY);
         g2.setFont(new Font("Arial", Font.PLAIN, textSize));
         for (ObjectGroup group : new ObjectGroup[] { allyUnitsGroup, enemyUnitsGroup, neutralUnitsGroup }) {
             for (MapObject mo : group) {
                 String label = mo.getName();
                 if (label != null && !label.isEmpty()) {
-                    g2.drawString(label, (int) mo.getX(),
-                            panelHeight + (int) mo.getY() + textSize - 2);
+                    g2.drawString(label, (int) mo.getX() + 2,
+                            (int) mo.getY() + 2 + textSize);
                 }
             }
         }
@@ -578,7 +538,7 @@ public class StarCraftTileMap extends JPanel
                 continue;
             }
             int x = order.x * tileSize + tileSize / 2;
-            int y = panelHeight + order.y * tileSize + tileSize / 2;
+            int y = order.y * tileSize + tileSize / 2;
             g2.drawLine(x + 3 * order.timer, y - (25 - order.timer), x + 3 * order.timer, y + (25 - order.timer));
             g2.drawLine(x - 3 * order.timer, y - (25 - order.timer), x - 3 * order.timer, y + (25 - order.timer));
             g2.drawLine(x - 20, y + 3 * order.timer, x + (25 - order.timer), y + 3 * order.timer);
@@ -597,10 +557,10 @@ public class StarCraftTileMap extends JPanel
         HashMap<Integer, Double> enemyInf = new HashMap<>();
 
         for (Unit unit : game.getAllUnits()) {
-            accumulateInfluence(playerInf, unit.getPosition().x, unit.getPosition().y, w);
+            accumulateInfluence(playerInf, unit.getX() / tileSize, unit.getY() / tileSize, w);
         }
         for (Unit unit : game.getAllUnits()) {
-            accumulateInfluence(enemyInf, unit.getPosition().x, unit.getPosition().y, w);
+            accumulateInfluence(enemyInf, unit.getX() / tileSize, unit.getY() / tileSize, w);
         }
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
@@ -608,7 +568,7 @@ public class StarCraftTileMap extends JPanel
                 double pi = playerInf.getOrDefault(pos, 0.0);
                 double ei = enemyInf.getOrDefault(pos, 0.0);
                 g2.setColor(new Color((float) ei, (float) pi, 0f));
-                g2.fillRect(x * tileSize, panelHeight + y * tileSize, tileSize, tileSize);
+                g2.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
             }
         }
     }
@@ -625,50 +585,6 @@ public class StarCraftTileMap extends JPanel
             }
         }
     }
-
-    private void paintStatusPanel(Graphics g) {
-        if (game == null)
-            return;
-
-        g.setColor(Color.WHITE);
-        g.fillRect(0, 0, getWidth(), panelHeight);
-        g.setFont(new Font("Arial", Font.PLAIN, 12));
-
-        g.setColor(new Color(125, 125, 125));
-        g.drawLine(0, panelHeight, getWidth(), panelHeight);
-
-        // minerals
-        g.setColor(new Color(0, 0, 255));
-        g.fillRect(5, 10, 10, 10);
-        g.setColor(Color.BLACK);
-        g.drawRect(5, 10, 10, 10);
-        g.drawString("" + game.self().minerals(), 25, 20);
-
-        // gas
-        g.setColor(new Color(0, 255, 0));
-        g.fillRect(105, 10, 10, 10);
-        g.setColor(Color.BLACK);
-        g.drawRect(105, 10, 10, 10);
-        g.drawString("" + game.self().gas(), 125, 20);
-
-        // supply
-        g.setColor(Color.BLACK);
-        g.drawString((game.self().supplyUsed() / 2) + "/"
-                + (game.self().supplyTotal() / 2), 200, 20);
-    }
-
-    private static Color decodeGroupColor(ObjectGroup group, Color fallback) {
-        try {
-            String hex = group.getColor();
-            return hex != null ? Color.decode(hex) : fallback;
-        } catch (NumberFormatException e) {
-            return fallback;
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // mouse interaction (identical logic to StarCraftFrame)
-    // -------------------------------------------------------------------------
 
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
@@ -710,6 +626,21 @@ public class StarCraftTileMap extends JPanel
 
     @Override
     public void mouseMoved(MouseEvent e) {
+        if (game == null || scale == 0) {
+            hoveredTileX = -1;
+            hoveredTileY = -1;
+        } else {
+            double mapX = (e.getX() - tx) / scale;
+            double mapY = (e.getY() - ty) / scale;
+            hoveredTileX = (int) Math.floor(mapX / tileSize);
+            hoveredTileY = (int) Math.floor(mapY / tileSize);
+            if (hoveredTileX < 0 || hoveredTileY < 0
+                    || hoveredTileX >= game.mapWidth() || hoveredTileY >= game.mapHeight()) {
+                hoveredTileX = -1;
+                hoveredTileY = -1;
+            }
+        }
+        repaint();
     }
 
     @Override
@@ -718,6 +649,9 @@ public class StarCraftTileMap extends JPanel
 
     @Override
     public void mouseExited(MouseEvent e) {
+        hoveredTileX = -1;
+        hoveredTileY = -1;
+        repaint();
     }
 
     @Override
@@ -760,31 +694,31 @@ public class StarCraftTileMap extends JPanel
     @Override
     public void update(List<Command> command) {
         // for (Command c : command) {
-        //     int px = -1, py = -1;
-        //     UnitCommandType order = command.order;
+        // int px = -1, py = -1;
+        // UnitCommandType order = command.order;
 
-        //     if (isPositionBased(order)) {
-        //         if (command.position != null) {
-        //             px = command.position.x / 32;
-        //             py = command.position.y / 32;
-        //         }
-        //     } else if (isTargetUnitBased(order)) {
-        //         Unit target = game.getUnit(command.targetId);
-        //         if (target != null) {
-        //             px = target.getX();
-        //             py = target.getY();
-        //         }
-        //     } else {
-        //         // self-unit commands (train, siege, research, …)
-        //         Unit unit = game.getUnit(command.unitId);
-        //         if (unit != null) {
-        //             px = unit.getX();
-        //             py = unit.getY();
-        //         }
-        //     }
+        // if (isPositionBased(order)) {
+        // if (command.position != null) {
+        // px = command.position.x / 32;
+        // py = command.position.y / 32;
+        // }
+        // } else if (isTargetUnitBased(order)) {
+        // Unit target = game.getUnit(command.targetId);
+        // if (target != null) {
+        // px = target.getX();
+        // py = target.getY();
+        // }
+        // } else {
+        // // self-unit commands (train, siege, research, …)
+        // Unit unit = game.getUnit(command.unitId);
+        // if (unit != null) {
+        // px = unit.getX();
+        // py = unit.getY();
+        // }
+        // }
 
-        //     if (px >= 0 && py >= 0)
-        //         orders.add(new Order(px, py));
+        // if (px >= 0 && py >= 0)
+        // orders.add(new Order(px, py));
         // }
     }
 

@@ -34,8 +34,6 @@ public class BehaviorTreeView extends Form {
 
     private Vector<BehaviorTreeInfo> behaviorTrees = new Vector<>();
     private JCheckBox scrollToExecutingNode;
-    private JButton stepBehaviorTree;
-    private JButton runBehaviorTree;
     private JComboBox<BehaviorTreeInfo> treeJComboBox;
     private JScrollPane currentScrollPane;
     private JPanel header;
@@ -63,27 +61,11 @@ public class BehaviorTreeView extends Form {
 
         scrollToExecutingNode = UIUtils.getPropertyCheckBox("Scroll to Executing Node", Config.scrollToExecutingNode,
                 e -> Config.scrollToExecutingNode = scrollToExecutingNode.isSelected());
-        stepBehaviorTree = new JButton("Step");
-        stepBehaviorTree.addActionListener(e -> Config.treeStatus = Config.BehaviorTreeStatus.Stepping);
-        runBehaviorTree = new JButton(Config.treeStatus == Config.BehaviorTreeStatus.Running ? "Suspend" : "Run");
-        runBehaviorTree.addActionListener(e -> {
-            if (Config.treeStatus == Config.BehaviorTreeStatus.Running) {
-                Config.treeStatus = Config.BehaviorTreeStatus.Suspended;
-                runBehaviorTree.setText("Run");
-                stepBehaviorTree.setEnabled(false);
-
-            } else {
-                Config.treeStatus = Config.BehaviorTreeStatus.Running;
-                runBehaviorTree.setText("Suspend");
-                stepBehaviorTree.setEnabled(true);
-            }
-        });
         Box controlsBox = Box.createHorizontalBox();
         controlsBox.add(new JLabel("Behavior Tree:"));
         controlsBox.add(Box.createHorizontalStrut(10));
         controlsBox.add(treeJComboBox);
-        controlPanel = UIUtils.getControlPanel("Controls", scrollToExecutingNode, stepBehaviorTree,
-                runBehaviorTree, controlsBox);
+        controlPanel = UIUtils.getControlPanel("Controls", scrollToExecutingNode, controlsBox);
 
         treeJComboBox.setSelectedIndex(0);
     }

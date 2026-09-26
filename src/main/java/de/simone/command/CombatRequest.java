@@ -11,7 +11,7 @@ public class CombatRequest {
     public int cycle = RBWListener.game.getFrameCount();
 
     // the status field should only be changed by Task classes
-    public OrderStatus status = OrderStatus.Pending;
+    public OrderStatus status = OrderStatus.Queued;
 
     public String message = "";
     public Position position = null;

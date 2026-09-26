@@ -7,10 +7,8 @@ import java.util.Map;
 
 public class AllForms {
 
-    private static AllForms instance;
-
     private final Map<Class<? extends Form>, Form> formsMap;
-
+    private static AllForms instance;
     private static AllForms getInstance() {
         if (instance == null) {
             instance = new AllForms();

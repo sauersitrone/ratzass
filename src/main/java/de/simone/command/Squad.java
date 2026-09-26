@@ -80,7 +80,7 @@ public class Squad {
 
     private List<Point2D> positionsTracking = new ArrayList<>();
     private List<UnitType> members = new ArrayList<>();
-
+ 
     public Squad(SquadType type, List<UnitType> members) {
         this.behaviorTree = RUtils.getBehaviorTree("squad.tree", this);
         this.type = type;

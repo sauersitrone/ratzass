@@ -69,13 +69,13 @@ public class CombatCenter {
         CombatRequest request2 = squadRequests.stream()
                 .filter(r -> r.squadID.equals(squad.squadID) &&
                         r.request == request &&
-                        r.status == OrderStatus.Pending)
+                        r.status == OrderStatus.Queued)
                 .findFirst().orElse(null);
         return request2;
     }
 
     /**
-     * Returns the first pending combat request for the specified request name, if
+     * Returns the first queued combat request for the specified request name, if
      * any.
      * 
      * @param request - the requestName
@@ -83,7 +83,7 @@ public class CombatCenter {
      */
     public static CombatRequest getRequest(RequestName request) {
         CombatRequest request2 = squadRequests.stream()
-                .filter(r -> r.request == request && r.status == OrderStatus.Pending)
+                .filter(r -> r.request == request && r.status == OrderStatus.Queued)
                 .findFirst().orElse(null);
         return request2;
     }
@@ -95,13 +95,13 @@ public class CombatCenter {
     public static void update() {
 
         String logs = comms.toString();
-        listeners.forEach(l -> l.updated(logs));
+        listeners.forEach(l -> l.update(logs));
     }
 
     public static void sendCommunication(Squad squad, String text) {
         comms.append(squad.type + "unit " + squad.squadID + ": " + text);
         comms.append("\n");
-        listeners.forEach(listener -> listener.updated(comms.toString()));
+        listeners.forEach(listener -> listener.update(comms.toString()));
     }
 
     public static void addListener(CombatCenterListener listener) {

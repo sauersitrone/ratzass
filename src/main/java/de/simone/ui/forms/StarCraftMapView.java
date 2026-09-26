@@ -1,20 +1,14 @@
 package de.simone.ui.forms;
 
 import java.awt.BorderLayout;
-import java.io.File;
 
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.filechooser.FileNameExtensionFilter;
 
 import de.simone.Config;
 import de.simone.UIUtils;
 import de.simone.ui.system.Form;
-import raven.modal.Toast;
 
 public class StarCraftMapView extends Form {
 
@@ -27,11 +21,8 @@ public class StarCraftMapView extends Form {
     private JCheckBox drawResourcesCB;
     private JCheckBox drawStartSpotsCB;
     private JCheckBox drawRegionsCB;
-    private JCheckBox fillRegionsCB;
+    private JCheckBox drawAreasCB;
     private JCheckBox drawChokepointsCB;
-    private JCheckBox liveSyncCB;
-    private JButton saveMapButton;
-    private JButton loadMapButton;
     private JPanel header;
     private JPanel controlPanel;
 
@@ -57,21 +48,14 @@ public class StarCraftMapView extends Form {
                 e -> Config.drawStartSpots = drawStartSpotsCB.isSelected());
         drawRegionsCB = UIUtils.getPropertyCheckBox("draw Regions", Config.drawRegions,
                 e -> Config.drawRegions = drawRegionsCB.isSelected());
-        fillRegionsCB = UIUtils.getPropertyCheckBox("fill Regions", Config.fillRegions,
-                e -> Config.fillRegions = fillRegionsCB.isSelected());
+        drawAreasCB = UIUtils.getPropertyCheckBox("draw Areas", Config.drawAreas,
+                e -> Config.drawAreas = drawAreasCB.isSelected());
         drawChokepointsCB = UIUtils.getPropertyCheckBox("draw Chokepoints", Config.drawChokepoints,
                 e -> Config.drawChokepoints = drawChokepointsCB.isSelected());
-        liveSyncCB = UIUtils.getPropertyCheckBox("Live Sync", starCraftTileMap.isLiveSync(),
-                e -> starCraftTileMap.setLiveSync(liveSyncCB.isSelected()));
-
-        saveMapButton = new JButton("Save Map...");
-        saveMapButton.addActionListener(e -> saveMap());
-        loadMapButton = new JButton("Load Map...");
-        loadMapButton.addActionListener(e -> loadMap());
 
         controlPanel = UIUtils.getControlPanel("Controls", drawIDsCB, drawPingsCB, drawPlayerUnitsCB,
                 drawEnemyUnitsCB, drawNeutralUnitsCB, drawResourcesCB, drawStartSpotsCB, drawRegionsCB,
-                fillRegionsCB, drawChokepointsCB, liveSyncCB, saveMapButton, loadMapButton);
+                drawAreasCB, drawChokepointsCB );
 
         add(starCraftTileMap, BorderLayout.CENTER);
     }
@@ -82,40 +66,5 @@ public class StarCraftMapView extends Form {
 
     public JComponent getControls() {
         return controlPanel;
-    }
-
-    private void saveMap() {
-        JFileChooser chooser = new JFileChooser();
-        chooser.setFileFilter(new FileNameExtensionFilter("Tiled map (*.tmx)", "tmx"));
-        if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
-            return;
-        }
-        File file = chooser.getSelectedFile();
-        if (!file.getName().toLowerCase().endsWith(".tmx")) {
-            file = new File(file.getParentFile(), file.getName() + ".tmx");
-        }
-        try {
-            starCraftTileMap.saveMap(file);
-            UIUtils.showToast(this, Toast.Type.SUCCESS, "Map saved successfully.");
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Failed to save map: " + ex.getMessage(),
-                    "Save Map", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    private void loadMap() {
-        JFileChooser chooser = new JFileChooser();
-        chooser.setFileFilter(new FileNameExtensionFilter("Tiled map (*.tmx)", "tmx"));
-        if (chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-            return;
-        }
-        try {
-            starCraftTileMap.loadMap(chooser.getSelectedFile());
-            liveSyncCB.setSelected(starCraftTileMap.isLiveSync());
-            UIUtils.showToast(this, Toast.Type.SUCCESS, "Map loaded successfully.");
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Failed to load map: " + ex.getMessage(),
-                    "Load Map", JOptionPane.ERROR_MESSAGE);
-        }
     }
 }

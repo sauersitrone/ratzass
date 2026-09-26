@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 import com.github.freva.asciitable.AsciiTable;
@@ -26,9 +27,10 @@ public class CommandQueueView extends Form implements CommandQueueListener {
         setLayout(new BorderLayout());
         header = UIUtils.getHeader("Command Queue", "Displays the command queue in real-time.");
         textArea = UIUtils.getConsoleTextArea();
-        add(textArea, BorderLayout.CENTER);
+        add(new JScrollPane(textArea), BorderLayout.CENTER);
+        CommandQueue.addListener(this);
 
-        update(CommandQueue.getCommands());
+        textArea.setText("\n\tReady for dispatch commands.");
     }
 
     @Override
@@ -36,6 +38,7 @@ public class CommandQueueView extends Form implements CommandQueueListener {
         textArea.setText(AsciiTable.getTable(AsciiTable.NO_BORDERS, commands, Arrays.asList(
                 new Column().header("Cicle").with(c -> "" + c.cycle),
                 new Column().header("UnitId").with(c -> "" + c.unitId),
+                new Column().header("unitType").with(c -> "" + c.unitType),
                 new Column().header("targetId").with(c -> "" + c.targetId),
                 new Column().header("order").with(c -> c.order.toString()),
                 new Column().header("Position").with(c -> "" + c.position),

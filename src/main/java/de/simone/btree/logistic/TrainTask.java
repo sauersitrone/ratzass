@@ -1,11 +1,10 @@
 package de.simone.btree.logistic;
 
-import java.util.List;
-
+import com.badlogic.gdx.ai.btree.Task;
 import com.badlogic.gdx.ai.btree.annotation.TaskAttribute;
 
 import bwapi.UnitType;
-import de.simone.command.BuildOrder;
+import de.simone.btree.Blackboard;
 import de.simone.command.LogisticCenter;
 
 public class TrainTask extends LogisticTask {
@@ -16,18 +15,17 @@ public class TrainTask extends LogisticTask {
     @TaskAttribute(required = true)
     public int count;
 
+    private String voucher;
+
     @Override
     public Status execute() {
-        String key = unitType + "-" + count;
-
         if (getStatus() == Status.RUNNING) {
-            Status status= getBuildOrderStatus(key);
+            Status status = getBuildOrderStatus(voucher);
             return status;
         }
 
         // no previous, create a new build order
-        List<BuildOrder> orders = LogisticCenter.addBuildOrder(unitType, count);
-        getObject().orders.put(key, orders);
+        voucher = LogisticCenter.addBuildOrder(unitType, count);
 
         return Status.RUNNING;
     }
@@ -39,12 +37,10 @@ public class TrainTask extends LogisticTask {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null || getClass() != obj.getClass())
-            return false;
-        TrainTask task = (TrainTask) obj;
-        return toString().equals(task.toString());
+    protected Task<Blackboard> copyTo(Task<Blackboard> task) {
+        TrainTask trainTask = (TrainTask) task;
+        trainTask.unitType = unitType;
+        trainTask.count = count;
+        return trainTask;
     }
 }

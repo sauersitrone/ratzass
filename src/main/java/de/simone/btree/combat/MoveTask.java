@@ -2,7 +2,6 @@ package de.simone.btree.combat;
 
 import com.badlogic.gdx.ai.btree.annotation.TaskAttribute;
 
-import bwapi.UnitType;
 import de.simone.command.CombatCenter;
 import de.simone.command.CombatCenter.RequestName;
 import de.simone.command.CombatRequest;

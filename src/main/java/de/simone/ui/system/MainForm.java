@@ -76,7 +76,8 @@ public class MainForm extends JPanel {
     }
 
     private JPanel createFooter() {
-        JPanel panel = new JPanel(new MigLayout("insets 1 n 1 n,al trailing center,gapx 10,height 30!", "[]push[][]", "fill"));
+        JPanel panel = new JPanel(
+                new MigLayout("insets 1 n 1 n,al trailing center,gapx 10,height 30!", "[]push[][]", "fill"));
         panel.putClientProperty(FlatClientProperties.STYLE, "background:$Menu.background;");
 
         // demo version
@@ -123,7 +124,7 @@ public class MainForm extends JPanel {
     private Component createMain() {
         mainPanel = new JPanel(new BorderLayout());
         mainControlPanel = new ControlPanel();
-        northPanel =  new JPanel(new MigLayout("wrap,top", "[fill]"));
+        northPanel = new JPanel(new MigLayout("wrap,top", "[fill]"));
         northPanel.add(mainControlPanel);
         mainPanel.add(northPanel, BorderLayout.NORTH);
         return mainPanel;
@@ -134,13 +135,16 @@ public class MainForm extends JPanel {
         northPanel.removeAll();
 
         JComponent title = form.getTitle();
-        if(title != null)
+        if (title != null)
             northPanel.add(title);
 
-        northPanel.add(mainControlPanel);
+        // i use the title to check if the form is a Starcraft form; if the panel dont
+        // have a title, remove the main control panel from the north panel
+        if (title != null)
+            northPanel.add(mainControlPanel);
 
         JComponent controls = form.getControls();
-        if(controls != null)
+        if (controls != null)
             northPanel.add(controls);
 
         mainPanel.add(northPanel, BorderLayout.NORTH);

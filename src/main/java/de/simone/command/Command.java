@@ -23,7 +23,7 @@ public class Command {
 
     // it is responsability of commandQueue set to false if something whet wrong.
     // see commandQueue.logFail():
-    public OrderStatus status = OrderStatus.Pending;
+    public OrderStatus status = OrderStatus.Queued;
 
     // optional message to provide more information about the command execution
     public String message = "";

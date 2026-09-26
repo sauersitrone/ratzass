@@ -30,6 +30,7 @@ public class Config {
     public static boolean drawResources = true;
     public static boolean drawStartSpots = true;
     public static boolean drawRegions = true;
+    public static boolean drawAreas = true;
     public static boolean fillRegions = false;
     public static boolean drawChokepoints = true;
 
@@ -75,6 +76,7 @@ public class Config {
             drawResources = Boolean.parseBoolean(properties.getProperty("map.drawResources"));
             drawStartSpots = Boolean.parseBoolean(properties.getProperty("map.drawStartSpots"));
             drawRegions = Boolean.parseBoolean(properties.getProperty("map.drawRegions"));
+            drawAreas = Boolean.parseBoolean(properties.getProperty("map.drawAreas"));
             fillRegions = Boolean.parseBoolean(properties.getProperty("map.fillRegions"));
             drawChokepoints = Boolean.parseBoolean(properties.getProperty("map.drawChokepoints"));
 
@@ -96,11 +98,12 @@ public class Config {
             properties.setProperty("map.drawIDs", Boolean.toString(drawIDs));
             properties.setProperty("map.drawPings", Boolean.toString(drawPings));
             properties.setProperty("map.drawPlayerUnits", Boolean.toString(drawPlayerUnits));
+            properties.setProperty("map.drawRegions", Boolean.toString(drawRegions));
+            properties.setProperty("map.drawAreas", Boolean.toString(drawAreas));
             properties.setProperty("map.drawEnemyUnits", Boolean.toString(drawEnemyUnits));
             properties.setProperty("map.drawNeutralUnits", Boolean.toString(drawNeutralUnits));
             properties.setProperty("map.drawResources", Boolean.toString(drawResources));
             properties.setProperty("map.drawStartSpots", Boolean.toString(drawStartSpots));
-            properties.setProperty("map.drawRegions", Boolean.toString(drawRegions));
             properties.setProperty("map.fillRegions", Boolean.toString(fillRegions));
             properties.setProperty("map.drawChokepoints", Boolean.toString(drawChokepoints));
             properties.setProperty("behaviorTree.scrollToExecutingNode", Boolean.toString(scrollToExecutingNode));

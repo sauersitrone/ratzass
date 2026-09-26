@@ -60,7 +60,7 @@ public class Main extends JFrame {
 
         DemoPreferences.init();
         FlatRobotoFont.install();
-        FlatLaf.registerCustomDefaultsSource("ui.icons.themes");
+        FlatLaf.registerCustomDefaultsSource("ui.themes");
         UIManager.put("defaultFont", FontUtils.getCompositeFont(FlatRobotoFont.FAMILY, Font.PLAIN, 13));
         DemoPreferences.setupLaf();
         EventQueue.invokeLater(() -> new Main().setVisible(true));

@@ -55,3 +55,11 @@ and make the Syntax Highlight (Tokenization) of the .tree file extention using f
 - keywords: import, subtree, sequence, invert, name, AlwaysFail, AlwaysSucceed, Include, Repeat, SemaphoreGuard, UntilFail, UntilSuccess. Color blue
 - String literals ( text between ""). color brown
 
+
+Changes
+-------------------------------------
+userinput
+fogofwar
+autocamera
+Logisticcenter detached pddl solver
+TrainTask chages

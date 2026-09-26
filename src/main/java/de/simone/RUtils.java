@@ -41,7 +41,7 @@ public class RUtils {
         try {
             Thread.sleep(150);
             Runtime.getRuntime().exec(command);
-            Thread.sleep(150);
+            Thread.sleep(120);
         } catch (Exception e) {
             log.log(Level.SEVERE, e.getMessage());
         }
@@ -105,20 +105,4 @@ public class RUtils {
         return null;
     }
 
-    /**
-     * Steps the behavior tree based on the current status of the environment. If
-     * the environment status is Running, the behavior tree will be stepped
-     * 
-     * @param behaviorTree - the tree
-     */
-    public static void step(BehaviorTree<?> behaviorTree) {
-        if (Config.treeStatus == Config.BehaviorTreeStatus.Running) {
-            behaviorTree.step();
-        } else if (Config.treeStatus == Config.BehaviorTreeStatus.Stepping) {
-            behaviorTree.step();
-            Config.treeStatus = Config.BehaviorTreeStatus.Suspended;
-        } else if (Config.treeStatus == Config.BehaviorTreeStatus.Suspended) {
-            // Do nothing
-        }
-    }
 }

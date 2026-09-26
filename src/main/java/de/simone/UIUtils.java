@@ -83,7 +83,7 @@ public class UIUtils {
 
     public static void showToast(Form form, Toast.Type type, String text) {
         ToastOption option = Toast.createOption();
-        Location h = Location.LEADING;
+        Location h = Location.RIGHT;
         Location v = Location.BOTTOM;
         ToastStyle.BackgroundType backgroundType = ToastStyle.BackgroundType.DEFAULT;
         ToastBorderStyle.BorderType borderType = ToastBorderStyle.BorderType.OUTLINE;

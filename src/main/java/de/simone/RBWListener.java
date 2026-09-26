@@ -10,6 +10,7 @@ import bwapi.Flag;
 import bwapi.Game;
 import bwapi.Player;
 import bwapi.Position;
+import bwapi.Race;
 import bwapi.Unit;
 import bwem.BWEM;
 import de.simone.command.CommandQueue;
@@ -26,8 +27,8 @@ public class RBWListener extends DefaultBWListener {
     public static LogisticCenter logisticCenter;
     public static int currentMinerals = 0;
     public static int currentGas = 0;
-    private static int currentSupplyTotal = 0;
-    private static int currentSupplyUsed = 0;
+    public static int currentSupplyTotal = 0;
+    public static int currentSupplyUsed = 0;
     public static int currentSupplyLeft = 0;
     public static double gameSeconds;
     public static double lastBehaviorTreeStep;
@@ -49,6 +50,9 @@ public class RBWListener extends DefaultBWListener {
         game = bwClient.getGame();
         startTime = LocalDateTime.now();
         game.setRevealAll(!Config.fogOfWar);
+        if (Config.fogOfWar)
+            game.enableFlag(Flag.CompleteMapInformation);
+
         if (Config.userInput)
             game.enableFlag(Flag.UserInput);
 
@@ -70,14 +74,17 @@ public class RBWListener extends DefaultBWListener {
         // update current resources
         currentGas = self.gas();
         currentMinerals = self.minerals();
-        currentSupplyTotal = self.supplyTotal();
-        currentSupplyUsed = self.supplyUsed();
+        currentSupplyTotal = (int) self.supplyTotal(Race.Terran) / 2;
+        currentSupplyUsed = (int) self.supplyUsed(Race.Terran) /2;
         currentSupplyLeft = currentSupplyTotal - currentSupplyUsed;
 
-        // test
-        if (CommandQueue.currentCommand != null) {
-            Position position = CommandQueue.currentCommand.position;
-            // Position position = CommandQueue.currentCommand.tilePosition.toPosition();
+        // test autocamera parameter
+        if (Config.autoCamera && CommandQueue.currentCommand != null && CommandQueue.currentCommand.position != null)
+            game.setScreenPosition(CommandQueue.currentCommand.position);
+        
+        if (CommandQueue.currentCommand != null && CommandQueue.currentCommand.tilePosition != null) {
+            // Position position = CommandQueue.currentCommand.position;
+            Position position = CommandQueue.currentCommand.tilePosition.toPosition();
             int left = position.x - CommandQueue.currentCommand.unitType.dimensionLeft();
             int right = position.x + CommandQueue.currentCommand.unitType.dimensionRight();
             int up = position.y - CommandQueue.currentCommand.unitType.dimensionUp();

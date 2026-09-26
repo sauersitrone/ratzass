@@ -3,9 +3,11 @@ package de.simone.btree.logistic;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.badlogic.gdx.ai.btree.Task;
 import com.badlogic.gdx.ai.btree.annotation.TaskAttribute;
 
 import bwapi.UnitType;
+import de.simone.btree.Blackboard;
 import de.simone.command.Squad;
 import de.simone.command.Squad.SquadStatus;
 import de.simone.command.Squad.SquadType;
@@ -55,5 +57,14 @@ public class CreateSquadTask extends LogisticTask {
     @Override
     public String toString() {
         return super.toString() + " type:" + type + " members:" + members;
+    }
+
+    @Override
+    protected Task<Blackboard> copyTo(Task<Blackboard> task) {
+        CreateSquadTask createSquadTask = (CreateSquadTask) task;
+        createSquadTask.type = type;
+        createSquadTask.members = members;
+        createSquadTask.currentSquad = currentSquad;
+        return createSquadTask;
     }
 }

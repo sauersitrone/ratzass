@@ -1,0 +1,16 @@
+id,name,oreCostBase,oreCostFactor,timeCostBase,timeCostFactor,maxRepeats,whatUpgrades,race
+0,Terran_Infantry_Armor,100,75,4000,480,3,Terran_Engineering_Bay,Terran
+1,Terran_Vehicle_Plating,100,75,4000,480,3,Terran_Armory,Terran
+2,Terran_Ship_Plating,150,75,4000,480,3,Terran_Armory,Terran
+7,Terran_Infantry_Weapons,100,75,4000,480,3,Terran_Engineering_Bay,Terran
+8,Terran_Vehicle_Weapons,100,75,4000,480,3,Terran_Armory,Terran
+9,Terran_Ship_Weapons,100,50,4000,480,3,Terran_Armory,Terran
+16,U_238_Shells,150,0,1500,0,1,Terran_Academy,Terran
+17,Ion_Thrusters,100,0,1500,0,1,Terran_Machine_Shop,Terran
+19,Titan_Reactor,150,0,2500,0,1,Terran_Science_Facility,Terran
+20,Ocular_Implants,100,0,2500,0,1,Terran_Covert_Ops,Terran
+21,Moebius_Reactor,150,0,2500,0,1,Terran_Covert_Ops,Terran
+22,Apollo_Reactor,200,0,2500,0,1,Terran_Control_Tower,Terran
+23,Colossus_Reactor,150,0,2500,0,1,Terran_Physics_Lab,Terran
+51,Caduceus_Reactor,150,0,2500,0,1,Terran_Academy,Terran
+54,Charon_Boosters,100,0,2000,0,1,Terran_Machine_Shop,Terran

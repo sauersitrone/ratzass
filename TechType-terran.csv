@@ -1,0 +1,16 @@
+id,name,mineralPrice,gasPrice,researchTime,energyCost,whatResearches,race,weapon,targetsUnit,targetsPosition,order,requiredUnit,whatUses
+0,Stim_Packs,100,100,1200,0,Terran_Academy,Terran,None,false,false,None,None,Terran_Marine|Terran_Firebat|Hero_Jim_Raynor_Marine|Hero_Gui_Montag
+1,Lockdown,200,200,1500,100,Terran_Covert_Ops,Terran,Lockdown,true,false,CastLockdown,None,Terran_Ghost|Hero_Alexei_Stukov|Hero_Infested_Duran|Hero_Samir_Duran|Hero_Sarah_Kerrigan
+2,EMP_Shockwave,200,200,1800,100,Terran_Science_Facility,Terran,EMP_Shockwave,true,true,CastEMPShockwave,None,Terran_Science_Vessel|Hero_Magellan
+3,Spider_Mines,100,100,1200,0,Terran_Machine_Shop,Terran,Spider_Mines,false,true,PlaceMine,None,Terran_Vulture|Hero_Jim_Raynor_Vulture
+4,Scanner_Sweep,0,0,0,50,None,Terran,None,true,true,CastScannerSweep,None,Terran_Comsat_Station
+5,Tank_Siege_Mode,150,150,1200,0,Terran_Machine_Shop,Terran,None,false,false,None,None,Terran_Siege_Tank_Tank_Mode|Terran_Siege_Tank_Siege_Mode|Hero_Edmund_Duke_Tank_Mode|Hero_Edmund_Duke_Siege_Mode
+6,Defensive_Matrix,0,0,0,100,None,Terran,None,true,false,CastDefensiveMatrix,None,Terran_Science_Vessel|Hero_Magellan
+7,Irradiate,200,200,1200,75,Terran_Science_Facility,Terran,Irradiate,true,false,CastIrradiate,None,Terran_Science_Vessel|Hero_Magellan
+8,Yamato_Gun,100,100,1800,150,Terran_Physics_Lab,Terran,Yamato_Gun,true,false,FireYamatoGun,None,Terran_Battlecruiser|Hero_Gerard_DuGalle|Hero_Hyperion|Hero_Norad_II
+9,Cloaking_Field,150,150,1500,25,Terran_Control_Tower,Terran,None,false,false,None,None,Terran_Wraith|Hero_Tom_Kazansky
+10,Personnel_Cloaking,100,100,1200,25,Terran_Covert_Ops,Terran,None,false,false,None,None,Terran_Ghost|Hero_Alexei_Stukov|Hero_Infested_Duran|Hero_Samir_Duran|Hero_Sarah_Kerrigan|Hero_Infested_Kerrigan
+24,Restoration,100,100,1200,50,Terran_Academy,Terran,Restoration,true,false,CastRestoration,None,Terran_Medic
+30,Optical_Flare,100,100,1800,75,Terran_Academy,Terran,Optical_Flare,true,false,CastOpticalFlare,None,Terran_Medic
+34,Healing,0,0,0,1,None,Terran,None,true,true,MedicHeal,None,Terran_Medic
+45,Nuclear_Strike,0,0,0,0,None,Terran,Nuclear_Strike,true,true,NukePaint,None,Terran_Ghost

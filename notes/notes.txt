@@ -61,5 +61,4 @@ Changes
 userinput
 fogofwar
 autocamera
-Logisticcenter detached pddl solver
 TrainTask chages

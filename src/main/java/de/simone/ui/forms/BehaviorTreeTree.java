@@ -46,8 +46,7 @@ public class BehaviorTreeTree extends JTree {
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public BehaviorTreeTree(BehaviorTree<?> behaviorTree) {
-        super(new DefaultTreeModel(new DefaultMutableTreeNode(new NodeInfo("Behavior Tree", Task.Status.FRESH))));
-
+        super(new DefaultTreeModel(new DefaultMutableTreeNode(new NodeInfo("root", Task.Status.FRESH))));
         this.behaviorTree = behaviorTree;
         behaviorTree.addListener(new BehaviorTree.Listener() {
             @Override
@@ -136,6 +135,11 @@ public class BehaviorTreeTree extends JTree {
             }
             NodeInfo nodeInfo = (NodeInfo) ((DefaultMutableTreeNode) value).getUserObject();
 
+            String[] string = nodeInfo.label.split("\\W+");
+            String firstWord = string.length > 1 ? string[0] : nodeInfo.label;
+            String leafName = "<b style='color:blue;'>" + firstWord + "</b> " + " ";
+            String fullLabel = nodeInfo.label.replace(firstWord, "");
+
             String leafString = "";
             // String leafString = StringUtils.abbreviate(nodeInfo.label, 80) + " ";
             if (nodeInfo.status == Task.Status.RUNNING)
@@ -145,7 +149,7 @@ public class BehaviorTreeTree extends JTree {
             if (nodeInfo.status == Task.Status.FAILED)
                 leafString += "<b style='color:red;'>FAILED</b>";
 
-            setText(String.format(htmlTemplate, nodeInfo.label, leafString));
+            setText(String.format(htmlTemplate, leafName + " " + fullLabel, leafString));
             setForeground(Color.WHITE);
             return this;
         }

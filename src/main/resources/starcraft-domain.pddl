@@ -1,6 +1,6 @@
 ﻿(define (domain starcraftx)
 
-    (:requirements :strips :typing :numeric-fluents)
+    (:requirements :strips :typing :numeric-fluents :negative-preconditions)
 
     (:types
         unit_type quantity resources - object
@@ -9,7 +9,17 @@
     )
 
     (:predicates
-        (has_unit ?unit - unit_type)
+        (Stim_Packs_researched)
+        (Lockdown_researched)
+        (EMP_Shockwave_researched)
+        (Spider_Mines_researched)
+        (Tank_Siege_Mode_researched)
+        (Irradiate_researched)
+        (Yamato_Gun_researched)
+        (Cloaking_Field_researched)
+        (Personnel_Cloaking_researched)
+        (Restoration_researched)
+        (Optical_Flare_researched)
     )
 
     (:functions
@@ -83,6 +93,20 @@
         (Special_Flag_Beacon_quantity)
         (Special_Power_Generator_quantity)
         (Terran_Infantry_Armor_quantity)
+        (Terran_Vehicle_Plating_quantity)
+        (Terran_Ship_Plating_quantity)
+        (Terran_Infantry_Weapons_quantity)
+        (Terran_Vehicle_Weapons_quantity)
+        (Terran_Ship_Weapons_quantity)
+        (U_238_Shells_quantity)
+        (Ion_Thrusters_quantity)
+        (Titan_Reactor_quantity)
+        (Ocular_Implants_quantity)
+        (Moebius_Reactor_quantity)
+        (Apollo_Reactor_quantity)
+        (Colossus_Reactor_quantity)
+        (Caduceus_Reactor_quantity)
+        (Charon_Boosters_quantity)
     )
 
     ; NOTE:
@@ -435,7 +459,8 @@
     (:action build-Terran_Nuclear_Silo
         :parameters ()
         :precondition (and
-            (>= (Mineral_quantity) 100) (>= (Gas_quantity) 100) (>= (Terran_Covert_Ops_quantity) 1) (>= (Terran_Command_Center_quantity) 1)
+            (>= (Mineral_quantity) 100) 
+            (>= (Gas_quantity) 100) (>= (Terran_Covert_Ops_quantity) 1) (>= (Terran_Command_Center_quantity) 1)
             (>= (Terran_Science_Facility_quantity) 1)
         )
         :effect (and (decrease (Mineral_quantity) 100) (decrease (Gas_quantity) 100) (increase (Terran_Nuclear_Silo_quantity) 1))
@@ -458,13 +483,15 @@
 
     (:action build-Terran_Factory
         :parameters ()
-        :precondition (and (>= (Mineral_quantity) 200) (>= (Gas_quantity) 100) (>= (Terran_Barracks_quantity) 1) (>= (Terran_SCV_quantity) 1))
+        :precondition (and (>= 
+            (Mineral_quantity) 200) (>= (Gas_quantity) 100) (>= (Terran_Barracks_quantity) 1) (>= (Terran_SCV_quantity) 1))
         :effect (and (decrease (Mineral_quantity) 200) (decrease (Gas_quantity) 100) (increase (Terran_Factory_quantity) 1))
     )
 
     (:action build-Terran_Starport
         :parameters ()
-        :precondition (and (>= (Mineral_quantity) 150) (>= (Gas_quantity) 100) (>= (Terran_SCV_quantity) 1) (>= (Terran_Factory_quantity) 1))
+        :precondition (and (>= 
+            (Mineral_quantity) 150) (>= (Gas_quantity) 100) (>= (Terran_SCV_quantity) 1) (>= (Terran_Factory_quantity) 1))
         :effect (and (decrease (Mineral_quantity) 150) (decrease (Gas_quantity) 100) (increase (Terran_Starport_quantity) 1))
     )
 
@@ -476,7 +503,8 @@
 
     (:action build-Terran_Science_Facility
         :parameters ()
-        :precondition (and (>= (Mineral_quantity) 100) (>= (Gas_quantity) 150) (>= (Terran_Starport_quantity) 1) (>= (Terran_SCV_quantity) 1))
+        :precondition (and (>= 
+            (Mineral_quantity) 100) (>= (Gas_quantity) 150) (>= (Terran_Starport_quantity) 1) (>= (Terran_SCV_quantity) 1))
         :effect (and (decrease (Mineral_quantity) 100) (decrease (Gas_quantity) 150) (increase (Terran_Science_Facility_quantity) 1))
     )
 
@@ -518,7 +546,8 @@
 
     (:action build-Terran_Armory
         :parameters ()
-        :precondition (and (>= (Mineral_quantity) 100) (>= (Gas_quantity) 50) (>= (Terran_SCV_quantity) 1) (>= (Terran_Factory_quantity) 1))
+        :precondition (and 
+            (>= (Mineral_quantity) 100) (>= (Gas_quantity) 50) (>= (Terran_SCV_quantity) 1) (>= (Terran_Factory_quantity) 1))
         :effect (and (decrease (Mineral_quantity) 100) (decrease (Gas_quantity) 50) (increase (Terran_Armory_quantity) 1))
     )
 
@@ -583,10 +612,262 @@
     ;         (increase (Special_Power_Generator_quantity) 1)
     ;     )
     ; )
-    (:action upgrade-Terran_Infantry_Armor
+
+    (:action research-Stim_Packs
         :parameters ()
-        :precondition (and (>= (Mineral_quantity) 100) (>= (Terran_Engineering_Bay_quantity) 1) (<=(Terran_Infantry_Armor_quantity) 3))
-        :effect (and (decrease (Mineral_quantity) 100) (increase (Terran_Infantry_Armor_quantity) 1))
+        :precondition (and
+            (>= (Mineral_quantity) 100)
+            (>= (Gas_quantity) 100)
+            (>= (Terran_Academy_quantity) 1)
+            (not (Stim_Packs_researched))
+        )
+        :effect (and
+            (decrease (Mineral_quantity) 100)
+            (decrease (Gas_quantity) 100)
+            (Stim_Packs_researched)
+        )
+    )
+
+    (:action research-Lockdown
+        :parameters ()
+        :precondition (and (>= (Mineral_quantity) 200) (>= (Gas_quantity) 200)
+            (>= (Terran_Covert_Ops_quantity) 1) (not (Lockdown_researched)))
+        :effect (and (decrease (Mineral_quantity) 200) (decrease (Gas_quantity) 200)
+            (Lockdown_researched))
+    )
+
+    (:action research-EMP_Shockwave
+        :parameters ()
+        :precondition (and (>= (Mineral_quantity) 200) (>= (Gas_quantity) 200)
+            (>= (Terran_Science_Facility_quantity) 1) (not (EMP_Shockwave_researched)))
+        :effect (and (decrease (Mineral_quantity) 200) (decrease (Gas_quantity) 200)
+            (EMP_Shockwave_researched))
+    )
+
+    (:action research-Spider_Mines
+        :parameters ()
+        :precondition (and (>= (Mineral_quantity) 100) (>= (Gas_quantity) 100)
+            (>= (Terran_Machine_Shop_quantity) 1) (not (Spider_Mines_researched)))
+        :effect (and (decrease (Mineral_quantity) 100) (decrease (Gas_quantity) 100)
+            (Spider_Mines_researched))
+    )
+
+    (:action research-Tank_Siege_Mode
+        :parameters ()
+        :precondition (and (>= (Mineral_quantity) 150) (>= (Gas_quantity) 150)
+            (>= (Terran_Machine_Shop_quantity) 1) (not (Tank_Siege_Mode_researched)))
+        :effect (and (decrease (Mineral_quantity) 150) (decrease (Gas_quantity) 150)
+            (Tank_Siege_Mode_researched))
+    )
+
+    (:action research-Irradiate
+        :parameters ()
+        :precondition (and (>= (Mineral_quantity) 200) (>= (Gas_quantity) 200)
+            (>= (Terran_Science_Facility_quantity) 1) (not (Irradiate_researched)))
+        :effect (and (decrease (Mineral_quantity) 200) (decrease (Gas_quantity) 200)
+            (Irradiate_researched))
+    )
+
+    (:action research-Yamato_Gun
+        :parameters ()
+        :precondition (and (>= (Mineral_quantity) 100) (>= (Gas_quantity) 100)
+            (>= (Terran_Physics_Lab_quantity) 1) (not (Yamato_Gun_researched)))
+        :effect (and (decrease (Mineral_quantity) 100) (decrease (Gas_quantity) 100)
+            (Yamato_Gun_researched))
+    )
+
+    (:action research-Cloaking_Field
+        :parameters ()
+        :precondition (and (>= (Mineral_quantity) 150) (>= (Gas_quantity) 150)
+            (>= (Terran_Control_Tower_quantity) 1) (not (Cloaking_Field_researched)))
+        :effect (and (decrease (Mineral_quantity) 150) (decrease (Gas_quantity) 150)
+            (Cloaking_Field_researched))
+    )
+
+    (:action research-Personnel_Cloaking
+        :parameters ()
+        :precondition (and (>= (Mineral_quantity) 100) (>= (Gas_quantity) 100)
+            (>= (Terran_Covert_Ops_quantity) 1) (not (Personnel_Cloaking_researched)))
+        :effect (and (decrease (Mineral_quantity) 100) (decrease (Gas_quantity) 100)
+            (Personnel_Cloaking_researched))
+    )
+
+    (:action research-Restoration
+        :parameters ()
+        :precondition (and (>= (Mineral_quantity) 100) (>= (Gas_quantity) 100)
+            (>= (Terran_Academy_quantity) 1) (not (Restoration_researched)))
+        :effect (and (decrease (Mineral_quantity) 100) (decrease (Gas_quantity) 100)
+            (Restoration_researched))
+    )
+
+    (:action research-Optical_Flare
+        :parameters ()
+        :precondition (and (>= (Mineral_quantity) 100) (>= (Gas_quantity) 100)
+            (>= (Terran_Academy_quantity) 1) (not (Optical_Flare_researched)))
+        :effect (and (decrease (Mineral_quantity) 100) (decrease (Gas_quantity) 100)
+            (Optical_Flare_researched))
+    )
+
+    (:action update-Terran_Infantry_Armor
+        :parameters ()
+        :precondition (and (< (Terran_Infantry_Armor_quantity) 3)
+            (>= (Terran_Engineering_Bay_quantity) 1)
+            (>= (Mineral_quantity) (+ 100 (* 75 (Terran_Infantry_Armor_quantity))))
+            (>= (Gas_quantity) (+ 100 (* 75 (Terran_Infantry_Armor_quantity)))))
+        :effect (and
+            (decrease (Mineral_quantity) (+ 100 (* 75 (Terran_Infantry_Armor_quantity))))
+            (decrease (Gas_quantity) (+ 100 (* 75 (Terran_Infantry_Armor_quantity))))
+            (increase (Terran_Infantry_Armor_quantity) 1))
+    )
+
+    (:action update-Terran_Vehicle_Plating
+        :parameters ()
+        :precondition (and (< (Terran_Vehicle_Plating_quantity) 3)
+            (>= (Terran_Armory_quantity) 1)
+            (>= (Mineral_quantity) (+ 100 (* 75 (Terran_Vehicle_Plating_quantity))))
+            (>= (Gas_quantity) (+ 100 (* 75 (Terran_Vehicle_Plating_quantity)))))
+        :effect (and
+            (decrease (Mineral_quantity) (+ 100 (* 75 (Terran_Vehicle_Plating_quantity))))
+            (decrease (Gas_quantity) (+ 100 (* 75 (Terran_Vehicle_Plating_quantity))))
+            (increase (Terran_Vehicle_Plating_quantity) 1))
+    )
+
+    (:action update-Terran_Ship_Plating
+        :parameters ()
+        :precondition (and (< (Terran_Ship_Plating_quantity) 3)
+            (>= (Terran_Armory_quantity) 1)
+            (>= (Mineral_quantity) (+ 150 (* 75 (Terran_Ship_Plating_quantity))))
+            (>= (Gas_quantity) (+ 150 (* 75 (Terran_Ship_Plating_quantity)))))
+        :effect (and
+            (decrease (Mineral_quantity) (+ 150 (* 75 (Terran_Ship_Plating_quantity))))
+            (decrease (Gas_quantity) (+ 150 (* 75 (Terran_Ship_Plating_quantity))))
+            (increase (Terran_Ship_Plating_quantity) 1))
+    )
+
+    (:action update-Terran_Infantry_Weapons
+        :parameters ()
+        :precondition (and (< (Terran_Infantry_Weapons_quantity) 3)
+            (>= (Terran_Engineering_Bay_quantity) 1)
+            (>= (Mineral_quantity) (+ 100 (* 75 (Terran_Infantry_Weapons_quantity))))
+            (>= (Gas_quantity) (+ 100 (* 75 (Terran_Infantry_Weapons_quantity)))))
+        :effect (and
+            (decrease (Mineral_quantity) (+ 100 (* 75 (Terran_Infantry_Weapons_quantity))))
+            (decrease (Gas_quantity) (+ 100 (* 75 (Terran_Infantry_Weapons_quantity))))
+            (increase (Terran_Infantry_Weapons_quantity) 1))
+    )
+
+    (:action update-Terran_Vehicle_Weapons
+        :parameters ()
+        :precondition (and (< (Terran_Vehicle_Weapons_quantity) 3)
+            (>= (Terran_Armory_quantity) 1)
+            (>= (Mineral_quantity) (+ 100 (* 75 (Terran_Vehicle_Weapons_quantity))))
+            (>= (Gas_quantity) (+ 100 (* 75 (Terran_Vehicle_Weapons_quantity)))))
+        :effect (and
+            (decrease (Mineral_quantity) (+ 100 (* 75 (Terran_Vehicle_Weapons_quantity))))
+            (decrease (Gas_quantity) (+ 100 (* 75 (Terran_Vehicle_Weapons_quantity))))
+            (increase (Terran_Vehicle_Weapons_quantity) 1))
+    )
+
+    (:action update-Terran_Ship_Weapons
+        :parameters ()
+        :precondition (and (< (Terran_Ship_Weapons_quantity) 3)
+            (>= (Terran_Armory_quantity) 1)
+            (>= (Mineral_quantity) (+ 100 (* 50 (Terran_Ship_Weapons_quantity))))
+            (>= (Gas_quantity) (+ 100 (* 50 (Terran_Ship_Weapons_quantity)))))
+        :effect (and
+            (decrease (Mineral_quantity) (+ 100 (* 50 (Terran_Ship_Weapons_quantity))))
+            (decrease (Gas_quantity) (+ 100 (* 50 (Terran_Ship_Weapons_quantity))))
+            (increase (Terran_Ship_Weapons_quantity) 1))
+    )
+
+    (:action update-U_238_Shells
+        :parameters ()
+        :precondition (and (< (U_238_Shells_quantity) 1)
+            (>= (Terran_Academy_quantity) 1)
+            (>= (Mineral_quantity) 150) (>= (Gas_quantity) 150))
+        :effect (and
+            (decrease (Mineral_quantity) 150) (decrease (Gas_quantity) 150)
+            (increase (U_238_Shells_quantity) 1))
+    )
+
+    (:action update-Ion_Thrusters
+        :parameters ()
+        :precondition (and (< (Ion_Thrusters_quantity) 1)
+            (>= (Terran_Machine_Shop_quantity) 1)
+            (>= (Mineral_quantity) 100) (>= (Gas_quantity) 100))
+        :effect (and
+            (decrease (Mineral_quantity) 100) (decrease (Gas_quantity) 100)
+            (increase (Ion_Thrusters_quantity) 1))
+    )
+
+    (:action update-Titan_Reactor
+        :parameters ()
+        :precondition (and (< (Titan_Reactor_quantity) 1)
+            (>= (Terran_Science_Facility_quantity) 1)
+            (>= (Mineral_quantity) 150) (>= (Gas_quantity) 150))
+        :effect (and
+            (decrease (Mineral_quantity) 150) (decrease (Gas_quantity) 150)
+            (increase (Titan_Reactor_quantity) 1))
+    )
+
+    (:action update-Ocular_Implants
+        :parameters ()
+        :precondition (and (< (Ocular_Implants_quantity) 1)
+            (>= (Terran_Covert_Ops_quantity) 1)
+            (>= (Mineral_quantity) 100) (>= (Gas_quantity) 100))
+        :effect (and
+            (decrease (Mineral_quantity) 100) (decrease (Gas_quantity) 100)
+            (increase (Ocular_Implants_quantity) 1))
+    )
+
+    (:action update-Moebius_Reactor
+        :parameters ()
+        :precondition (and (< (Moebius_Reactor_quantity) 1)
+            (>= (Terran_Covert_Ops_quantity) 1)
+            (>= (Mineral_quantity) 150) (>= (Gas_quantity) 150))
+        :effect (and
+            (decrease (Mineral_quantity) 150) (decrease (Gas_quantity) 150)
+            (increase (Moebius_Reactor_quantity) 1))
+    )
+
+    (:action update-Apollo_Reactor
+        :parameters ()
+        :precondition (and (< (Apollo_Reactor_quantity) 1)
+            (>= (Terran_Control_Tower_quantity) 1)
+            (>= (Mineral_quantity) 200) (>= (Gas_quantity) 200))
+        :effect (and
+            (decrease (Mineral_quantity) 200) (decrease (Gas_quantity) 200)
+            (increase (Apollo_Reactor_quantity) 1))
+    )
+
+    (:action update-Colossus_Reactor
+        :parameters ()
+        :precondition (and (< (Colossus_Reactor_quantity) 1)
+            (>= (Terran_Physics_Lab_quantity) 1)
+            (>= (Mineral_quantity) 150) (>= (Gas_quantity) 150))
+        :effect (and
+            (decrease (Mineral_quantity) 150) (decrease (Gas_quantity) 150)
+            (increase (Colossus_Reactor_quantity) 1))
+    )
+
+    (:action update-Caduceus_Reactor
+        :parameters ()
+        :precondition (and (< (Caduceus_Reactor_quantity) 1)
+            (>= (Terran_Academy_quantity) 1)
+            (>= (Mineral_quantity) 150) (>= (Gas_quantity) 150))
+        :effect (and
+            (decrease (Mineral_quantity) 150) (decrease (Gas_quantity) 150)
+            (increase (Caduceus_Reactor_quantity) 1))
+    )
+
+    (:action update-Charon_Boosters
+        :parameters ()
+        :precondition (and (< (Charon_Boosters_quantity) 1)
+            (>= (Terran_Machine_Shop_quantity) 1)
+            (>= (Mineral_quantity) 100) (>= (Gas_quantity) 100))
+        :effect (and
+            (decrease (Mineral_quantity) 100) (decrease (Gas_quantity) 100)
+            (increase (Charon_Boosters_quantity) 1))
     )
 
 )

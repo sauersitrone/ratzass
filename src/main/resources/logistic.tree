@@ -5,29 +5,31 @@ import createSquad:"de.simone.btree.logistic.CreateSquadTask"
 import trainForceTo:"de.simone.btree.logistic.TrainForceToTask"
 import isSquadNeeded:"de.simone.btree.logistic.IsSquadNeededCondition"
 import loadBunkers:"de.simone.btree.logistic.LoadBunkersTask"
+import repairUnit:"de.simone.btree.logistic.RepairUnitTask"
 
 root
     selector 
-
         # build the bare minimum infrastructure
         sequence
+            repairUnit
             isUnitNeeded        unitType:"Terran_Refinery" count:1
             train               unitType:"Terran_Refinery" count:1
-            train               unitType:"Terran_Bunker" count:1
-            isUnitNeeded        unitType:"Terran_SCV" count:7
-            train               unitType:"Terran_SCV" count:7
+            isUnitNeeded        unitType:"Terran_SCV" count:6
+            train               unitType:"Terran_SCV" count:6
 
         # create defences and first patrol squad
         sequence
             trainForceTo        level:1
-
             # Create the bunker and populate it with marines
-            isCombatUnitNeeded  unitType:"Terran_Marine" count:4
-            train               unitType:"Terran_Marine" count:4
-            isUnitNeeded        unitType:"Terran_Bunker" count:1
-            train               unitType:"Terran_Bunker" count:1
-            loadBunkers   
-
+            parallel policy:"sequence"
+                sequence
+                    isCombatUnitNeeded  unitType:"Terran_Marine" count:4
+                    train               unitType:"Terran_Marine" count:4
+                sequence
+                    isUnitNeeded        unitType:"Terran_Bunker" count:1
+                    train               unitType:"Terran_Bunker" count:1
+            
+            loadBunkers
             # Create first patrol squad
             isSquadNeeded       type:"Patrol" count:1
             train               unitType:"Terran_Marine" count:10

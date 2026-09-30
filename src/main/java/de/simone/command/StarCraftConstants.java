@@ -60,6 +60,8 @@ public interface StarCraftConstants {
         gather_Gas,
         train,
         build,
+        update,
+        research
     }
 
 }

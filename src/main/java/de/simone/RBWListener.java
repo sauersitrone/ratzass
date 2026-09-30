@@ -75,13 +75,18 @@ public class RBWListener extends DefaultBWListener {
         currentGas = self.gas();
         currentMinerals = self.minerals();
         currentSupplyTotal = (int) self.supplyTotal(Race.Terran) / 2;
-        currentSupplyUsed = (int) self.supplyUsed(Race.Terran) /2;
+        currentSupplyUsed = (int) self.supplyUsed(Race.Terran) / 2;
         currentSupplyLeft = currentSupplyTotal - currentSupplyUsed;
 
         // test autocamera parameter
-        if (Config.autoCamera && CommandQueue.currentCommand != null && CommandQueue.currentCommand.position != null)
-            game.setScreenPosition(CommandQueue.currentCommand.position);
-        
+        // if (Config.autoCamera && CommandQueue.currentCommand != null && (CommandQueue.currentCommand.position != null
+        //         || CommandQueue.currentCommand.tilePosition != null)) {
+        //     if (CommandQueue.currentCommand.position != null)
+        //         game.setScreenPosition(CommandQueue.currentCommand.position);
+        //     if (CommandQueue.currentCommand.tilePosition != null)
+        //         game.setScreenPosition(CommandQueue.currentCommand.tilePosition.toPosition());
+        // }
+
         if (CommandQueue.currentCommand != null && CommandQueue.currentCommand.tilePosition != null) {
             // Position position = CommandQueue.currentCommand.position;
             Position position = CommandQueue.currentCommand.tilePosition.toPosition();

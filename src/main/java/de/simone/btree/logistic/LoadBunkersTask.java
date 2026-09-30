@@ -1,5 +1,6 @@
 package de.simone.btree.logistic;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.badlogic.gdx.ai.btree.Task;
@@ -16,6 +17,7 @@ public class LoadBunkersTask extends LogisticTask {
         List<Unit> marines = UnitsCenter.getUnits().stream().filter(u -> u.getType() == UnitType.Terran_Marine)
                 .toList();
         marines = marines.stream().filter(u -> !u.isLoaded()).toList();
+        marines = new ArrayList<>(marines);
 
         List<Unit> bunkers = UnitsCenter.getUnits().stream().filter(u -> u.getType() == UnitType.Terran_Bunker)
                 .toList();

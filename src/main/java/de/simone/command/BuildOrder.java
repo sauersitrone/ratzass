@@ -3,7 +3,9 @@ package de.simone.command;
 import java.util.ArrayList;
 import java.util.List;
 
+import bwapi.TechType;
 import bwapi.UnitType;
+import bwapi.UpgradeType;
 import de.simone.command.StarCraftConstants.BuildActionName;
 import de.simone.command.StarCraftConstants.OrderPriority;
 import de.simone.command.StarCraftConstants.OrderStatus;
@@ -14,6 +16,8 @@ public class BuildOrder {
 
     public OrderPriority priority = OrderPriority.Normal;
     public UnitType unitType;
+    public TechType techType;
+    public UpgradeType upgradeType;
     public int quantity;
     private OrderStatus status = OrderStatus.Queued;
     public String message = "";

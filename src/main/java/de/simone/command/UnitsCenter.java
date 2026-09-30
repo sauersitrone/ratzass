@@ -7,8 +7,10 @@ import java.util.TreeMap;
 
 import bwapi.Pair;
 import bwapi.Position;
+import bwapi.TechType;
 import bwapi.Unit;
 import bwapi.UnitType;
+import bwapi.UpgradeType;
 import de.simone.RBWListener;
 
 /**
@@ -144,6 +146,18 @@ public class UnitsCenter {
         return trainer;
     }
 
+    public static Unit resolveResearch(TechType techType) {
+        UnitType unitType = techType.whatResearches();
+        Unit trainer = UnitsCenter.getUnit(unitType);
+        return trainer;
+    }
+
+    public static Unit resolveUpgrade(UpgradeType upgradeType) {
+        UnitType unitType = upgradeType.whatUpgrades();
+        Unit trainer = UnitsCenter.getUnit(unitType);
+        return trainer;
+    }
+
     public static Unit getUnit(UnitType unitType) {
         List<Unit> units = getUnits();
         Unit unit = units.stream().filter(u -> u.getType() == unitType).findFirst().orElse(null);
@@ -219,14 +233,14 @@ public class UnitsCenter {
      * @param unit - the reference unit
      * @return the closest unit
      */
-    public static Unit getClosest(List<Unit> units, Unit unit) {
-        Unit closestGeyser = null;
-        for (Unit geyser : units) {
-            if (closestGeyser == null
-                    || geyser.getDistance(unit.getPosition()) < closestGeyser.getDistance(unit.getPosition())) {
-                closestGeyser = geyser;
+    public static Unit getClosestUnit(List<Unit> units, Unit unit) {
+        Unit closestUnit = null;
+        for (Unit unit2 : units) {
+            if (closestUnit == null
+                    || unit2.getDistance(unit.getPosition()) < closestUnit.getDistance(unit.getPosition())) {
+                closestUnit = unit2;
             }
         }
-        return closestGeyser;
+        return closestUnit;
     }
 }

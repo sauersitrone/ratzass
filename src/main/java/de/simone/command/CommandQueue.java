@@ -13,8 +13,6 @@ import bwapi.UnitCommandType;
 import bwapi.UnitFilter;
 import bwapi.UnitType;
 import bwapi.UpgradeType;
-import bwem.BWMap;
-import bwem.ChokePoint;
 import de.simone.RBWListener;
 import de.simone.command.StarCraftConstants.OrderStatus;
 import lombok.extern.java.Log;
@@ -88,10 +86,10 @@ public class CommandQueue {
                     }
                     break;
                 case UnitCommandType.Research:
-                    success = unit.research(command.techType);
+                    success = unit.research(command.techType); // ------------------------------
                     break;
                 case UnitCommandType.Upgrade:
-                    success = unit.upgrade(command.upgradeType);
+                    success = unit.upgrade(command.upgradeType); // ------------------------------
                     break;
                 case UnitCommandType.Set_Rally_Position:
                     success = unit.setRallyPoint(command.position);
@@ -254,7 +252,7 @@ public class CommandQueue {
         // select idle SCV
         Unit dTag = UnitsCenter.getIdleTerranSCV();
         if (dTag == null) {
-            return logFail(command, "No SCV available to gather resources.");
+            return setFail(command, "No SCV available to gather resources.");
         }
 
         // select closest resource
@@ -307,14 +305,14 @@ public class CommandQueue {
 
         // fail save to forece the corrent pddl domain action
         if (unitType.isBuilding()) {
-            logFail(command, "the UnitType " + command.unitType + " is not a trainable unit.");
+            setFail(command, "the UnitType " + command.unitType + " is not a trainable unit.");
             return command;
         }
 
         // resolve facility
         Unit dTag = UnitsCenter.resolveTrainer(unitType);
         if (dTag == null) {
-            logFail(command, "No Facility available to train " + unitType);
+            setFail(command, "No Facility available to train " + unitType);
             return command;
         }
         command.unitId = dTag.getID();
@@ -329,7 +327,7 @@ public class CommandQueue {
 
         // fail save to force the corrent pddl domain action
         if (!unitType.isBuilding()) {
-            logFail(command, "the UnitType " + command.unitType + " is not a building.");
+            setFail(command, "the UnitType " + command.unitType + " is not a building.");
             return command;
         }
 
@@ -338,7 +336,6 @@ public class CommandQueue {
         if (unit == null) {
             // make a note but dont alter the status
             command.message = "No SCV available to build " + command.unitType;
-            // logFail(command, "No SCV available to build " + command.unitType);
             return command;
         }
         command.unitId = unit.getID();
@@ -346,47 +343,27 @@ public class CommandQueue {
         // if the unit to build is a refinery, find the closest geyser
         if (unitType == UnitType.Terran_Refinery) {
             List<Unit> geysers = RBWListener.game.getGeysers();
-            Unit closestGeyser = UnitsCenter.getClosest(geysers, unit);
+            Unit closestGeyser = UnitsCenter.getClosestUnit(geysers, unit);
             if (closestGeyser == null) {
-                logFail(command, "No Geyser available to build " + command.unitType);
+                setFail(command, "No Geyser available to build " + command.unitType);
                 return command;
             }
-
             command.tilePosition = closestGeyser.getTilePosition();
             addCommand(command);
-
             return command;
         }
 
         // if the unit to build is a bunker, find a suitable location.
-        // if (unitType == UnitType.Terran_Bunker) {
-        //     BWMap map = RBWListener.bwem.getMap();
-        //     TilePosition startPosition = RBWListener.game.self().getStartLocation();
+        if (unitType == UnitType.Terran_Bunker) {
+            TilePosition buildPosition = CombatCenter.getBunkerLocation();
+            if (buildPosition != null) {
+                command.tilePosition = buildPosition;
+                addCommand(command);
+                return command;
+            }
+        }
 
-        //     // check chokepoints
-        //     List<ChokePoint> chokePoints = map.getChokePoints();
-        //     ChokePoint chokePoint = null;
-        //     double distance = Integer.MAX_VALUE;
-        //     for (ChokePoint cp : chokePoints) {
-        //         TilePosition cpPosition = cp.getCenter().toTilePosition();
-        //         double dist = startPosition.getDistance(cpPosition);
-        //         if (dist < distance) {
-        //             chokePoint = cp;
-        //             distance = dist;
-        //         }
-        //     }
-
-        //     if (chokePoint != null) {
-        //         command.tilePosition = chokePoint.getCenter().toTilePosition();
-        //         addCommand(command);
-        //         return command;
-        //     }
-
-            // if no chokepoint, fall back to the start location
-            // command.message = "No chokepoint available to build " + command.unitType;
-        // }
-
-        // if the unit to build is a building, find a suitable location
+        // standard build location if no special location is found
         TilePosition tilePosition = RBWListener.game.self().getStartLocation();
         tilePosition = RBWListener.game.getBuildLocation(command.unitType, tilePosition);
         command.tilePosition = tilePosition;
@@ -398,7 +375,6 @@ public class CommandQueue {
     /**
      * Tells the building to build the specified add on.
      * 
-     * // virtual bool buildAddon(UnitType type) = 0;
      */
     public static void buildAddon(int unitID, UnitType unitType) {
         Command command = addCommand(UnitCommandType.Build_Addon, unitID, -1, null);
@@ -408,28 +384,45 @@ public class CommandQueue {
     /**
      * Tells the building to research the specified tech type.
      * 
-     * // virtual bool research(TechType tech) = 0;
      */
-    public static void research(int unitID, TechType techType) {
-        Command command = addCommand(UnitCommandType.Research, unitID, -1, null);
+    public static Command research(TechType techType) {
+        Command command = new Command(UnitCommandType.Research, -1, -1, null);
         command.techType = techType;
+
+        // resolve research facility
+        Unit dTag = UnitsCenter.resolveResearch(techType);
+        if (dTag == null) {
+            setFail(command, "No Facility available to research " + techType);
+            return command;
+        }
+        command.unitId = dTag.getID();
+        addCommand(command);
+        return command;
     }
 
     /**
      * Tells the building to upgrade the specified upgrade type.
      * 
-     * // virtual bool upgrade(UpgradeType upgrade) = 0;
      */
-    public static void upgrade(int unitID, UpgradeType upgradeType) {
-        Command command = addCommand(UnitCommandType.Upgrade, unitID, -1, null);
+    public static Command upgrade(UpgradeType upgradeType) {
+        Command command = new Command(UnitCommandType.Upgrade, -1, -1, null);
         command.upgradeType = upgradeType;
+
+        // resolve upgrade facility
+        Unit dTag = UnitsCenter.resolveUpgrade(upgradeType);
+        if (dTag == null) {
+            setFail(command, "No Facility available to upgrade " + upgradeType);
+            return command;
+        }
+        command.unitId = dTag.getID();
+        addCommand(command);
+        return command;
     }
 
     /**
      * Orders the unit to stop moving. The unit will chase enemies that enter its
      * vision.
      * 
-     * // virtual bool stop() = 0;
      */
     public static void stop(int unitID) {
         addCommand(UnitCommandType.Stop, unitID, -1, null);
@@ -442,7 +435,6 @@ public class CommandQueue {
     /**
      * Orders a unit to follow a target unit.
      * 
-     * // virtual bool follow(Unit* target) = 0;
      */
     public static void follow(int unitID, int targetID) {
         addCommand(UnitCommandType.Follow, unitID, targetID, null);
@@ -451,7 +443,6 @@ public class CommandQueue {
     /**
      * Sets the rally location for a building.
      * 
-     * // virtual bool setRallyPosition(Position target) = 0;
      */
     public static void setRallyPosition(int unitID, Position position) {
         addCommand(UnitCommandType.Set_Rally_Position, unitID, -1, position);
@@ -461,7 +452,7 @@ public class CommandQueue {
      * Sets the rally location for a building based on the target unit's current
      * position.
      * 
-     * // virtual bool setRallyUnit(Unit* target) = 0;
+     * 
      */
     public static void setRallyUnit(int unitID, int targetID) {
         addCommand(UnitCommandType.Set_Rally_Unit, unitID, targetID, null);
@@ -470,16 +461,27 @@ public class CommandQueue {
     /**
      * Instructs an SCV to repair a target unit.
      * 
-     * // virtual bool repair(Unit* target) = 0;
      */
-    public static void repair(int unitID, int targetID) {
-        addCommand(UnitCommandType.Repair, unitID, targetID, null);
+    public static Command repair(int targetID) {
+        Command command = addCommand(UnitCommandType.Repair, -1, targetID, null);
+
+        // look for a free SCV to build the unit
+        Unit unit = UnitsCenter.getFreeTerranSCV();
+        if (unit == null) {
+            // make a note but dont alter the status
+            command.message = "No SCV available to build " + command.unitType;
+            return command;
+        }
+        command.unitId = unit.getID();
+
+        addCommand(command);
+        return command;
     }
 
     /**
      * Orders a zerg unit to morph to a different unit type.
      * 
-     * // virtual bool morph(UnitType type) = 0;
+     * 
      */
     public static void morph(int unitID, UnitType unitType) {
         Command command = addCommand(UnitCommandType.Morph, unitID, -1, null);
@@ -489,7 +491,7 @@ public class CommandQueue {
     /**
      * Tells a zerg unit to burrow. Burrow must be upgraded for non-lurker units.
      * 
-     * // virtual bool burrow() = 0;
+     * 
      */
     public static void burrow(int unitID) {
         addCommand(UnitCommandType.Burrow, unitID, -1, null);
@@ -498,7 +500,7 @@ public class CommandQueue {
     /**
      * Tells a burrowed unit to unburrow.
      * 
-     * // virtual bool unburrow() = 0;
+     * 
      */
     public static void unburrow(int unitID) {
         addCommand(UnitCommandType.Unburrow, unitID, -1, null);
@@ -507,7 +509,7 @@ public class CommandQueue {
     /**
      * Orders a siege tank to siege.
      * 
-     * // virtual bool siege() = 0;
+     * 
      */
     public static void siege(int unitID) {
         addCommand(UnitCommandType.Siege, unitID, -1, null);
@@ -516,7 +518,7 @@ public class CommandQueue {
     /**
      * Orders a siege tank to un-siege.
      * 
-     * // virtual bool unsiege() = 0;
+     * 
      */
     public static void unsiege(int unitID) {
         addCommand(UnitCommandType.Unsiege, unitID, -1, null);
@@ -525,7 +527,7 @@ public class CommandQueue {
     /**
      * Tells a unit to cloak. Works for ghost and wraiths.
      * 
-     * // virtual bool cloak() = 0;
+     * 
      */
     public static void cloak(int unitID) {
         addCommand(UnitCommandType.Cloak, unitID, -1, null);
@@ -534,7 +536,7 @@ public class CommandQueue {
     /**
      * Tells a unit to decloak, works for ghosts and wraiths.
      * 
-     * // virtual bool decloak() = 0;
+     * 
      */
     public static void decloak(int unitID) {
         addCommand(UnitCommandType.Decloak, unitID, -1, null);
@@ -543,7 +545,7 @@ public class CommandQueue {
     /**
      * Commands a Terran building to lift off.
      * 
-     * // virtual bool lift() = 0;
+     * 
      */
     public static void lift(int unitID) {
         addCommand(UnitCommandType.Lift, unitID, -1, null);
@@ -552,7 +554,7 @@ public class CommandQueue {
     /**
      * Commands a terran building to land at the specified location.
      * 
-     * // virtual bool land(TilePosition position) = 0;
+     * 
      */
     public static void land(int unitID, Position position) {
         addCommand(UnitCommandType.Land, unitID, -1, position);
@@ -561,7 +563,7 @@ public class CommandQueue {
     /**
      * Orders the transport unit to load the target unit.
      * 
-     * // virtual bool load(Unit* target) = 0;
+     * 
      */
     public static void load(int unitID, int targetID) {
         addCommand(UnitCommandType.Load, unitID, targetID, null);
@@ -571,7 +573,6 @@ public class CommandQueue {
      * Orders a transport unit to unload the target unit at the current transport
      * location.
      * 
-     * // virtual bool unload(Unit* target) = 0;
      */
     public static void unload(int unitID, int targetID) {
         addCommand(UnitCommandType.Unload, unitID, targetID, null);
@@ -580,7 +581,7 @@ public class CommandQueue {
     /**
      * Orders a transport to unload all units at the current location.
      * 
-     * // virtual bool unloadAll() = 0;
+     * 
      */
     public static void unloadAll(int unitID) {
         addCommand(UnitCommandType.Unload_All, unitID, -1, null);
@@ -589,7 +590,7 @@ public class CommandQueue {
     /**
      * Orders a unit to unload all units at the target location.
      * 
-     * // virtual bool unloadAll(Position position) = 0;
+     * 
      */
     public static void unloadAll(int unitID, Position position) {
         addCommand(UnitCommandType.Unload_All_Position, unitID, -1, position);
@@ -598,7 +599,6 @@ public class CommandQueue {
     /**
      * Orders a being to stop being constructed.
      * 
-     * // virtual bool cancelConstruction() = 0;
      */
     public static void cancelConstruction(int unitID) {
         addCommand(UnitCommandType.Cancel_Construction, unitID, -1, null);
@@ -607,7 +607,6 @@ public class CommandQueue {
     /**
      * Tells an scv to pause construction on a building.
      * 
-     * // virtual bool haltConstruction() = 0;
      */
     public static void haltConstruction(int unitID) {
         addCommand(UnitCommandType.Halt_Construction, unitID, -1, null);
@@ -616,7 +615,6 @@ public class CommandQueue {
     /**
      * Orders a zerg unit to stop morphing.
      * 
-     * // virtual bool cancelMorph() = 0;
      */
     public static void cancelMorph(int unitID) {
         addCommand(UnitCommandType.Cancel_Morph, unitID, -1, null);
@@ -625,7 +623,7 @@ public class CommandQueue {
     /**
      * Tells a building to remove the last unit from its training queue.
      * 
-     * // virtual bool cancelTrain() = 0;
+     * 
      */
     public static void cancelTrain(int unitID) {
         addCommand(UnitCommandType.Cancel_Train, unitID, -1, null);
@@ -634,7 +632,7 @@ public class CommandQueue {
     /**
      * Tells a building to remove a specific unit from its queue.
      * 
-     * // virtual bool cancelTrain(int slot) = 0;
+     * 
      */
     public static void cancelTrain(int unitID, int slot) {
         addCommand(UnitCommandType.Cancel_Train_Slot, unitID, slot, null);
@@ -643,7 +641,7 @@ public class CommandQueue {
     /**
      * Orders a Terran building to stop constructing an add on.
      * 
-     * // virtual bool cancelAddon() = 0;
+     * 
      */
     public static void cancelAddon(int unitID) {
         addCommand(UnitCommandType.Cancel_Addon, unitID, -1, null);
@@ -652,7 +650,7 @@ public class CommandQueue {
     /***
      * Tells a building cancel a research in progress.
      * 
-     * // virtual bool cancelResearch() = 0;
+     * 
      */
     public static void cancelResearch(int unitID) {
         addCommand(UnitCommandType.Cancel_Research, unitID, -1, null);
@@ -661,7 +659,7 @@ public class CommandQueue {
     /***
      * Tells a building cancel an upgrade in progress.
      * 
-     * // virtual bool cancelUpgrade() = 0;
+     * 
      */
     public static void cancelUpgrade(int unitID) {
         addCommand(UnitCommandType.Cancel_Upgrade, unitID, -1, null);
@@ -670,7 +668,7 @@ public class CommandQueue {
     /**
      * Tells the unit to use the specified tech, (i.e. STEM PACKS)
      * 
-     * // virtual bool useTech(TechType tech) = 0;
+     * 
      */
     public static void useTech(int unitID, TechType techType) {
         Command command = addCommand(UnitCommandType.Use_Tech, unitID, -1, null);
@@ -682,7 +680,7 @@ public class CommandQueue {
      * 
      * Note: for AOE spells such as plague.
      * 
-     * // virtual bool useTech(TechType tech, Position position) = 0;
+     * 
      */
     public static void useTech(int unitID, TechType techType, Position position) {
         addCommand(UnitCommandType.Use_Tech_Position, unitID, -1, position);
@@ -693,21 +691,19 @@ public class CommandQueue {
      * 
      * Note: for targeted spells such as irradiate.
      * 
-     * // virtual bool useTech(TechType tech, Unit* target) = 0;
+     * 
      */
     public static void useTech(int unitID, TechType techType, int targetID) {
         addCommand(UnitCommandType.Use_Tech_Unit, unitID, targetID, null);
     }
 
-    public static Command logSuccess(Command command, String message) {
-        log.info("SUCCEEDED: " + message);
+    private static Command setSuccess(Command command, String message) {
         command.status = OrderStatus.Completed;
         command.message = message;
         return command;
     }
 
-    public static Command logFail(Command command, String message) {
-        log.info("FAILED: " + message);
+    private static Command setFail(Command command, String message) {
         command.status = OrderStatus.Error;
         command.message = message;
         return command;

@@ -16,8 +16,10 @@ import org.apache.commons.lang3.tuple.Pair;
 import com.badlogic.gdx.ai.btree.BehaviorTree;
 import com.hstairs.ppmajal.transition.TransitionGround;
 
+import bwapi.TechType;
 import bwapi.Unit;
 import bwapi.UnitType;
+import bwapi.UpgradeType;
 import de.simone.RBWListener;
 import de.simone.RUtils;
 import de.simone.StarCraftException;
@@ -33,7 +35,7 @@ import de.simone.command.StarCraftConstants.OrderStatus;
  */
 public class LogisticCenter {
     private static String domain;
-    private static String problem;
+    // private static String problem;
     private static String planner;
     private static List<LogisticCenterListener> listeners = new ArrayList<>();
     private static List<BuildOrder> buildOrders = new ArrayList<>();
@@ -109,7 +111,7 @@ public class LogisticCenter {
             if (RBWListener.currentMinerals >= buildOrder.quantity) {
                 buildOrder.setStatus(OrderStatus.Completed);
             } else {
-                // listeners.forEach(l -> l.update(buildOrders));
+                listeners.forEach(l -> l.update(buildOrders));
                 return;
             }
         }
@@ -128,20 +130,23 @@ public class LogisticCenter {
             if (RBWListener.currentGas >= buildOrder.quantity) {
                 buildOrder.setStatus(OrderStatus.Completed);
             } else {
-                // listeners.forEach(l -> l.update(buildOrders));
+                listeners.forEach(l -> l.update(buildOrders));
                 return;
             }
         }
 
         /**
-         * only 1 build at the time. this aboid selectind adjacents areas to 2 o more builds
+         * only 1 build at the time. this aboid selectind adjacents areas to 2 o more
+         * builds
          */
         optional = buildOrders.stream()
                 .filter(bo -> (bo.action == StarCraftConstants.BuildActionName.build)
                         && bo.getStatus() == OrderStatus.Running)
                 .findFirst();
-        if (optional.isPresent())
+        if (optional.isPresent()) {
+            listeners.forEach(l -> l.update(buildOrders));
             return;
+        }
 
         /**
          * start the next queued build or train action
@@ -163,6 +168,20 @@ public class LogisticCenter {
             // build
             if (buildOrder.action == StarCraftConstants.BuildActionName.build) {
                 Command command = CommandQueue.build(buildOrder.unitType);
+                buildOrder.message = command.message;
+                buildOrder.setStatus(OrderStatus.Running);
+            }
+
+            // Research
+            if (buildOrder.action == StarCraftConstants.BuildActionName.research) {
+                Command command = CommandQueue.research(buildOrder.techType);
+                buildOrder.message = command.message;
+                buildOrder.setStatus(OrderStatus.Running);
+            }
+
+            // upgrade
+            if (buildOrder.action == StarCraftConstants.BuildActionName.update) {
+                Command command = CommandQueue.upgrade(buildOrder.upgradeType);
                 buildOrder.message = command.message;
                 buildOrder.setStatus(OrderStatus.Running);
             }
@@ -192,10 +211,35 @@ public class LogisticCenter {
             throw new StarCraftException("An order for " + quantity + " of " + unitType + " is already in.");
         }
 
-        String voucher = "V-" + ++voucherIdx;
-        executorService.submit(() -> solve(voucher, unitType, quantity));
-        // futureOrder = executorService.submit(() -> solve(voucher, unitType,
-        // quantity));
+        String voucher = "B-" + ++voucherIdx;
+        RPDDLProblem pddlProblem = new RPDDLProblem("Build goal for " + unitType + " x" + quantity);
+        pddlProblem.setBuildGoal(unitType, quantity);
+
+        executorService.submit(() -> solve(voucher, pddlProblem));
+
+        List<BuildOrder> buildOrders2 = new ArrayList<>();
+        orders.put(voucher, buildOrders2);
+        return voucher;
+    }
+
+    public static String addBuildOrder(UpgradeType upgradeType, int quantity) {
+        RPDDLProblem pddlProblem = new RPDDLProblem("Upgrade goal for " + upgradeType);
+        pddlProblem.setUpgradeGoal(upgradeType, quantity);
+        String voucher = "U-" + ++voucherIdx;
+
+        executorService.submit(() -> solve(voucher, pddlProblem));
+
+        List<BuildOrder> buildOrders2 = new ArrayList<>();
+        orders.put(voucher, buildOrders2);
+        return voucher;
+    }
+
+    public static String addBuildOrder(TechType techType) {
+        String voucher = "R-" + ++voucherIdx;
+        RPDDLProblem pddlProblem = new RPDDLProblem("Research goal for " + techType);
+        pddlProblem.setResearchGoal(techType);
+
+        executorService.submit(() -> solve(voucher, pddlProblem));
 
         List<BuildOrder> buildOrders2 = new ArrayList<>();
         orders.put(voucher, buildOrders2);
@@ -206,12 +250,10 @@ public class LogisticCenter {
         return orders.get(voucher);
     }
 
-    private static List<BuildOrder> solve(String voucher, UnitType unitType, int quantity) {
+    private static List<BuildOrder> solve(String voucher, RPDDLProblem pddlProblem) {
         // configure the PDDL problem for the given unit type and quantity
-        Pair<UnitType, Integer> pair = Pair.of(unitType, quantity);
-        RPDDLProblem pddlProblem = new RPDDLProblem(pair);
         pddlProblem.printProblem = true;
-        problem = pddlProblem.getPDDLProblem();
+        String problem = pddlProblem.getPDDLProblem();
 
         // parse and configure the planner
         String[] args1 = { "-o", domain, "-f", problem, "-planner", planner };
@@ -225,31 +267,11 @@ public class LogisticCenter {
         List<String> planStrings = plan.stream().map(inpair -> inpair.getRight().getName()).toList();
 
         if (planStrings == null || planStrings.isEmpty())
-            throw new StarCraftException("No plan found for build order: " + unitType + " x" + quantity);
+            throw new StarCraftException("No plan found for build order: " + pddlProblem.description);
 
         // convert the plan strings into build orders
         List<BuildOrder> buildOrders2 = new ArrayList<>();
-        // TODO: test if the plan is better that way. without optimization may is faster
         buildOrders2 = BuildOrder.getBuildOrders(planStrings);
-        // for (String action : planStrings) {
-        // BuildOrder buildOrder = new BuildOrder(UnitType.None, -1);
-        // if (action.equals("gather-Mineral") || action.equals("gather-Gas")) {
-        // buildOrder.action = action.equals("gather-Mineral") ?
-        // BuildActionName.gather_Mineral
-        // : BuildActionName.gather_Gas;
-        // buildOrder.quantity = action.equals("gather-Mineral") ?
-        // StarCraftConstants.MINERAL_LOAD
-        // : StarCraftConstants.GAS_LOAD;
-        // buildOrders2.add(buildOrder);
-        // continue;
-        // }
-
-        // String[] action_UnitName = action.split("-");
-        // buildOrder = new BuildOrder(UnitType.valueOf(action_UnitName[1]), 1);
-        // buildOrder.action = BuildActionName.valueOf(action_UnitName[0]);
-        // buildOrders2.add(buildOrder);
-        // }
-
         List<BuildOrder> buildOrders3 = orders.get(voucher);
         buildOrders3.addAll(buildOrders2);
         buildOrders.addAll(buildOrders2);
@@ -271,13 +293,26 @@ public class LogisticCenter {
     }
 
     // public static void main(String[] args) {
-    // RPDDLProblem pddlProblem = new RPDDLProblem(Pair.of(UnitType.Terran_Bunker,
-    // 1));
+    // RPDDLProblem pddlProblem = new RPDDLProblem();
+    // pddlProblem.setResearchGoal(TechType.Tank_Siege_Mode);
+    // // pddlProblem.setUpgradeGoal(UpgradeType.U_238_Shells, 1);
     // pddlProblem.isTest = true;
     // pddlProblem.unitsTest.add(Pair.of(UnitType.Terran_Command_Center, 1));
     // pddlProblem.unitsTest.add(Pair.of(UnitType.Terran_SCV, 1));
     // LogisticCenter.problem = pddlProblem.getPDDLProblem();
-    // List<String> plan = LogisticCenter.solve();
-    // plan.forEach(System.out::println);
+
+    // // parse and configure the planner
+    // String[] args1 = { "-o", domain, "-f", problem, "-planner", planner };
+    // renhsp.parseInput(args1);
+    // renhsp.configurePlanner();
+    // if (!renhsp.parsingDomainAndProblem(args1))
+    // throw new StarCraftException("Error parsing domain and problem files.");
+
+    // // solve the planning problem
+    // LinkedList<ImmutablePair<BigDecimal, TransitionGround>> plan =
+    // renhsp.planning();
+    // List<String> planStrings = plan.stream().map(inpair ->
+    // inpair.getRight().getName()).toList();
+    // planStrings.forEach(System.out::println);
     // }
 }

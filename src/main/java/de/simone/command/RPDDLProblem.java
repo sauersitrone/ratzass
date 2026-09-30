@@ -7,7 +7,9 @@ import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+import bwapi.TechType;
 import bwapi.UnitType;
+import bwapi.UpgradeType;
 import de.simone.StarCraftException;
 
 /**
@@ -24,9 +26,9 @@ public class RPDDLProblem {
                 )
 
                 (:init
-                    ; Mineral & Gas allways are considered constant for the initial state. 
-                    ; the solver must compute the solution  with no resources. if e.g a merine is needed, and we 
-                    ; habe 10 mineral units, the solver will compute that to create the marine, is needed only 40 units, 
+                    ; Mineral & Gas allways are considered constant for the initial state.
+                    ; the solver must compute the solution  with no resources. if e.g a marine is needed, and we
+                    ; habe 10 mineral units, the solver will compute that to create the marine, is needed only 40 units,
                     ; which is incorrect (in reality)
                     (= (Gas_quantity) 0)
                     (= (Mineral_quantity) 0)
@@ -44,26 +46,45 @@ public class RPDDLProblem {
 
     private List<String> objects = new ArrayList<>();
     private List<Pair<String, Integer>> init = new ArrayList<>();
-    private List<Pair<String, Integer>> goal = new ArrayList<>();
+    private List<Pair<String, Integer>> buildGoals = new ArrayList<>();
+    private List<String> researchGoals = new ArrayList<>();
+    private List<UpgradeType> upgradeTypes = new ArrayList<>();
 
     public boolean isTest = false;
     public boolean printProblem = false;
     public List<Pair<UnitType, Integer>> unitsTest = new ArrayList<>();
+    public List<Pair<UpgradeType, Integer>> upgradesTest = new ArrayList<>();
+    public String description;
 
-    @SafeVarargs
-    public RPDDLProblem(Pair<UnitType, Integer>... goals) {
-        for (Pair<UnitType, Integer> goalStatement : goals) {
-            goal.add(Pair.of(goalStatement.getKey().toString(), goalStatement.getValue()));
-        }
+    public RPDDLProblem(String description) {
+        this.description = description;
+        upgradeTypes.add(UpgradeType.Terran_Infantry_Armor);
+        upgradeTypes.add(UpgradeType.Terran_Vehicle_Plating);
+        upgradeTypes.add(UpgradeType.Terran_Ship_Plating);
+        upgradeTypes.add(UpgradeType.Terran_Infantry_Weapons);
+        upgradeTypes.add(UpgradeType.Terran_Vehicle_Weapons);
+        upgradeTypes.add(UpgradeType.Terran_Ship_Weapons);
+        upgradeTypes.add(UpgradeType.U_238_Shells);
+        upgradeTypes.add(UpgradeType.Ion_Thrusters);
+        upgradeTypes.add(UpgradeType.Titan_Reactor);
+        upgradeTypes.add(UpgradeType.Ocular_Implants);
+        upgradeTypes.add(UpgradeType.Moebius_Reactor);
+        upgradeTypes.add(UpgradeType.Apollo_Reactor);
+        upgradeTypes.add(UpgradeType.Colossus_Reactor);
+        upgradeTypes.add(UpgradeType.Caduceus_Reactor);
+        upgradeTypes.add(UpgradeType.Charon_Boosters);
     }
 
-    private List<Pair<String, Integer>> removePrefixes(List<Pair<String, Integer>> list) {
-        List<Pair<String, Integer>> updatedList = new ArrayList<>();
-        for (Pair<String, Integer> pair : list) {
-            String key = pair.getKey();
-            updatedList.add(Pair.of(key, pair.getValue()));
-        }
-        return updatedList;
+    public void setBuildGoal(UnitType unitType, Integer quantity) {
+        this.buildGoals.add(Pair.of(unitType.toString(), quantity));
+    }
+
+    public void setUpgradeGoal(UpgradeType upgradeType, Integer quantity) {
+        this.buildGoals.add(Pair.of(upgradeType.toString(), quantity));
+    }
+
+    public void setResearchGoal(TechType goal) {
+        this.researchGoals.add(goal.toString());
     }
 
     private void removeObjectPrefixes() {
@@ -78,7 +99,7 @@ public class RPDDLProblem {
 
     public String getPDDLProblem() {
         resolve();
-        if (objects.isEmpty() || init.isEmpty() || goal.isEmpty()) {
+        if (objects.isEmpty() || init.isEmpty() || (buildGoals.isEmpty() && researchGoals.isEmpty())) {
             throw new StarCraftException("PDDL problem is empty. Please add objects, init, and goal statements.");
         }
 
@@ -105,11 +126,17 @@ public class RPDDLProblem {
         // Add goal. e.g: (>= (unit_quantity) 1)
         // goal = removePrefixes(goal);
         StringBuilder goalBuilder = new StringBuilder();
-        for (Pair<String, Integer> goalStatement : goal) {
+        for (Pair<String, Integer> goalStatement : buildGoals) {
             String varName = goalStatement.getKey() + "_quantity";
             goalBuilder.append("(>= (").append(varName).append(") ").append(goalStatement.getValue())
                     .append(")\n\t\t");
         }
+
+        // add research goals e.g: (Stim_Packs_researched)
+        for (String researchGoal : researchGoals) {
+            goalBuilder.append("(").append(researchGoal).append("_researched)\n\t\t");
+        }
+
         template = template.replace("<goal>", goalBuilder.toString().trim());
 
         File problemFile = null;
@@ -180,6 +207,15 @@ public class RPDDLProblem {
             }
         }
 
+        for (UpgradeType upgradeType : upgradeTypes) {
+            Pair<UpgradeType, Integer> upgradeTest = upgradesTest.stream()
+                    .filter(pair -> pair.getKey() == upgradeType)
+                    .findFirst()
+                    .orElse(Pair.of(upgradeType, 0));
+            int count = upgradeTest.getValue();
+            init.add(Pair.of(upgradeType.toString(), count));
+        }
+
     }
 
     private void resolveLive() {
@@ -190,5 +226,12 @@ public class RPDDLProblem {
                 init.add(Pair.of(unitType.toString(), count));
             }
         }
+        for (UpgradeType unitType : upgradeTypes) {
+            // int count = UnitsCenter.getUnitCount(unitType);
+            // updateObjectList(unitType, count);
+            int count = 0;
+            init.add(Pair.of(unitType.toString(), count));
+        }
+
     }
 }

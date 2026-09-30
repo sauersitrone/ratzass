@@ -10,7 +10,6 @@ import javax.swing.JComponent;
 import javax.swing.UIManager;
 
 import com.formdev.flatlaf.FlatClientProperties;
-import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 import de.simone.Main;
 import de.simone.ui.forms.BehaviorTreeView;
@@ -34,7 +33,6 @@ import raven.modal.drawer.renderer.DrawerStraightDotLineStyle;
 import raven.modal.drawer.simple.SimpleDrawerBuilder;
 import raven.modal.drawer.simple.footer.LightDarkButtonFooter;
 import raven.modal.drawer.simple.footer.SimpleFooterData;
-import raven.modal.drawer.simple.header.SimpleHeader;
 import raven.modal.drawer.simple.header.SimpleHeaderData;
 import raven.modal.option.Option;
 import raven.modal.utils.FlatLafStyleUtils;
@@ -58,24 +56,10 @@ public class MyDrawerBuilder extends SimpleDrawerBuilder {
 
     public void setUser(ModelUser user) {
         boolean updateMenuItem = this.user == null || this.user.getRole() != user.getRole();
-
         this.user = user;
 
         // set user to menu validation
         MyMenuValidation.setUser(user);
-
-        // setup drawer header
-        SimpleHeader header = (SimpleHeader) getHeader();
-        SimpleHeaderData data = header.getSimpleHeaderData();
-        AvatarIcon icon = (AvatarIcon) data.getIcon();
-        // String iconName = user.getRole() == ModelUser.Role.ADMIN ? "avatar_male.svg"
-        // : "avatar_female.svg";
-
-        // icon.setIcon(new FlatSVGIcon("ui/drawer/image/" + iconName, 100, 100));
-        icon.setIcon(new ImageIcon(getClass().getResource("/ui/drawer/image/avatar.jpg")));
-        data.setTitle(user.getUserName());
-        data.setDescription(user.getMail());
-        header.setSimpleHeaderData(data);
 
         if (updateMenuItem) {
             rebuildMenu();
@@ -92,26 +76,16 @@ public class MyDrawerBuilder extends SimpleDrawerBuilder {
 
     @Override
     public SimpleHeaderData getSimpleHeaderData() {
-        AvatarIcon icon = new AvatarIcon(new FlatSVGIcon("ui/drawer/image/avatar_male.svg", 100, 100), 50, 50, 3.5f);
+        AvatarIcon icon = new AvatarIcon(new ImageIcon(getClass().getResource("/avatar.jpg")), 50, 50, 3.5f);
         icon.setType(AvatarIcon.Type.MASK_SQUIRCLE);
         icon.setBorder(2, 2);
-
-        changeAvatarIconBorderColor(icon);
-
-        UIManager.addPropertyChangeListener(evt -> {
-            if (evt.getPropertyName().equals("lookAndFeel")) {
-                changeAvatarIconBorderColor(icon);
-            }
-        });
-
-        return new SimpleHeaderData()
+        icon.setBorderColor(new AvatarIcon.BorderColor(UIManager.getColor("Component.accentColor"), 0.7f));
+        SimpleHeaderData headerData = new SimpleHeaderData()
                 .setIcon(icon)
                 .setTitle("Ratzass")
                 .setDescription("StarCraft II boot");
-    }
+        return headerData;
 
-    private void changeAvatarIconBorderColor(AvatarIcon icon) {
-        icon.setBorderColor(new AvatarIcon.BorderColor(UIManager.getColor("Component.accentColor"), 0.7f));
     }
 
     @Override
@@ -189,7 +163,7 @@ public class MyDrawerBuilder extends SimpleDrawerBuilder {
             if (optional.isPresent()) {
                 FormManager.showForm(optional.get());
             } else {
-            //     // else, standar show
+                // // else, standar show
                 FormManager.showForm(AllForms.getForm(formClass));
             }
         });
@@ -199,7 +173,8 @@ public class MyDrawerBuilder extends SimpleDrawerBuilder {
                 .setIconScale(0.45f);
 
         // i need to instantiates all starcraft form to recive all events, if not,
-        // previous event will be lost if the user dont click the form on time
+        // previous event will be lost if the user dont click the form on time (not he
+        // map because dont draw :/)
         starcraftForms.add(new LogisticCenterView());
         starcraftForms.add(new UnitsCenterView());
         starcraftForms.add(new BehaviorTreeView());

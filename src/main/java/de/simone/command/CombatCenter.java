@@ -197,23 +197,21 @@ public class CombatCenter {
         TilePosition buildPosition = null;
         // is there choke point nearby?
         if (chokePoint != null) {
-            Point2D a = Vec.of(chokePoint.getCenter().x, chokePoint.getCenter().y); // start from chokepoint to base
+            TilePosition chokePosition = chokePoint.getCenter().toTilePosition();
+            Point2D a = Vec.of(chokePosition.x, chokePosition.y);
             Point2D b = Vec.of(startPosition.x, startPosition.y);
-            double dis = Vec.len(Vec.sub(b, a));
-            int steps = (int) (dis / 32);
+            double len = Math.sqrt(a.distanceSq(b));
+            int steps = (int) Math.ceil(len);
             for (int i = 1; i <= steps; i++) {
-                Point2D point = Vec.lerp(a, b, i / (double) steps);
+                Point2D point = Vec.lerp(a, b, (double) i / steps);
                 buildPosition = new TilePosition((int) point.getX(), (int) point.getY());
                 if (RBWListener.game.canBuildHere(buildPosition, UnitType.Terran_Bunker))
-                    break;
+                    return buildPosition;
             }
         }
 
-        // look for a radial defensive position if no choke point is nearby
-        Point2D b = Vec.of(startPosition.x, startPosition.y);
-        List<Point2D> point2ds = Vec.getIntersectionPoints(b, 20 * 32);
-        List<TilePosition> positions = new ArrayList<>();
-        point2ds.forEach(p -> positions.add(new TilePosition((int) p.getX(), (int) p.getY())));
+        // no choke point nearby, find a position around the start position
+        List<TilePosition> positions = getBunkerLocations();
         positions.removeIf(p -> !RBWListener.game.canBuildHere(p, UnitType.Terran_Bunker));
         if (!positions.isEmpty())
             buildPosition = positions.get(0);
@@ -221,4 +219,18 @@ public class CombatCenter {
         return buildPosition;
     }
 
+    /**
+     * return a list of possible bunker locations around the start position. The
+     * list is ordered by distance to the start position.
+     * 
+     * @return the list
+     */
+    public static List<TilePosition> getBunkerLocations() {
+        TilePosition startPosition = RBWListener.game.self().getStartLocation();
+        Point2D b = Vec.of(startPosition.x, startPosition.y);
+        List<Point2D> point2ds = Vec.getIntersectionPoints(b, 20 * 32);
+        List<TilePosition> positions = new ArrayList<>();
+        point2ds.forEach(p -> positions.add(new TilePosition((int) p.getX(), (int) p.getY())));
+        return positions;
+    }
 }

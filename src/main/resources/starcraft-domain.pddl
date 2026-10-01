@@ -25,7 +25,7 @@
     (:functions
         (Mineral_quantity)
         (Gas_quantity)
-        (Supply_quantity)
+        (Supply_Depot_quantity)
         (Terran_Command_Center_quantity)
         (Terran_SCV_quantity)
         (Terran_Marine_quantity)

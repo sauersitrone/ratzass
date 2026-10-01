@@ -37,6 +37,7 @@ import bwem.Area;
 import bwem.ChokePoint;
 import de.simone.Config;
 import de.simone.RBWListener;
+import de.simone.command.CombatCenter;
 import de.simone.command.Command;
 import de.simone.command.CommandQueueListener;
 
@@ -99,6 +100,7 @@ public class StarCraftTileMap extends JPanel
     private ObjectGroup enemyUnitsGroup;
     private ObjectGroup allyUnitsGroup;
     private ObjectGroup neutralUnitsGroup;
+    private TilePosition bunkerLocation;
     private boolean mapInitialized = false;
 
     public StarCraftTileMap() {
@@ -197,6 +199,7 @@ public class StarCraftTileMap extends JPanel
 
             refreshTerrainLayer();
             refreshObjectGroups();
+            bunkerLocation = CombatCenter.getBunkerLocation();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -430,6 +433,7 @@ public class StarCraftTileMap extends JPanel
             paintInfluenceMap(g2);
         }
 
+        paintBunkerLocation(g2);
         paintHoveredTile(g2);
 
         g2.scale(1.0 / scale, 1.0 / scale);
@@ -456,6 +460,19 @@ public class StarCraftTileMap extends JPanel
         g2.drawRect(x, y, tileSize, tileSize);
         g2.setFont(font);
         g2.drawString(coordinates, x + 2, y + g2.getFontMetrics().getAscent() + 2);
+    }
+
+    private void paintBunkerLocation(Graphics2D g2) {
+        if (game == null || bunkerLocation == null || bunkerLocation.x < 0 || bunkerLocation.y < 0
+                || bunkerLocation.x >= game.mapWidth() || bunkerLocation.y >= game.mapHeight())
+            return;
+
+        int x = bunkerLocation.x * tileSize;
+        int y = bunkerLocation.y * tileSize;
+        g2.setColor(new Color(255, 0, 0, 55));
+        g2.fillRect(x, y, tileSize, tileSize);
+        g2.setColor(Color.RED);
+        g2.drawRect(x, y, tileSize, tileSize);
     }
 
     /**

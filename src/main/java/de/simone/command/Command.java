@@ -34,6 +34,7 @@ public class Command {
     public UpgradeType upgradeType = UpgradeType.None;
     public Position position = null;
     public TilePosition tilePosition = null;
+    public int trys = 0;
 
     private Command() {
         //

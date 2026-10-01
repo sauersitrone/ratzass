@@ -10,6 +10,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import bwapi.TechType;
 import bwapi.UnitType;
 import bwapi.UpgradeType;
+import de.simone.RBWListener;
 import de.simone.StarCraftException;
 
 /**
@@ -32,7 +33,6 @@ public class RPDDLProblem {
                     ; which is incorrect (in reality)
                     (= (Gas_quantity) 0)
                     (= (Mineral_quantity) 0)
-                    (= (Supply_quantity) 0)
                     <init>
                 )
 
@@ -226,9 +226,9 @@ public class RPDDLProblem {
                 init.add(Pair.of(unitType.toString(), count));
             }
         }
+        init.add(Pair.of("Supply", RBWListener.currentSupplyLeft)); // ooohhh yeahhhh
         for (UpgradeType unitType : upgradeTypes) {
-            // int count = UnitsCenter.getUnitCount(unitType);
-            // updateObjectList(unitType, count);
+            // TODO: check how to get the current upgrade level for each upgrade type. For now, we assume it's 0.
             int count = 0;
             init.add(Pair.of(unitType.toString(), count));
         }

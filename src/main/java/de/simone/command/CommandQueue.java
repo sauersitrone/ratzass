@@ -212,7 +212,6 @@ public class CommandQueue {
                 command.message = "Minerals:" + RBWListener.currentMinerals +
                         ", Gas:" + RBWListener.currentGas +
                         ", Supply:" + RBWListener.currentSupplyLeft;
-
             }
 
             listeners.forEach(listener -> listener.update(commands));

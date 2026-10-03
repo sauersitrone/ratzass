@@ -9,9 +9,10 @@ import bwapi.DefaultBWListener;
 import bwapi.Flag;
 import bwapi.Game;
 import bwapi.Player;
-import bwapi.Position;
 import bwapi.Race;
+import bwapi.TilePosition;
 import bwapi.Unit;
+import bwapi.UnitType;
 import bwem.BWEM;
 import de.simone.command.CommandQueue;
 import de.simone.command.LogisticCenter;
@@ -79,23 +80,25 @@ public class RBWListener extends DefaultBWListener {
         currentSupplyLeft = currentSupplyTotal - currentSupplyUsed;
 
         // test autocamera parameter
-        // if (Config.autoCamera && CommandQueue.currentCommand != null && (CommandQueue.currentCommand.position != null
-        //         || CommandQueue.currentCommand.tilePosition != null)) {
-        //     if (CommandQueue.currentCommand.position != null)
-        //         game.setScreenPosition(CommandQueue.currentCommand.position);
-        //     if (CommandQueue.currentCommand.tilePosition != null)
-        //         game.setScreenPosition(CommandQueue.currentCommand.tilePosition.toPosition());
+        // if (Config.autoCamera && CommandQueue.currentCommand != null &&
+        // (CommandQueue.currentCommand.position != null
+        // || CommandQueue.currentCommand.tilePosition != null)) {
+        // if (CommandQueue.currentCommand.position != null)
+        // game.setScreenPosition(CommandQueue.currentCommand.position);
+        // if (CommandQueue.currentCommand.tilePosition != null)
+        // game.setScreenPosition(CommandQueue.currentCommand.tilePosition.toPosition());
         // }
 
         if (CommandQueue.currentCommand != null && CommandQueue.currentCommand.tilePosition != null) {
-            // Position position = CommandQueue.currentCommand.position;
-            Position position = CommandQueue.currentCommand.tilePosition.toPosition();
-            int left = position.x - CommandQueue.currentCommand.unitType.dimensionLeft();
-            int right = position.x + CommandQueue.currentCommand.unitType.dimensionRight();
-            int up = position.y - CommandQueue.currentCommand.unitType.dimensionUp();
-            int down = position.y + CommandQueue.currentCommand.unitType.dimensionDown();
+            // The target tilePosition is a build footprint’s top-left tile.
+            TilePosition tilePosition = CommandQueue.currentCommand.tilePosition;
+            UnitType unitType = CommandQueue.currentCommand.unitType;
+            int left = tilePosition.x * TilePosition.SIZE_IN_PIXELS;
+            int top = tilePosition.y * TilePosition.SIZE_IN_PIXELS;
+            int right = left + unitType.tileWidth() * TilePosition.SIZE_IN_PIXELS;
+            int bottom = top + unitType.tileHeight() * TilePosition.SIZE_IN_PIXELS;
             Color color = RBWListener.game.self().getColor();
-            RBWListener.game.drawBoxMap(left, up, right, down, color);
+            RBWListener.game.drawBoxMap(left, top, right, bottom, color);
         }
 
         // RBWListener.game.drawText(CoordinateType.Screen, 8, 16, "FPS: " +

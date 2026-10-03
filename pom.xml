@@ -10,7 +10,7 @@
     <version>1.0-SNAPSHOT</version>
 
     <name>ratzass</name>
-    <description>A Java implementation of Monte Carlo Tree Search (MCTS) for game AI.</description>
+    <description>StarCraft Brood War bot.</description>
     <url>http://www.simone.de</url>
 
     <properties>

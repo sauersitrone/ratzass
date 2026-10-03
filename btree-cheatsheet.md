@@ -17,8 +17,8 @@ https://github.com/libgdx/gdx-ai/wiki/Behavior-Trees
 
 | Keyword | Description |
 |---|---|
-| `sequence` | Runs children in order. Fails on first failure; succeeds when all succeed. |
-| `selector` | Runs children in order. Succeeds on first success; fails when all fail. |
+| `sequence` | A sequence is a branch task that runs each of its child behaviors in turn. It will return immediately with a failure status code when one of its children fails. As long as its children are succeeding, it will keep going. If it runs out of children, it will return in success. |
+| `selector` | A selector is a branch task that runs each of its child behaviors in turn. It will return immediately with a success status code when one of its children runs successfully. As long as its children are failing, it will keep on trying. If it runs out of children completely, it will return a failure status code. |
 | `randomSequence` | Like `sequence` but shuffles children each run. |
 | `randomSelector` | Like `selector` but shuffles children each run. |
 | `parallel policy:"sequence\|selector"` | Runs **all** children each tick. Policy determines pass/fail rule (see below). |

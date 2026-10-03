@@ -9,11 +9,13 @@ import java.awt.event.WindowEvent;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 
+import com.badlogic.gdx.ai.btree.BehaviorTree;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont;
 import com.formdev.flatlaf.util.FontUtils;
 
+import de.simone.btree.Blackboard;
 import de.simone.command.CombatCenter;
 import de.simone.command.CommandQueue;
 import de.simone.command.LogisticCenter;
@@ -58,6 +60,14 @@ public class Main extends JFrame {
         new LogisticCenter();
         new CombatCenter();
 
+        // test the behavior tree parser
+        BehaviorTree<?> tree = RUtils.getBehaviorTree("logistic.tree", new Blackboard());
+        BehaviorTree<?> tree1 = RUtils.getBehaviorTree("squad.tree", new Blackboard());
+        if (tree == null || tree1 == null) {
+            System.err.println("The behavior trees are not well-formed.");
+            System.exit(1);
+        }
+        
         DemoPreferences.init();
         FlatRobotoFont.install();
         FlatLaf.registerCustomDefaultsSource("ui.themes");

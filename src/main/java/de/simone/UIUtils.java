@@ -67,6 +67,7 @@ public class UIUtils {
         slider.setMajorTickSpacing((max - min) / 10);
         slider.setSnapToTicks(true);
         slider.setPaintTicks(true);
+        slider.setPaintLabels(true);
         slider.addChangeListener(listener);
         return slider;
     }

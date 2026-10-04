@@ -12,9 +12,9 @@ import de.simone.command.UnitsCenter;
 
 /**
  * Checks if a combat unit of the specified type is needed based on the current
- * count of unassigned units.
+ * count of unassigned units. An unassigned combat unit is one that is alive and
+ * not currently assigned to any squad.
  * 
- * NOTE: all combat units must be assigned to an squad
  */
 public class IsCombatUnitNeededCondition extends LogisticTask {
 

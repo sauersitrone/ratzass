@@ -20,8 +20,8 @@ public class IsSquadNeededCondition extends LogisticTask {
 
     @Override
     public Status execute() {
-        List<Squad> units = UnitsCenter.getSquads();
-        long c = units.stream().filter(s -> s.type == type).count();
+        List<Squad> squads = UnitsCenter.getSquads();
+        long c = squads.stream().filter(s -> s.type == type).count();
         return c < count ? Status.SUCCEEDED : Status.FAILED;
     }
 

@@ -61,13 +61,9 @@ public class Main extends JFrame {
         new CombatCenter();
 
         // test the behavior tree parser
-        BehaviorTree<?> tree = RUtils.getBehaviorTree("logistic.tree", new Blackboard());
-        BehaviorTree<?> tree1 = RUtils.getBehaviorTree("squad.tree", new Blackboard());
-        if (tree == null || tree1 == null) {
-            System.err.println("The behavior trees are not well-formed.");
-            System.exit(1);
-        }
-        
+        testBehaviorTree("logistic.tree");
+        testBehaviorTree("squad.tree");
+
         DemoPreferences.init();
         FlatRobotoFont.install();
         FlatLaf.registerCustomDefaultsSource("ui.themes");
@@ -78,5 +74,19 @@ public class Main extends JFrame {
         RUtils.startStarcraftProcess();
         RBWListener.init();
 
+    }
+
+    /**
+     * use this mthoe do test if the behavior tree is well-formed. prior to wais
+     * your cicles waitin for the behavior tree to be parsed and loaded.
+     * 
+     * @param treeName - the name
+     */
+    private static void testBehaviorTree(String treeName) {
+        BehaviorTree<?> tree = RUtils.getBehaviorTree(treeName, new Blackboard());
+        if (tree == null) {
+            System.err.println("The behavior tree '" + treeName + "'' is not well-formed.");
+            System.exit(1);
+        }
     }
 }

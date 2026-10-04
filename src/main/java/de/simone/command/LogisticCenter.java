@@ -143,7 +143,17 @@ public class LogisticCenter {
                 .filter(bo -> (bo.action == StarCraftConstants.BuildActionName.build)
                         && bo.getStatus() == OrderStatus.Running)
                 .findFirst();
-        if (optional.isPresent()) {
+        Optional<BuildOrder> optional2 = buildOrders.stream()
+                .filter(bo -> (bo.action == StarCraftConstants.BuildActionName.build)
+                        && bo.getStatus() == OrderStatus.Queued)
+                .findFirst();
+
+        // if there is a running build and a queued build, wait until the running build
+        // is completed before starting the next one. if not, there is no reason to
+        // wait.
+        // TODO: check if the queued build is adjacent to the running build. if yes,
+        // wait until the running build is completed before starting the next one.
+        if (optional.isPresent() && optional2.isPresent()) {
             listeners.forEach(l -> l.update(buildOrders));
             return;
         }

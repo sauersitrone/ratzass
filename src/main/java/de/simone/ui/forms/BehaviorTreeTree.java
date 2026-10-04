@@ -23,37 +23,26 @@ import de.simone.btree.logistic.LogisticTask;
 
 public class BehaviorTreeTree extends JTree {
 
-    static class NodeInfo {
-        final Task<?> task;
-        String label;
-        Task.Status status;
-
-        NodeInfo(String label, Task.Status status) {
-            this(null, label, status);
-        }
-
-        NodeInfo(Task<?> task, String label, Task.Status status) {
-            this.task = task;
-            this.label = label;
-            this.status = status;
-        }
-    }
-
     private final DefaultTreeModel treeModel;
     private final Map<String, DefaultMutableTreeNode> nodeMap = new HashMap<>();
     private BehaviorTree<?> behaviorTree;
     private Dimension dimension;
+    private long lastUpdate = 0;
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public BehaviorTreeTree(BehaviorTree<?> behaviorTree) {
         super(new DefaultTreeModel(new DefaultMutableTreeNode(new NodeInfo("root", Task.Status.FRESH))));
         this.behaviorTree = behaviorTree;
-        behaviorTree.addListener(new BehaviorTree.Listener() {
+        this.behaviorTree.addListener(new BehaviorTree.Listener() {
             @Override
             public void statusUpdated(Task task, Status previousStatus) {
-                SwingUtilities.invokeLater(() -> {
-                    refreshNode((DefaultMutableTreeNode) treeModel.getRoot());
-                });
+                long currentTime = System.currentTimeMillis();
+                if (currentTime - lastUpdate >= 100) {
+                    lastUpdate = currentTime;
+                    SwingUtilities.invokeLater(() -> {
+                        refreshNode((DefaultMutableTreeNode) treeModel.getRoot());
+                    });
+                }
             }
 
             @Override
@@ -152,6 +141,22 @@ public class BehaviorTreeTree extends JTree {
             setText(String.format(htmlTemplate, leafName + " " + fullLabel, leafString));
             setForeground(Color.WHITE);
             return this;
+        }
+    }
+
+    private static class NodeInfo {
+        final Task<?> task;
+        String label;
+        Task.Status status;
+
+        NodeInfo(String label, Task.Status status) {
+            this(null, label, status);
+        }
+
+        NodeInfo(Task<?> task, String label, Task.Status status) {
+            this.task = task;
+            this.label = label;
+            this.status = status;
         }
     }
 }

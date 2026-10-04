@@ -75,14 +75,11 @@ public class CommandQueue {
                     success = unit.buildAddon(command.unitType);
                     break;
                 case UnitCommandType.Train:
-                    // the eassy way to check if a trainner can accept more units in to check if it
-                    // throws an IndexOutOfBoundsException. if so, silend ignore the command and the
-                    // command.status remain Queued until more room are available
-                    try {
-                        success = unit.train(command.unitType);
-                    } catch (IndexOutOfBoundsException e) {
+                    if (unit.getTrainingQueueCount() == 5) {
                         command.message = "Trainer is full";
                         ignored = true;
+                    } else {
+                        success = unit.train(command.unitType); // <-----------------------
                     }
                     break;
                 case UnitCommandType.Research:
@@ -207,12 +204,20 @@ public class CommandQueue {
                 return;
             }
 
-            command.status = success ? OrderStatus.Completed : OrderStatus.Error;
-            if (command.status == OrderStatus.Error) {
+            if (!success) {
                 command.message = "Minerals:" + RBWListener.currentMinerals +
                         ", Gas:" + RBWListener.currentGas +
                         ", Supply:" + RBWListener.currentSupplyLeft;
+                command.trys++;
             }
+
+            if (command.trys > 20 && !success) {
+                command.status = OrderStatus.Error;
+                listeners.forEach(listener -> listener.update(commands));
+                return;
+            }
+
+            command.status = success ? OrderStatus.Completed : OrderStatus.Queued;
 
             listeners.forEach(listener -> listener.update(commands));
         }
@@ -309,12 +314,12 @@ public class CommandQueue {
         }
 
         // resolve facility
-        Unit dTag = UnitsCenter.resolveTrainer(unitType);
-        if (dTag == null) {
+        Unit trainer = UnitsCenter.resolveTrainer(unitType);
+        if (trainer == null) {
             setFail(command, "No Facility available to train " + unitType);
             return command;
         }
-        command.unitId = dTag.getID();
+        command.unitId = trainer.getID();
         command.unitType = unitType;
         addCommand(command);
         return command;

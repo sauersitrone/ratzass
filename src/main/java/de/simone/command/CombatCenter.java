@@ -34,25 +34,25 @@ public class CombatCenter {
     private static List<CombatRequest> squadRequests = new ArrayList<>();
 
     public static boolean requestPermition(Squad squad, RequestName request) {
-        Position position = null;
         if (request == RequestName.PatrolPosition) {
-            WalkPosition walkPosition = null;
-            while (position == null || !RBWListener.game.isWalkable(walkPosition)) {
-                walkPosition = position == null ? null : new WalkPosition(position);
+            while (true) {
                 Position squadPosition = squad.getPosition();
                 int x = squadPosition.getX() + (int) (Math.random() * Squad.patrolRadius);
                 int y = squadPosition.getY() + (int) (Math.random() * Squad.patrolRadius);
-                position = new Position(x, y);
-                CombatRequest combatRequest = new CombatRequest(squad, request, position);
-                squadRequests.add(combatRequest);
-                return true;
+                Position position = new Position(x, y);
+                WalkPosition walkPosition = new WalkPosition(position);
+                if (RBWListener.game.isWalkable(walkPosition)) {
+                    CombatRequest combatRequest = new CombatRequest(squad, request, position);
+                    squadRequests.add(combatRequest);
+                    return true;
+                }
             }
         }
 
         if (request == RequestName.AttackPosition) {
             List<Unit> enemies = getEnemiesInSight(squad);
             if (enemies.size() > 0) {
-                position = enemies.get(0).getPosition();
+                Position position = enemies.get(0).getPosition();
                 CombatRequest combatRequest = new CombatRequest(squad, request, position);
                 squadRequests.add(combatRequest);
                 return true;
@@ -60,7 +60,7 @@ public class CombatCenter {
         }
 
         if (request == RequestName.CallSupport) {
-            position = squad.getPosition();
+            Position position = squad.getPosition();
             CombatRequest combatRequest = new CombatRequest(squad, request, position);
             squadRequests.add(combatRequest);
             return true;

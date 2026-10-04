@@ -1,10 +1,10 @@
 package de.simone.ui.forms;
 
 import java.awt.BorderLayout;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.Box;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -16,21 +16,17 @@ import com.badlogic.gdx.ai.btree.BehaviorTree;
 
 import de.simone.Config;
 import de.simone.UIUtils;
+import de.simone.command.DogTag;
 import de.simone.command.LogisticCenter;
+import de.simone.command.UnitsCenter;
+import de.simone.command.UnitsCenterListener;
 import de.simone.ui.system.Form;
 
 /**
  * Displays the gdx-ai behavior tree using a JTree, highlighting the currently
  * executing LeafTask.
  */
-public class BehaviorTreeView extends Form {
-
-    record BehaviorTreeInfo(String name, BehaviorTree<?> behaviorTree) {
-        @Override
-        public String toString() {
-            return name;
-        }
-    }
+public class BehaviorTreeView extends Form implements UnitsCenterListener {
 
     private Vector<BehaviorTreeInfo> behaviorTrees = new Vector<>();
     private JCheckBox scrollToExecutingNode;
@@ -40,9 +36,7 @@ public class BehaviorTreeView extends Form {
     private JPanel controlPanel;
 
     public BehaviorTreeView() {
-        BehaviorTreeInfo logBT = new BehaviorTreeInfo("Logistic", LogisticCenter.behaviorTree);
-        // BehaviorTreeInfo info = new BehaviorTreeInfo("Combat Center",
-        // CombatCenter.getInstance().behaviorTree);
+        BehaviorTreeInfo logBT = new BehaviorTreeInfo("Logistic Center", LogisticCenter.behaviorTree);
         this.behaviorTrees.add(logBT);
 
         treeJComboBox = new JComboBox<>(behaviorTrees);
@@ -68,6 +62,7 @@ public class BehaviorTreeView extends Form {
         controlPanel = UIUtils.getControlPanel("Controls", scrollToExecutingNode, controlsBox);
 
         treeJComboBox.setSelectedIndex(0);
+        UnitsCenter.addListener(this);
     }
 
     public JComponent getTitle() {
@@ -77,4 +72,30 @@ public class BehaviorTreeView extends Form {
     public JComponent getControls() {
         return controlPanel;
     }
+
+    @Override
+    public void updatePersonal(List<DogTag> units) {
+        UnitsCenter.getSquads().forEach(squad -> {
+            BehaviorTreeInfo info = new BehaviorTreeInfo(squad.squadID, squad.behaviorTree);
+            if (!behaviorTrees.contains(info)) {
+                behaviorTrees.add(info);
+            }
+        });
+    }
+
+    private record BehaviorTreeInfo(String name, BehaviorTree<?> behaviorTree) {
+        @Override
+        public String toString() {
+            return name;
+        }
+
+        @Override
+        public final boolean equals(Object arg0) {
+            if (arg0 instanceof BehaviorTreeInfo other) {
+                return name.equals(other.name);
+            }
+            return false;
+        }
+    }
+
 }

@@ -1,6 +1,7 @@
 package de.simone.command;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -65,7 +66,10 @@ public class UnitsCenter {
      * @return - the units
      */
     public static List<DogTag> getDogTags() {
-        return dogTags.values().stream().filter(u -> !u.isEnemy).toList();
+        List<DogTag> dogTags2 = dogTags.values().stream().filter(u -> !u.isEnemy).toList();
+        dogTags2.stream().filter(d -> d.unit.isCompleted()).toList();
+        // TODO: reviw the code. entweder unodificable list oder nie remove( ausfüren)
+        return dogTags2;
     }
 
     /**
@@ -142,7 +146,9 @@ public class UnitsCenter {
 
     public static Unit resolveTrainer(UnitType unitType) {
         Pair<UnitType, Integer> whatBuilds = unitType.whatBuilds();
-        Unit trainer = UnitsCenter.getUnit(whatBuilds.getKey());
+        List<Unit> units = new ArrayList<>(UnitsCenter.getUnits(whatBuilds.getKey()));
+        units.removeIf(u -> u.isTraining() && u.getTrainingQueueCount() == 5);
+        Unit trainer = units.isEmpty() ? null : units.get(0);
         return trainer;
     }
 
@@ -158,34 +164,56 @@ public class UnitsCenter {
         return trainer;
     }
 
+    /**
+     * Returns a random unit of the specified type. the randomization is used to
+     * avoid that the same unit is always used for the same task.
+     * 
+     * @param unitType - the type
+     * @return the unit
+     */
     public static Unit getUnit(UnitType unitType) {
-        List<Unit> units = getUnits();
-        Unit unit = units.stream().filter(u -> u.getType() == unitType).findFirst().orElse(null);
+        List<Unit> units = getUnits(unitType);
+        Collections.shuffle(units);
+        Unit unit = units.isEmpty() ? null : units.get(0);
         return unit;
     }
 
+    public static List<Unit> getUnits(UnitType unitType) {
+        List<Unit> units = getUnits();
+        List<Unit> units2 = units.stream().filter(u -> u.getType() == unitType).toList();
+        return units2;
+    }
+
     /**
-     * Get a list of all units controlled by the player.
+     * Get a list of all units controlled by the player. the method returns only units that are completed and not dead.
      * 
      * @return the list
      */
     public static List<Unit> getUnits() {
+        boolean isEnemy = RBWListener.game.self().isEnemy(RBWListener.game.self());
         List<Unit> units = RBWListener.game.getAllUnits().stream()
-                .filter(u -> !u.getPlayer().isEnemy(RBWListener.game.self())).toList();
+                .filter(u -> !isEnemy && u.isCompleted()).toList();
         return units;
     }
 
     public static Unit getIdleTerranSCV() {
-        Unit unit = getUnits().stream()
-                .filter(u -> u.getType() == UnitType.Terran_SCV && u.isIdle()).findFirst().orElse(null);
+        List<Unit> units = getUnits().stream()
+                .filter(u -> u.getType() == UnitType.Terran_SCV && u.isIdle())
+                .toList();
+        List<Unit> units2 = new ArrayList<>(units);
+        Collections.shuffle(units2);
+        Unit unit = units2.isEmpty() ? null : units2.get(0);
         return unit;
     }
 
     public static Unit getFreeTerranSCV() {
-        Unit unit = getUnits().stream()
+        List<Unit> units = getUnits().stream()
                 .filter(u -> u.getType() == UnitType.Terran_SCV
                         && (u.isGatheringGas() || u.isGatheringMinerals() || u.isIdle()))
-                .findFirst().orElse(null);
+                .toList();
+        List<Unit> units2 = new ArrayList<>(units);
+        Collections.shuffle(units2);
+        Unit unit = units2.isEmpty() ? null : units2.get(0);
         return unit;
     }
 
@@ -226,11 +254,11 @@ public class UnitsCenter {
         return units;
     }
 
-    /** 
+    /**
      * Returns the closest unit from the given list to the specified unit.
      * 
      * @param units - the list of units
-     * @param unit - the reference unit
+     * @param unit  - the reference unit
      * @return the closest unit
      */
     public static Unit getClosestUnit(List<Unit> units, Unit unit) {

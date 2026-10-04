@@ -10,10 +10,12 @@ import isFavorable:"de.simone.btree.combat.IsFavorableCondition"
 import isSupportNeeded:"de.simone.btree.combat.IsSupportNeededCondition"
 import isSquadInCombat:"de.simone.btree.combat.IsSquadInCombatCondition"
 import focusFire:"de.simone.btree.combat.FocusFireTask"
+import retreat:"de.simone.btree.combat.RetreatTask"
+import debug:"de.simone.btree.combat.DebugCombatTask"
 
 # a idea of random position is to create a raious with center on the command center, patrol the area and increase radious if the are is visible
 # subtree name:"patrol"
-root
+repeat
     #selector can be used to check the behaviors from highest to lowest priority.
     selector
         #execute a series of conditions and actions in a specific order. It succeeds only when all its children succeed.
@@ -56,6 +58,7 @@ root
         sequence
             requestPermition to:"PatrolPosition"
             attack to:"PatrolPosition"
+            wait seconds:20000 
 
 # Tree definition 
 # root

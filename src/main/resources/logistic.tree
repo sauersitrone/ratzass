@@ -12,37 +12,27 @@ root
         # build the bare minimum infrastructure
         sequence
             repairUnit
-            isUnitNeeded        unitType:"Terran_Refinery" count:1
-            train               unitType:"Terran_Refinery" count:1
-            isUnitNeeded        unitType:"Terran_SCV" count:6
-            train               unitType:"Terran_SCV" count:6
-
-        # create defences and first patrol squad
-        sequence
-            trainForceTo        level:1
-            # Create the bunker and populate it with marines
-            parallel policy:"sequence"
-                sequence
-                    isCombatUnitNeeded  unitType:"Terran_Marine" count:4
-                    train               unitType:"Terran_Marine" count:4
-                sequence
-                    isUnitNeeded        unitType:"Terran_Bunker" count:1
-                    train               unitType:"Terran_Bunker" count:1
-            
-            loadBunkers
-            # Create first patrol squad
-            isSquadNeeded       type:"Patrol" count:1
-            train               unitType:"Terran_Marine" count:10
-            createSquad         type:"Patrol" members:"10*Terran_Marine"
-
-        # Create a platoon squad
-        sequence
-            trainForceTo        level:2
-            isSquadNeeded       type:"Strike" count:20
-            train               unitType:"Terran_Marine" count:10
-            train               unitType:"Terran_Medic" count:5
-            train               unitType:"Terran_Firebat" count:5
-            createSquad         type:"Strike" members:"10*Terran_Marine,5*Terran_Medic,5*Terran_Firebat"
+            train                   unitType:"Terran_SCV" count:6
+            train                   unitType:"Terran_Refinery" count:1
+            train                   unitType:"Terran_SCV" count:8
+            trainForceTo            level:1
+            # train                   unitType:"Terran_Marine" count:4
+            # train                   unitType:"Terran_Bunker" count:1
+            # loadBunkers
+            # train                   unitType:"Terran_Marine" count:8
+            # train                   unitType:"Terran_Bunker" count:2
+            # loadBunkers
+            # Create a patrol squad
+            isSquadNeeded           type:"Patrol" count:1
+            train                   unitType:"Terran_Marine" count:2
+            createSquad             type:"Patrol" members:"2*Terran_Marine"
+            # Create a platoon squad
+            trainForceTo            level:2
+            isSquadNeeded           type:"Strike" count:20
+            train                   unitType:"Terran_Marine" count:10
+            train                   unitType:"Terran_Medic" count:5
+            train                   unitType:"Terran_Firebat" count:5
+            createSquad             type:"Strike" members:"10*Terran_Marine,5*Terran_Medic,5*Terran_Firebat"
         
         # Mechanized squad
         # sequence

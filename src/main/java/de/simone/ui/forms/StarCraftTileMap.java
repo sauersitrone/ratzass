@@ -102,6 +102,7 @@ public class StarCraftTileMap extends JPanel
     private ObjectGroup neutralUnitsGroup;
     private TilePosition bunkerLocation;
     private boolean mapInitialized = false;
+    private boolean initialFitApplied = false;
 
     public StarCraftTileMap() {
         this.game = RBWListener.game;
@@ -114,9 +115,29 @@ public class StarCraftTileMap extends JPanel
                 return;
             }
             updateTiledMap();
+            fitMapOnFirstVisible();
             repaint();
         });
-        repaintTimer.start();
+                repaintTimer.start();
+
+    }
+
+    private void fitMapOnFirstVisible() {
+        if (initialFitApplied || !isShowing() || !mapInitialized || getWidth() <= 0 || getHeight() <= 0)
+            return;
+
+        double mapWidth = (double) game.mapWidth() * tileSize;
+        double mapHeight = (double) game.mapHeight() * tileSize;
+        if (mapWidth <= 0 || mapHeight <= 0)
+            return;
+
+        int padding = 12;
+        double availableWidth = Math.max(1, getWidth() - 2.0 * padding);
+        double availableHeight = Math.max(1, getHeight() - 2.0 * padding);
+        scale = Math.min(availableWidth / mapWidth, availableHeight / mapHeight);
+        tx = (getWidth() - mapWidth * scale) / 2.0;
+        ty = (getHeight() - mapHeight * scale) / 2.0;
+        initialFitApplied = true;
     }
 
     private void initTiledMap() {

@@ -44,6 +44,7 @@ public class CommandQueueView extends Form implements CommandQueueListener {
                 new Column().header("Position").with(c -> "" + c.position),
                 new Column().header("Tile Position").with(c -> "" + c.tilePosition),
                 new Column().header("Status").with(c -> c.status.toString()),
+                new Column().header("Trys").with(c -> "" + c.trys),
                 new Column().header("Message").with(c -> c.message))));
     }
 

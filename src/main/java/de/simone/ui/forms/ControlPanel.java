@@ -31,12 +31,13 @@ public class ControlPanel extends JPanel {
     public ControlPanel() {
         setLayout(new FlowLayout(FlowLayout.LEFT));
 
-        Timer timer = new Timer(50, e -> {
-            codeSpeed.setText("Code Speed: " + RBWListener.codeSpeed + "ms");
+        Timer timer = new Timer(100, e -> {
+            String speed = String.format("%03d", RBWListener.codeSpeed);
+            codeSpeed.setText("Code Speed: " + speed + "ms");
             minerals.setText("Minerals: " + RBWListener.currentMinerals);
             gas.setText("Gas: " + RBWListener.currentGas);
             supply.setText("Supply: " + RBWListener.currentSupplyUsed + "/" + RBWListener.currentSupplyTotal + "("
-                + RBWListener.currentSupplyLeft + ")");
+                    + RBWListener.currentSupplyLeft + ")");
         });
         timer.start();
 
@@ -60,14 +61,17 @@ public class ControlPanel extends JPanel {
                 e -> Config.userInput = userInput.isSelected());
         autoCamera = UIUtils.getPropertyCheckBox("Auto Camera", Config.autoCamera,
                 e -> Config.autoCamera = autoCamera.isSelected());
-        speed = UIUtils.getSlider(0, 100, Config.speed, e -> Config.speed = speed.getValue());
+        speed = UIUtils.getSlider(0, 100, Config.speed, e -> {
+            Config.speed = speed.getValue();
+            Config.save();
+        });
         speed.setBorder(new TitledBorder("Game Speed"));
         codeSpeed = new JLabel("Code Speed: 0ms");
         minerals = new JLabel("Minerals: " + RBWListener.currentMinerals);
         minerals.setForeground(Color.blue);
         gas = new JLabel("Gas: " + RBWListener.currentGas);
         gas.setForeground(Color.green);
-        supply = new JLabel("Supply: -" );
+        supply = new JLabel("Supply: -");
         supply.setForeground(Color.GRAY);
 
         // add(restartGame);

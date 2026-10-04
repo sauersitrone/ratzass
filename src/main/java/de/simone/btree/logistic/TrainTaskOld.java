@@ -6,9 +6,8 @@ import com.badlogic.gdx.ai.btree.annotation.TaskAttribute;
 import bwapi.UnitType;
 import de.simone.btree.Blackboard;
 import de.simone.command.LogisticCenter;
-import de.simone.command.UnitsCenter;
 
-public class TrainTask extends LogisticTask {
+public class TrainTaskOld extends LogisticTask {
 
     @TaskAttribute(required = true)
     public UnitType unitType;
@@ -20,10 +19,6 @@ public class TrainTask extends LogisticTask {
 
     @Override
     public Status execute() {
-        int c = UnitsCenter.getUnitCount(unitType);
-        if (c >= count)
-            return Status.SUCCEEDED;
-
         if (getStatus() == Status.RUNNING) {
             Status status = getBuildOrderStatus(voucher);
             return status;

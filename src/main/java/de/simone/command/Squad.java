@@ -19,6 +19,7 @@ import bwapi.UnitType;
 import de.simone.RBWListener;
 import de.simone.RUtils;
 import de.simone.SimplifyPolyline;
+import de.simone.StarCraftException;
 
 /**
  * This class provides a structured way to manage a group of units as a single
@@ -34,6 +35,7 @@ public class Squad {
     public enum SquadStatus {
         None, Assembling, Assembled, Moving, Ready
     }
+
     public enum SquadType {
         Patrol, Strike, Combat
     }
@@ -80,7 +82,7 @@ public class Squad {
 
     private List<Point2D> positionsTracking = new ArrayList<>();
     private List<UnitType> members = new ArrayList<>();
- 
+
     public Squad(SquadType type, List<UnitType> members) {
         this.behaviorTree = RUtils.getBehaviorTree("squad.tree", this);
         this.type = type;
@@ -123,7 +125,7 @@ public class Squad {
         // fail save. if the squad has no alive members no more calculations are allows.
         // the behavior tree should be off and the squad retired.
         if (units.isEmpty())
-            throw new IllegalStateException("No alive members in the squad.");
+            throw new StarCraftException("No alive members in the squad.");
         return units;
     }
 
@@ -133,17 +135,19 @@ public class Squad {
     public void recruitMembers() {
         List<UnitType> requiredUnits = getRequiredUnits();
         for (UnitType unitType : requiredUnits) {
-            DogTag unit = UnitsCenter.getDogTag(unitType);
+            DogTag unit = UnitsCenter.getDogTags().stream().filter(u -> u.unitType == unitType && "".equals(u.squadID))
+                    .findFirst()
+                    .orElse(null);
             if (unit != null) {
                 unit.squadID = squadID;
             }
         }
 
-        if (getRequiredUnits().isEmpty()) {
+        requiredUnits = getRequiredUnits();
+        if (requiredUnits.isEmpty()) {
             status = SquadStatus.Assembled;
+            UnitsCenter.addSquad(this);
         }
-
-        regroup(true);
     }
 
     /**
@@ -203,6 +207,7 @@ public class Squad {
         trackPosition();
         CommandQueue.addCommand(UnitCommandType.Attack_Move, this, position);
         CombatCenter.sendCommunication(this, "Ohhhh YEAHHH !");
+        status = SquadStatus.Moving;
     }
 
     public boolean canAttackAir() {

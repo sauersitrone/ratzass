@@ -34,9 +34,6 @@ public class CreateSquadTask extends LogisticTask {
             currentSquad.recruitMembers();
         }
         
-        if (currentSquad.status == SquadStatus.Assembled) {
-
-        }
         return currentSquad.status == SquadStatus.Assembling ? Status.RUNNING : Status.SUCCEEDED;
     }
 

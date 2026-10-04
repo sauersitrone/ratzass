@@ -33,6 +33,7 @@ public class FocusFireTask extends CombatTask {
                 closest = unit;
             }
         }
+
         if (closest != null) {
             CommandQueue.addCommand(UnitCommandType.Attack_Unit, squad, closest.getPosition());
             return Status.SUCCEEDED;

@@ -3,6 +3,8 @@ package de.simone;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.badlogic.gdx.ai.GdxAI;
+
 import bwapi.BWClient;
 import bwapi.Color;
 import bwapi.DefaultBWListener;
@@ -33,7 +35,7 @@ public class RBWListener extends DefaultBWListener {
     public static int currentSupplyLeft = 0;
     public static double gameSeconds;
     public static double lastBehaviorTreeStep;
-    public static double lastCenterComm;
+    public static double lastTick;
     public static int codeSpeed;
     public static boolean isPaused = false;
 
@@ -110,15 +112,16 @@ public class RBWListener extends DefaultBWListener {
          * NOTE: much of * the listener take into account, that this coed will be
          * executed every 100ms
          */
-        if (gameSeconds - lastCenterComm >= 0.1) {
-            lastCenterComm = gameSeconds;
+        if (gameSeconds - lastTick >= 0.1) {
+            lastTick = gameSeconds;
             long t1 = System.currentTimeMillis();
+            GdxAI.getTimepiece().update((float) gameSeconds);
 
             UnitsCenter.controlPersonal();
             LogisticCenter.heartBeat();
             CommandQueue.dispatchCommands();
-
             LogisticCenter.behaviorTree.step();
+            
             List<Squad> squads = UnitsCenter.getSquads();
             for (Squad squad : squads) {
                 squad.updateStatus();

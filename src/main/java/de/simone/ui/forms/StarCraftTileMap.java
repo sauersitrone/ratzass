@@ -270,12 +270,9 @@ public class StarCraftTileMap extends JPanel
             return;
 
         for (Region region : game.getAllRegions()) {
-            // JBWAPI Region exposes a bounding box, not raw polygon points
-            int x = (int) region.getBoundsLeft();
-            int y = (int) region.getBoundsTop();
-            int w = (int) region.getBoundsRight() - region.getBoundsLeft();
-            int h = (int) region.getBoundsBottom() - region.getBoundsTop();
-            MapObject obj = createMapObject(x, y, w, h, 0);
+            int x = region.getCenter().getX() - tileSize / 2;
+            int y = region.getCenter().getY() - tileSize / 2;
+            MapObject obj = createMapObject(x, y, tileSize, tileSize, 0);
             obj.setType("region");
             regionsGroup.addObject(obj);
         }

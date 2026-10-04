@@ -4,6 +4,7 @@ import com.badlogic.gdx.ai.btree.Task;
 import com.badlogic.gdx.ai.btree.annotation.TaskAttribute;
 
 import bwapi.UnitType;
+import bwapi.UpgradeType;
 import de.simone.btree.Blackboard;
 import de.simone.command.DogTag;
 import de.simone.command.LogisticCenter;
@@ -31,51 +32,38 @@ public class TrainForceToTask extends LogisticTask {
         if (level == 1) {
             DogTag dTag = UnitsCenter.getDogTag(UnitType.Terran_Barracks);
             if (dTag == null) {
-                submitOrder(UnitType.Terran_Barracks, 1);
+                voucher = LogisticCenter.addBuildOrder(UnitType.Terran_Barracks, 1);
                 return Status.RUNNING;
             }
         }
 
         if (level == 2) {
-            DogTag dTag = UnitsCenter.getDogTag(UnitType.Terran_Academy);
-            if (dTag == null) {
-                submitOrder(UnitType.Terran_Academy, 1);
-                return Status.RUNNING;
-            }
-
-            // TODO: how to work with the upgrade?
-            // TODO: upgrade muss be a build order
-            // TODO: i think the upgrades are in the pddl domain. i need only to find the
-            // solution for the target upgrade. <-----------
-            // Unit unit = RBWListener.game.getUnit(dTag.unitID);
-            // unit.upgrade(UpgradeType.U_238_Shells);
+            // TODO: check if i already have the upgrade, if yes return SUCCEEDED
+            voucher = LogisticCenter.addBuildOrder(UpgradeType.U_238_Shells, 1);
+            return Status.RUNNING;
         }
 
         if (level == 3) {
             DogTag dTag = UnitsCenter.getDogTag(UnitType.Terran_Factory);
             if (dTag == null) {
-                submitOrder(UnitType.Terran_Factory, 1);
+                voucher = LogisticCenter.addBuildOrder(UnitType.Terran_Factory, 1);
                 return Status.RUNNING;
             }
 
             dTag = UnitsCenter.getDogTag(UnitType.Terran_Machine_Shop);
             if (dTag == null) {
-                submitOrder(UnitType.Terran_Machine_Shop, 1);
+                voucher = LogisticCenter.addBuildOrder(UnitType.Terran_Machine_Shop, 1);
                 return Status.RUNNING;
             }
 
             dTag = UnitsCenter.getDogTag(UnitType.Terran_Armory);
             if (dTag == null) {
-                submitOrder(UnitType.Terran_Armory, 1);
+                voucher = LogisticCenter.addBuildOrder(UnitType.Terran_Armory, 1);
                 return Status.RUNNING;
             }
         }
 
         return Status.SUCCEEDED;
-    }
-
-    private void submitOrder(UnitType unitType, int count) {
-        voucher = LogisticCenter.addBuildOrder(unitType, count);
     }
 
     @Override

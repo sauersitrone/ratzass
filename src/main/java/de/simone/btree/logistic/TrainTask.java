@@ -20,8 +20,9 @@ public class TrainTask extends LogisticTask {
 
     @Override
     public Status execute() {
-        int c = UnitsCenter.getUnitCount(unitType);
-        if (c >= count)
+        int exist = UnitsCenter.getUnitCount(unitType);
+        int total = exist + count;
+        if (exist >= total)
             return Status.SUCCEEDED;
 
         if (getStatus() == Status.RUNNING) {
@@ -30,7 +31,7 @@ public class TrainTask extends LogisticTask {
         }
 
         // no previous, create a new build order
-        voucher = LogisticCenter.addBuildOrder(unitType, count);
+        voucher = LogisticCenter.addBuildOrder(unitType, total);
 
         return Status.RUNNING;
     }

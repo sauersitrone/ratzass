@@ -8,6 +8,7 @@ import java.util.List;
 import com.badlogic.gdx.ai.btree.BehaviorTree;
 
 import bwapi.Position;
+import bwapi.Region;
 import bwapi.TilePosition;
 import bwapi.Unit;
 import bwapi.UnitType;
@@ -32,21 +33,30 @@ public class CombatCenter {
     private static List<CombatCenterListener> listeners = new ArrayList<>();
     private static StringBuilder comms = new StringBuilder();
     private static List<CombatRequest> squadRequests = new ArrayList<>();
+    private static List<Region> regions = new ArrayList<>();
 
     public static boolean requestPermition(Squad squad, RequestName request) {
+        initRegions();
         if (request == RequestName.PatrolPosition) {
-            while (true) {
-                Position squadPosition = squad.getPosition();
-                int x = squadPosition.getX() + (int) (Math.random() * Squad.patrolRadius);
-                int y = squadPosition.getY() + (int) (Math.random() * Squad.patrolRadius);
-                Position position = new Position(x, y);
+            for (Region region : regions) {
+                Position position = region.getCenter();
+                TilePosition tilePosition = position.toTilePosition();
                 WalkPosition walkPosition = new WalkPosition(position);
-                if (RBWListener.game.isWalkable(walkPosition)) {
+                if (RBWListener.game.isWalkable(walkPosition)
+                        && !RBWListener.game.isExplored(tilePosition)
+                        && RBWListener.game.hasPath(squad.getPosition(), position)) {
                     CombatRequest combatRequest = new CombatRequest(squad, request, position);
                     squadRequests.add(combatRequest);
                     return true;
                 }
             }
+            // if all regions has been explored, return the first region
+            // int i = (int) Math.random() * (regions.size() - 1);
+            // Position position = regions.get(i).getCenter();
+            // CombatRequest combatRequest = new CombatRequest(squad, request, position);
+            // squadRequests.add(combatRequest);
+            // return true;
+            return false;
         }
 
         if (request == RequestName.AttackPosition) {
@@ -80,7 +90,8 @@ public class CombatCenter {
 
     /**
      * Returns the first queued combat request for the specified request name, if
-     * any.
+     * any. this method will set the status of the request to completed, so that it
+     * won't be returned again.
      * 
      * @param request - the requestName
      * @return the CombatRequest
@@ -89,6 +100,9 @@ public class CombatCenter {
         CombatRequest request2 = squadRequests.stream()
                 .filter(r -> r.request == request && r.status == OrderStatus.Queued)
                 .findFirst().orElse(null);
+        if (request2 != null) {
+            request2.status = OrderStatus.Completed;
+        }
         return request2;
     }
 
@@ -125,6 +139,23 @@ public class CombatCenter {
             enemyUnits.addAll(UnitsCenter.getEnemyUnits(tag.unit));
         }
         return enemyUnits;
+    }
+
+    /**
+     * initialize the list of regions, ordered by distance to the start location.
+     */
+    private static void initRegions() {
+        if (regions.isEmpty()) {
+            regions.addAll(RBWListener.game.getAllRegions());
+            regions.sort((r1, r2) -> {
+                TilePosition p1 = r1.getCenter().toTilePosition();
+                TilePosition p2 = r2.getCenter().toTilePosition();
+                TilePosition start = RBWListener.game.self().getStartLocation();
+                double d1 = start.getDistance(p1);
+                double d2 = start.getDistance(p2);
+                return Double.compare(d1, d2);
+            });
+        }
     }
 
     /**

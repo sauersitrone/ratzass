@@ -69,7 +69,7 @@ public class Squad {
         coolSquadNames.add("Yankee");
         coolSquadNames.add("Zulu");
     }
-    public static int patrolRadius = 32 * 10; // explore 10 tiles radius;
+    public static int patrolRadius = 32 * 100; 
 
     public String squadID;
     public UnitCommandType currentCommand = UnitCommandType.Unknown;

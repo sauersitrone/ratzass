@@ -91,10 +91,9 @@ public class LogisticCenter {
                     .filter(u -> u.getType() == UnitType.Terran_SCV && u.isGatheringGas()).count();
             if (gGas < StarCraftConstants.SCV_GATHERING_GAS && refinery != null) {
                 CommandQueue.gather(ResourceType.Gas);
+            } else {
+                CommandQueue.gather(ResourceType.Mineral);
             }
-
-            // the rest, minerals
-            CommandQueue.gather(ResourceType.Mineral);
         }
 
         /**
@@ -266,7 +265,7 @@ public class LogisticCenter {
         String problem = pddlProblem.getPDDLProblem();
 
         // parse and configure the planner
-        String[] args1 = { "-o", domain, "-f", problem, "-planner", planner };
+        String[] args1 = { "-o", domain, "-f", problem, "-planner", planner, "silent", "true" };
         renhsp.parseInput(args1);
         renhsp.configurePlanner();
         if (!renhsp.parsingDomainAndProblem(args1))
@@ -285,7 +284,7 @@ public class LogisticCenter {
         List<BuildOrder> buildOrders3 = orders.get(voucher);
         buildOrders3.addAll(buildOrders2);
         buildOrders.addAll(buildOrders2);
-
+        System.out.println("Build order for " + pddlProblem.description + " created. Voucher: " + voucher);
         for (LogisticCenterListener listener : listeners) {
             listener.update(buildOrders);
         }

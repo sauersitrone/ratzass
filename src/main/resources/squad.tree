@@ -58,7 +58,7 @@ repeat
         sequence
             requestPermition to:"PatrolPosition"
             attack to:"PatrolPosition"
-            wait seconds:20000 
+            wait seconds:30
 
 # Tree definition 
 # root

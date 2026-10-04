@@ -14,6 +14,7 @@ import bwapi.UnitFilter;
 import bwapi.UnitType;
 import bwapi.UpgradeType;
 import de.simone.RBWListener;
+import de.simone.StarCraftException;
 import de.simone.command.StarCraftConstants.OrderStatus;
 import lombok.extern.java.Log;
 
@@ -61,6 +62,8 @@ public class CommandQueue {
 
             switch (command.order) {
                 case None:
+                case UnitCommandType.Unknown:
+                case UnitCommandType.Place_COP:
                     break;
                 case UnitCommandType.Attack_Move:
                     success = unit.attack(command.position);
@@ -233,18 +236,12 @@ public class CommandQueue {
         return addedCommands;
     }
 
-    private static Command addCommand(UnitCommandType command, int unitID, int targetUnit, Position position) {
-        Command command2 = new Command(command, unitID, targetUnit, position);
-        addCommand(command2);
-        return command2;
-    }
-
     private static void addCommand(Command command) {
-        // iff exist the same command with status pending, return silently
-        Optional<Command> optional = commands.stream()
-                .filter(c -> c.order == command.order && c.status == OrderStatus.Queued).findFirst();
-        if (optional.isPresent())
-            return;
+        // fail save to avoid duplicate commands in the queue.
+        // Optional<Command> optional = commands.stream()
+        //         .filter(c -> c.order == command.order && c.status == OrderStatus.Queued).findFirst();
+        // if (optional.isPresent())
+        //     throw new StarCraftException("Duplicate command " + command.order + " in queue. Command: " + command);
 
         commands.add(command);
         listeners.forEach(listener -> listener.update(commands));
@@ -267,11 +264,10 @@ public class CommandQueue {
             resourceUnit = RBWListener.game.getClosestUnit(dTag.getPosition(), UnitFilter.IsRefinery);
         }
 
-        return addCommand(UnitCommandType.Gather, dTag.getID(), resourceUnit.getID(), null);
-    }
-
-    public static void gather(int unitID, int targetID) {
-        addCommand(UnitCommandType.Gather, unitID, targetID, null);
+        command.unitId = dTag.getID();
+        command.targetId = resourceUnit.getID();
+        addCommand(command);
+        return command;
     }
 
     /**
@@ -280,7 +276,7 @@ public class CommandQueue {
      * // virtual bool attackUnit(Unit* target) = 0;
      */
     public static void attackUnit(int unitID, int targetID) {
-        addCommand(UnitCommandType.Attack_Unit, unitID, targetID, null);
+        addCommand(new Command(UnitCommandType.Attack_Unit, unitID, targetID, null));
     }
 
     /**
@@ -289,7 +285,7 @@ public class CommandQueue {
      */
     public static void rightClick(Squad squad, Position position) {
         for (DogTag tag : squad.getAliveMembers()) {
-            addCommand(UnitCommandType.Right_Click_Position, tag.unit.getID(), -1, position);
+            addCommand(new Command(UnitCommandType.Right_Click_Position, tag.unit.getID(), -1, position));
         }
     }
 
@@ -300,7 +296,7 @@ public class CommandQueue {
      * // virtual bool rightClick(Unit* target) = 0;
      */
     public static void rightClick(int unitID, int targetID) {
-        addCommand(UnitCommandType.Right_Click_Unit, unitID, targetID, null);
+        addCommand(new Command(UnitCommandType.Right_Click_Unit, unitID, targetID, null));
     }
 
     public static Command train(UnitType unitType) {
@@ -326,7 +322,7 @@ public class CommandQueue {
     }
 
     public static Command build(UnitType unitType) {
-        Command command = addCommand(UnitCommandType.Build, -1, -1, null);
+        Command command = new Command(UnitCommandType.Build, -1, -1, null);
         command.unitType = unitType;
 
         // fail save to force the corrent pddl domain action
@@ -381,8 +377,9 @@ public class CommandQueue {
      * 
      */
     public static void buildAddon(int unitID, UnitType unitType) {
-        Command command = addCommand(UnitCommandType.Build_Addon, unitID, -1, null);
+        Command command = new Command(UnitCommandType.Build_Addon, unitID, -1, null);
         command.unitType = unitType;
+        addCommand(command);
     }
 
     /**
@@ -429,11 +426,11 @@ public class CommandQueue {
      * 
      */
     public static void stop(int unitID) {
-        addCommand(UnitCommandType.Stop, unitID, -1, null);
+        addCommand(new Command(UnitCommandType.Stop, unitID, -1, null));
     }
 
     public static void holdPosition(int unitID) {
-        addCommand(UnitCommandType.Hold_Position, unitID, -1, null);
+        addCommand(new Command(UnitCommandType.Hold_Position, unitID, -1, null));
     }
 
     /**
@@ -441,7 +438,7 @@ public class CommandQueue {
      * 
      */
     public static void follow(int unitID, int targetID) {
-        addCommand(UnitCommandType.Follow, unitID, targetID, null);
+        addCommand(new Command(UnitCommandType.Follow, unitID, targetID, null));
     }
 
     /**
@@ -449,7 +446,7 @@ public class CommandQueue {
      * 
      */
     public static void setRallyPosition(int unitID, Position position) {
-        addCommand(UnitCommandType.Set_Rally_Position, unitID, -1, position);
+        addCommand(new Command(UnitCommandType.Set_Rally_Position, unitID, -1, position));
     }
 
     /**
@@ -459,7 +456,7 @@ public class CommandQueue {
      * 
      */
     public static void setRallyUnit(int unitID, int targetID) {
-        addCommand(UnitCommandType.Set_Rally_Unit, unitID, targetID, null);
+        addCommand(new Command(UnitCommandType.Set_Rally_Unit, unitID, targetID, null));
     }
 
     /**
@@ -467,7 +464,7 @@ public class CommandQueue {
      * 
      */
     public static Command repair(int targetID) {
-        Command command = addCommand(UnitCommandType.Repair, -1, targetID, null);
+        Command command = new Command(UnitCommandType.Repair, -1, targetID, null);
 
         // look for a free SCV to build the unit
         Unit unit = UnitsCenter.getFreeTerranSCV();
@@ -488,8 +485,9 @@ public class CommandQueue {
      * 
      */
     public static void morph(int unitID, UnitType unitType) {
-        Command command = addCommand(UnitCommandType.Morph, unitID, -1, null);
+        Command command = new Command(UnitCommandType.Morph, unitID, -1, null);
         command.unitType = unitType;
+        addCommand(command);
     }
 
     /**
@@ -498,7 +496,7 @@ public class CommandQueue {
      * 
      */
     public static void burrow(int unitID) {
-        addCommand(UnitCommandType.Burrow, unitID, -1, null);
+        addCommand(new Command(UnitCommandType.Burrow, unitID, -1, null));
     }
 
     /**
@@ -507,7 +505,7 @@ public class CommandQueue {
      * 
      */
     public static void unburrow(int unitID) {
-        addCommand(UnitCommandType.Unburrow, unitID, -1, null);
+        addCommand(new Command(UnitCommandType.Unburrow, unitID, -1, null));
     }
 
     /**
@@ -516,7 +514,7 @@ public class CommandQueue {
      * 
      */
     public static void siege(int unitID) {
-        addCommand(UnitCommandType.Siege, unitID, -1, null);
+        addCommand(new Command(UnitCommandType.Siege, unitID, -1, null));
     }
 
     /**
@@ -525,7 +523,7 @@ public class CommandQueue {
      * 
      */
     public static void unsiege(int unitID) {
-        addCommand(UnitCommandType.Unsiege, unitID, -1, null);
+        addCommand(new Command(UnitCommandType.Unsiege, unitID, -1, null));
     }
 
     /**
@@ -534,7 +532,7 @@ public class CommandQueue {
      * 
      */
     public static void cloak(int unitID) {
-        addCommand(UnitCommandType.Cloak, unitID, -1, null);
+        addCommand(new Command(UnitCommandType.Cloak, unitID, -1, null));
     }
 
     /**
@@ -543,7 +541,7 @@ public class CommandQueue {
      * 
      */
     public static void decloak(int unitID) {
-        addCommand(UnitCommandType.Decloak, unitID, -1, null);
+        addCommand(new Command(UnitCommandType.Decloak, unitID, -1, null));
     }
 
     /**
@@ -552,7 +550,7 @@ public class CommandQueue {
      * 
      */
     public static void lift(int unitID) {
-        addCommand(UnitCommandType.Lift, unitID, -1, null);
+        addCommand(new Command(UnitCommandType.Lift, unitID, -1, null));
     }
 
     /**
@@ -561,7 +559,7 @@ public class CommandQueue {
      * 
      */
     public static void land(int unitID, Position position) {
-        addCommand(UnitCommandType.Land, unitID, -1, position);
+        addCommand(new Command(UnitCommandType.Land, unitID, -1, position));
     }
 
     /**
@@ -570,7 +568,7 @@ public class CommandQueue {
      * 
      */
     public static void load(int unitID, int targetID) {
-        addCommand(UnitCommandType.Load, unitID, targetID, null);
+        addCommand(new Command(UnitCommandType.Load, unitID, targetID, null));
     }
 
     /**
@@ -579,7 +577,7 @@ public class CommandQueue {
      * 
      */
     public static void unload(int unitID, int targetID) {
-        addCommand(UnitCommandType.Unload, unitID, targetID, null);
+        addCommand(new Command(UnitCommandType.Unload, unitID, targetID, null));
     }
 
     /**
@@ -588,7 +586,7 @@ public class CommandQueue {
      * 
      */
     public static void unloadAll(int unitID) {
-        addCommand(UnitCommandType.Unload_All, unitID, -1, null);
+        addCommand(new Command(UnitCommandType.Unload_All, unitID, -1, null));
     }
 
     /**
@@ -597,7 +595,7 @@ public class CommandQueue {
      * 
      */
     public static void unloadAll(int unitID, Position position) {
-        addCommand(UnitCommandType.Unload_All_Position, unitID, -1, position);
+        addCommand(new Command(UnitCommandType.Unload_All_Position, unitID, -1, position));
     }
 
     /**
@@ -605,7 +603,7 @@ public class CommandQueue {
      * 
      */
     public static void cancelConstruction(int unitID) {
-        addCommand(UnitCommandType.Cancel_Construction, unitID, -1, null);
+        addCommand(new Command(UnitCommandType.Cancel_Construction, unitID, -1, null));
     }
 
     /**
@@ -613,7 +611,7 @@ public class CommandQueue {
      * 
      */
     public static void haltConstruction(int unitID) {
-        addCommand(UnitCommandType.Halt_Construction, unitID, -1, null);
+        addCommand(new Command(UnitCommandType.Halt_Construction, unitID, -1, null));
     }
 
     /**
@@ -621,7 +619,7 @@ public class CommandQueue {
      * 
      */
     public static void cancelMorph(int unitID) {
-        addCommand(UnitCommandType.Cancel_Morph, unitID, -1, null);
+        addCommand(new Command(UnitCommandType.Cancel_Morph, unitID, -1, null));
     }
 
     /**
@@ -630,7 +628,7 @@ public class CommandQueue {
      * 
      */
     public static void cancelTrain(int unitID) {
-        addCommand(UnitCommandType.Cancel_Train, unitID, -1, null);
+        addCommand(new Command(UnitCommandType.Cancel_Train, unitID, -1, null));
     }
 
     /**
@@ -639,7 +637,7 @@ public class CommandQueue {
      * 
      */
     public static void cancelTrain(int unitID, int slot) {
-        addCommand(UnitCommandType.Cancel_Train_Slot, unitID, slot, null);
+        addCommand(new Command(UnitCommandType.Cancel_Train_Slot, unitID, slot, null));
     }
 
     /**
@@ -648,7 +646,7 @@ public class CommandQueue {
      * 
      */
     public static void cancelAddon(int unitID) {
-        addCommand(UnitCommandType.Cancel_Addon, unitID, -1, null);
+        addCommand(new Command(UnitCommandType.Cancel_Addon, unitID, -1, null));
     }
 
     /***
@@ -657,7 +655,7 @@ public class CommandQueue {
      * 
      */
     public static void cancelResearch(int unitID) {
-        addCommand(UnitCommandType.Cancel_Research, unitID, -1, null);
+        addCommand(new Command(UnitCommandType.Cancel_Research, unitID, -1, null));
     }
 
     /***
@@ -666,7 +664,7 @@ public class CommandQueue {
      * 
      */
     public static void cancelUpgrade(int unitID) {
-        addCommand(UnitCommandType.Cancel_Upgrade, unitID, -1, null);
+        addCommand(new Command(UnitCommandType.Cancel_Upgrade, unitID, -1, null));
     }
 
     /**
@@ -675,8 +673,9 @@ public class CommandQueue {
      * 
      */
     public static void useTech(int unitID, TechType techType) {
-        Command command = addCommand(UnitCommandType.Use_Tech, unitID, -1, null);
+        Command command = new Command(UnitCommandType.Use_Tech, unitID, -1, null);
         command.techType = techType;
+        addCommand(command);
     }
 
     /**
@@ -687,7 +686,7 @@ public class CommandQueue {
      * 
      */
     public static void useTech(int unitID, TechType techType, Position position) {
-        addCommand(UnitCommandType.Use_Tech_Position, unitID, -1, position);
+        addCommand(new Command(UnitCommandType.Use_Tech_Position, unitID, -1, position));
     }
 
     /**
@@ -698,7 +697,7 @@ public class CommandQueue {
      * 
      */
     public static void useTech(int unitID, TechType techType, int targetID) {
-        addCommand(UnitCommandType.Use_Tech_Unit, unitID, targetID, null);
+        addCommand(new Command(UnitCommandType.Use_Tech_Unit, unitID, targetID, null));
     }
 
     private static Command setSuccess(Command command, String message) {

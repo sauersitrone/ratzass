@@ -40,37 +40,6 @@ public class Squad {
         Patrol, Strike, Combat
     }
 
-    public static List<String> coolSquadNames = new ArrayList<String>();
-    static {
-        coolSquadNames.add("Alpha");
-        coolSquadNames.add("Bravo");
-        coolSquadNames.add("Charlie");
-        coolSquadNames.add("Delta");
-        coolSquadNames.add("Echo");
-        coolSquadNames.add("Foxtrot");
-        coolSquadNames.add("Golf");
-        coolSquadNames.add("Hotel");
-        coolSquadNames.add("India");
-        coolSquadNames.add("Juliet");
-        coolSquadNames.add("Kilo");
-        coolSquadNames.add("Lima");
-        coolSquadNames.add("Mike");
-        coolSquadNames.add("November");
-        coolSquadNames.add("Oscar");
-        coolSquadNames.add("Papa");
-        coolSquadNames.add("Quebec");
-        coolSquadNames.add("Romeo");
-        coolSquadNames.add("Sierra");
-        coolSquadNames.add("Tango");
-        coolSquadNames.add("Uniform");
-        coolSquadNames.add("Victor");
-        coolSquadNames.add("Whiskey");
-        coolSquadNames.add("X-ray");
-        coolSquadNames.add("Yankee");
-        coolSquadNames.add("Zulu");
-    }
-    public static int patrolRadius = 32 * 100; 
-
     public String squadID;
     public UnitCommandType currentCommand = UnitCommandType.Unknown;
     public SquadStatus status = SquadStatus.None;
@@ -87,8 +56,8 @@ public class Squad {
         this.behaviorTree = RUtils.getBehaviorTree("squad.tree", this);
         this.type = type;
         this.members = members;
-        Collections.shuffle(coolSquadNames);
-        this.squadID = coolSquadNames.remove(0);
+        Collections.shuffle(StarCraftConstants.coolSquadNames);
+        this.squadID = StarCraftConstants.coolSquadNames.remove(0);
     }
 
     public void updateStatus() {
@@ -185,13 +154,16 @@ public class Squad {
 
     public boolean isSquadInPosition(Position position) {
         Position center = getPosition();
-        return Point2D.distanceSq(center.x, center.y, position.x, position.y) <= patrolRadius;
+        // TODO: check this method
+        // return Point2D.distanceSq(center.x, center.y, position.x, position.y) <=
+        // patrolRadius;
+        return Point2D.distanceSq(center.x, center.y, position.x, position.y) <= 100;
     }
 
     public void retreat() {
-        targetPosition = getRetreatPosition(this, patrolRadius);
+        targetPosition = getRetreatPosition(this); // TODO: check this method
         CommandQueue.addCommand(UnitCommandType.Right_Click_Position, this, targetPosition);
-        CombatCenter.sendCommunication(this, "Retreating ...");
+        CombatCenter.sendCommunication(this, UnitCommandType.Right_Click_Position);
         status = SquadStatus.Moving;
     }
 
@@ -199,14 +171,14 @@ public class Squad {
         trackPosition();
         targetPosition = new Position(position.x, position.y);
         CommandQueue.addCommand(UnitCommandType.Right_Click_Position, this, targetPosition);
-        CombatCenter.sendCommunication(this, "Moving ...");
+        CombatCenter.sendCommunication(this, UnitCommandType.Right_Click_Position);
         status = SquadStatus.Moving;
     }
 
     public void attack(Position position) {
         trackPosition();
         CommandQueue.addCommand(UnitCommandType.Attack_Move, this, position);
-        CombatCenter.sendCommunication(this, "Ohhhh YEAHHH !");
+        CombatCenter.sendCommunication(this, UnitCommandType.Attack_Move);
         status = SquadStatus.Moving;
     }
 
@@ -321,16 +293,18 @@ public class Squad {
     }
 
     /**
-     * return a retreat position for the given squad at the specified distance. the
-     * retreat position is calculated based on the squad's recent movement history.
+     * return a retreat position for the given squad. the retreat position is
+     * calculated based on the squad's recent movement history.
      * 
-     * @param squad    - the squad
-     * @param distance - the distance
-     * @return - the position
+     * TODO: check this method. the logic was based on random walkable positions.
+     * now i explore region center with path. this method must retunr only the
+     * nearest point of the already explored path.
+     * 
      */
-    private static Position getRetreatPosition(Squad squad, int distance) {
+    private static Position getRetreatPosition(Squad squad) {
         List<Point2D> positions = new ArrayList<>(squad.positionsTracking);
-        positions = SimplifyPolyline.simplify(positions, Squad.patrolRadius, false);
+        // positions = SimplifyPolyline.simplify(positions, Squad.patrolRadius, false);
+        positions = SimplifyPolyline.simplify(positions, 100, false);
 
         Path2D path = new Path2D.Double();
         for (int i = 0; i < positions.size(); i++) {
@@ -348,7 +322,7 @@ public class Squad {
             Point2D point2d = positions.get(i);
             count += point2d.distance(prevPoint);
             prevPoint = point2d;
-            if (count >= distance)
+            if (count >= 100)
                 break;
         }
 

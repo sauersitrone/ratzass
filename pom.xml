@@ -127,6 +127,14 @@
             <version>1.12.0</version>
         </dependency>
 
+        <!-- Source: https://mvnrepository.com/artifact/org.apache.commons/commons-csv -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>1.14.0</version>
+            <scope>compile</scope>
+        </dependency>
+
         <!-- Guava: Google Core Libraries for Java -->
         <dependency>
             <groupId>com.google.guava</groupId>

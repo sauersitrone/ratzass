@@ -1,7 +1,6 @@
 package de.simone.ui.forms;
 
 import java.awt.BorderLayout;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -13,6 +12,9 @@ import javax.swing.JTextArea;
 import com.github.freva.asciitable.AsciiTable;
 import com.github.freva.asciitable.Column;
 
+import bwapi.TechType;
+import bwapi.UnitType;
+import bwapi.UpgradeType;
 import de.simone.UIUtils;
 import de.simone.command.BuildOrder;
 import de.simone.command.LogisticCenter;
@@ -38,8 +40,13 @@ public class LogisticCenterView extends Form implements LogisticCenterListener {
     public void update(List<BuildOrder> buildOrders) {
         textArea.setText(AsciiTable.getTable(AsciiTable.NO_BORDERS, buildOrders, Arrays.asList(
                 new Column().header("Id").with(c -> "" + c.id),
-                new Column().header("UnitType").with(c -> c.unitType.toString()),
                 new Column().header("Action").with(c -> c.action.toString()),
+                new Column().header("UnitType").with(
+                        c -> UnitType.None == c.unitType ? "-" : c.unitType.toString()),
+                new Column().header("UpgradeType")
+                        .with(c -> UpgradeType.None == c.upgradeType ? "-" : c.upgradeType.toString()),
+                new Column().header("TechType").with(
+                        c -> TechType.None == c.techType ? "-" : c.techType.toString()),
                 new Column().header("Quantity").with(c -> "" + c.quantity),
                 new Column().header("Status").with(c -> c.getStatus().toString()),
                 new Column().header("Message").with(c -> c.message))));

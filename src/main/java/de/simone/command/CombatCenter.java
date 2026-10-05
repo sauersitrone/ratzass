@@ -3,7 +3,11 @@ package de.simone.command;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.tuple.Pair;
 
 import com.badlogic.gdx.ai.btree.BehaviorTree;
 
@@ -11,6 +15,7 @@ import bwapi.Position;
 import bwapi.Region;
 import bwapi.TilePosition;
 import bwapi.Unit;
+import bwapi.UnitCommandType;
 import bwapi.UnitType;
 import bwapi.WalkPosition;
 import bwem.ChokePoint;
@@ -116,9 +121,17 @@ public class CombatCenter {
     }
 
     public static void sendCommunication(Squad squad, String text) {
-        comms.append(squad.type + "unit " + squad.squadID + ": " + text);
+        comms.append(squad.type + " unit " + squad.squadID + ": " + text);
         comms.append("\n");
         listeners.forEach(listener -> listener.update(comms.toString()));
+    }
+
+    public static void sendCommunication(Squad squad, UnitCommandType command) {
+        List<String> quotes = StarCraftConstants.quotes.stream()
+                .filter(pair -> pair.getLeft() == command)
+                .map(Pair::getRight).toList();
+        Collections.shuffle(quotes);
+        sendCommunication(squad, quotes.get(0));
     }
 
     public static void addListener(CombatCenterListener listener) {

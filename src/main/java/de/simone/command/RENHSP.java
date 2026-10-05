@@ -95,20 +95,20 @@ public class RENHSP {
         return this.planLength;
     }
 
-    public Pair<PDDLDomain, PDDLProblem> parseDomainProblem(String var1, String var2, String var3, PrintStream var4) {
+    public Pair<PDDLDomain, PDDLProblem> parseDomainProblem(String var1, String var2, String var3) {
         try {
             PDDLDomain var5 = new PDDLDomain(var1);
             this.pddlPlus = !var5.getProcessesSchema().isEmpty() || !var5.getEventsSchema().isEmpty();
-            var4.println("Domain parsed");
-            PDDLProblem var6 = new PDDLProblem(var2, var5.getConstants(), var5.getTypes(), var5, var4,
+            out.println("Domain parsed");
+            PDDLProblem var6 = new PDDLProblem(var2, var5.getConstants(), var5.getTypes(), var5, out,
                     this.groundingType, this.sdac, this.ignoreMetric, new BigDecimal(this.deltaPlanning),
                     new BigDecimal(this.deltaExecution));
             if (!var5.getProcessesSchema().isEmpty()) {
                 var6.setDeltaTimeVariable(var3);
             }
 
-            var4.println("Problem parsed");
-            var4.println("Grounding..");
+            out.println("Problem parsed");
+            out.println("Grounding..");
             if (!var6.prepareForSearch(this.aibrPreprocessing, this.stopAfterGrounding)) {
                 return null;
             } else {
@@ -133,10 +133,10 @@ public class RENHSP {
         }
     }
 
-    public boolean parsingDomainAndProblem(String[] var1) {
+    public boolean parsingDomainAndProblem() {
         try {
             this.overallStart = System.currentTimeMillis();
-            Pair var2 = this.parseDomainProblem(this.domainFile, this.problemFile, this.deltaExecution, out);
+            Pair var2 = this.parseDomainProblem(this.domainFile, this.problemFile, this.deltaExecution);
             if (var2 == null) {
                 return false;
             }
@@ -145,7 +145,7 @@ public class RENHSP {
             this.problem = (PDDLProblem) var2.getRight();
             if (this.pddlPlus) {
                 out.println("Heuristic Problem Creation");
-                var2 = this.parseDomainProblem(this.domainFile, this.problemFile, this.deltaHeuristic, out);
+                var2 = this.parseDomainProblem(this.domainFile, this.problemFile, this.deltaHeuristic);
                 this.domainHeuristic = (PDDLDomain) var2.getKey();
                 this.heuristicProblem = (PDDLProblem) var2.getRight();
                 this.copyOfTheProblem = true;

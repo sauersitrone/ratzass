@@ -25,8 +25,8 @@ import de.simone.RUtils;
 import de.simone.StarCraftException;
 import de.simone.btree.Blackboard;
 import de.simone.command.CommandQueue.ResourceType;
-import de.simone.command.StarCraftConstants.BuildActionName;
 import de.simone.command.StarCraftConstants.OrderStatus;
+import de.simone.command.StarCraftConstants.PlannedAction;
 
 /**
  * Coordinates unit and building production together with resource gathering.
@@ -34,12 +34,8 @@ import de.simone.command.StarCraftConstants.OrderStatus;
  * desired state.
  */
 public class LogisticCenter {
-    private static String domain;
-    // private static String problem;
-    private static String planner;
     private static List<LogisticCenterListener> listeners = new ArrayList<>();
     private static List<BuildOrder> buildOrders = new ArrayList<>();
-    private static RENHSP renhsp = new RENHSP(false);
     private static ExecutorService executorService;
     private static int voucherIdx = 0;
     // private static Future<List<BuildOrder>> futureOrder;
@@ -47,9 +43,6 @@ public class LogisticCenter {
     public final static BehaviorTree<Blackboard> behaviorTree;
 
     static {
-        domain = RUtils.getResourceFile("./starcraft-domain.pddl");
-        // planner = "opt-blind";
-        planner = "sat-hmrp";
         Blackboard blackboard = new Blackboard();
         behaviorTree = RUtils.getBehaviorTree("logistic.tree", blackboard);
         executorService = Executors.newSingleThreadExecutor();
@@ -100,7 +93,7 @@ public class LogisticCenter {
          * is there any queued gathering mineral action?
          */
         Optional<BuildOrder> optional = buildOrders.stream()
-                .filter(ba -> ba.action == BuildActionName.gather_Mineral
+                .filter(ba -> ba.action == PlannedAction.gather_Mineral
                         && (ba.getStatus() == OrderStatus.Queued || ba.getStatus() == OrderStatus.Running))
                 .findFirst();
         if (optional.isPresent()) {
@@ -119,7 +112,7 @@ public class LogisticCenter {
          * is there any queued gathering gas action?
          */
         optional = buildOrders.stream()
-                .filter(ba -> ba.action == BuildActionName.gather_Gas
+                .filter(ba -> ba.action == PlannedAction.gather_Gas
                         && (ba.getStatus() == OrderStatus.Queued || ba.getStatus() == OrderStatus.Running))
                 .findFirst();
         if (optional.isPresent()) {
@@ -136,23 +129,13 @@ public class LogisticCenter {
 
         /**
          * only 1 build at the time. this aboid selectind adjacents areas to 2 o more
-         * builds
+         * builds & upgrades and research may need the completed building
          */
         optional = buildOrders.stream()
-                .filter(bo -> (bo.action == StarCraftConstants.BuildActionName.build)
+                .filter(bo -> (bo.action == StarCraftConstants.PlannedAction.build)
                         && bo.getStatus() == OrderStatus.Running)
                 .findFirst();
-        Optional<BuildOrder> optional2 = buildOrders.stream()
-                .filter(bo -> (bo.action == StarCraftConstants.BuildActionName.build)
-                        && bo.getStatus() == OrderStatus.Queued)
-                .findFirst();
-
-        // if there is a running build and a queued build, wait until the running build
-        // is completed before starting the next one. if not, there is no reason to
-        // wait.
-        // TODO: check if the queued build is adjacent to the running build. if yes,
-        // wait until the running build is completed before starting the next one.
-        if (optional.isPresent() && optional2.isPresent()) {
+        if (optional.isPresent()) {
             listeners.forEach(l -> l.update(buildOrders));
             return;
         }
@@ -161,35 +144,50 @@ public class LogisticCenter {
          * start the next queued build or train action
          */
         optional = buildOrders.stream()
-                .filter(bo -> (bo.action == StarCraftConstants.BuildActionName.build
-                        || bo.action == StarCraftConstants.BuildActionName.train)
+                .filter(bo -> (bo.action == StarCraftConstants.PlannedAction.build
+                        || bo.action == StarCraftConstants.PlannedAction.train)
                         && bo.getStatus() == OrderStatus.Queued)
                 .findFirst();
         if (optional.isPresent()) {
             BuildOrder buildOrder = optional.get();
             // train
-            if (buildOrder.action == StarCraftConstants.BuildActionName.train) {
+            if (buildOrder.action == StarCraftConstants.PlannedAction.train) {
                 Command command = CommandQueue.train(buildOrder.unitType);
                 buildOrder.message = command.message;
                 buildOrder.setStatus(OrderStatus.Running);
+                listeners.forEach(l -> l.update(buildOrders));
+                return;
             }
 
             // build
-            if (buildOrder.action == StarCraftConstants.BuildActionName.build) {
+            if (buildOrder.action == StarCraftConstants.PlannedAction.build) {
                 Command command = CommandQueue.build(buildOrder.unitType);
                 buildOrder.message = command.message;
                 buildOrder.setStatus(OrderStatus.Running);
+                listeners.forEach(l -> l.update(buildOrders));
+                return;
             }
+        }
 
+        /**
+         * start the next queued research or upgrade action.
+         */
+        optional = buildOrders.stream()
+                .filter(bo -> (bo.action == StarCraftConstants.PlannedAction.research
+                        || bo.action == StarCraftConstants.PlannedAction.upgrade)
+                        && bo.getStatus() == OrderStatus.Queued)
+                .findFirst();
+        if (optional.isPresent()) {
+            BuildOrder buildOrder = optional.get();
             // Research
-            if (buildOrder.action == StarCraftConstants.BuildActionName.research) {
+            if (buildOrder.action == StarCraftConstants.PlannedAction.research) {
                 Command command = CommandQueue.research(buildOrder.techType);
                 buildOrder.message = command.message;
                 buildOrder.setStatus(OrderStatus.Running);
             }
 
             // upgrade
-            if (buildOrder.action == StarCraftConstants.BuildActionName.update) {
+            if (buildOrder.action == StarCraftConstants.PlannedAction.upgrade) {
                 Command command = CommandQueue.upgrade(buildOrder.upgradeType);
                 buildOrder.message = command.message;
                 buildOrder.setStatus(OrderStatus.Running);
@@ -265,10 +263,14 @@ public class LogisticCenter {
         String problem = pddlProblem.getPDDLProblem();
 
         // parse and configure the planner
+        String domain = RUtils.getResourceFile("./starcraft-domain.pddl");
+        // String planner = "opt-blind";
+        String planner = "sat-hmrp";
         String[] args1 = { "-o", domain, "-f", problem, "-planner", planner, "silent", "true" };
+        RENHSP renhsp = new RENHSP(false);
         renhsp.parseInput(args1);
         renhsp.configurePlanner();
-        if (!renhsp.parsingDomainAndProblem(args1))
+        if (!renhsp.parsingDomainAndProblem())
             throw new StarCraftException("Error parsing domain and problem files.");
 
         // solve the planning problem
@@ -279,16 +281,15 @@ public class LogisticCenter {
             throw new StarCraftException("No plan found for build order: " + pddlProblem.description);
 
         // convert the plan strings into build orders
-        List<BuildOrder> buildOrders2 = new ArrayList<>();
-        buildOrders2 = BuildOrder.getBuildOrders(planStrings);
-        List<BuildOrder> buildOrders3 = orders.get(voucher);
-        buildOrders3.addAll(buildOrders2);
-        buildOrders.addAll(buildOrders2);
-        System.out.println("Build order for " + pddlProblem.description + " created. Voucher: " + voucher);
+        List<BuildOrder> planOrders = BuildOrder.getBuildOrders(planStrings);
+        List<BuildOrder> folder = orders.get(voucher);
+        folder.addAll(planOrders);
+        buildOrders.addAll(planOrders);
+
         for (LogisticCenterListener listener : listeners) {
             listener.update(buildOrders);
         }
-        return buildOrders2;
+        return planOrders;
     }
 
     /**
@@ -302,19 +303,24 @@ public class LogisticCenter {
     }
 
     // public static void main(String[] args) {
-    // RPDDLProblem pddlProblem = new RPDDLProblem();
-    // pddlProblem.setResearchGoal(TechType.Tank_Siege_Mode);
-    // // pddlProblem.setUpgradeGoal(UpgradeType.U_238_Shells, 1);
+    // RPDDLProblem pddlProblem = new RPDDLProblem("Test environment");
+    // // pddlProblem.setResearchGoal(TechType.Tank_Siege_Mode);
+    // pddlProblem.setUpgradeGoal(UpgradeType.U_238_Shells, 1);
     // pddlProblem.isTest = true;
     // pddlProblem.unitsTest.add(Pair.of(UnitType.Terran_Command_Center, 1));
-    // pddlProblem.unitsTest.add(Pair.of(UnitType.Terran_SCV, 1));
-    // LogisticCenter.problem = pddlProblem.getPDDLProblem();
+    // pddlProblem.unitsTest.add(Pair.of(UnitType.Terran_SCV, 4));
+    // String problem = pddlProblem.getPDDLProblem();
 
     // // parse and configure the planner
-    // String[] args1 = { "-o", domain, "-f", problem, "-planner", planner };
+    // String domain = RUtils.getResourceFile("./starcraft-domain.pddl");
+    // // String planner = "opt-blind";
+    // String planner = "sat-hmrp";
+    // String[] args1 = { "-o", domain, "-f", problem, "-planner", planner,
+    // "silent", "true" };
+    // RENHSP renhsp = new RENHSP(false);
     // renhsp.parseInput(args1);
     // renhsp.configurePlanner();
-    // if (!renhsp.parsingDomainAndProblem(args1))
+    // if (!renhsp.parsingDomainAndProblem())
     // throw new StarCraftException("Error parsing domain and problem files.");
 
     // // solve the planning problem

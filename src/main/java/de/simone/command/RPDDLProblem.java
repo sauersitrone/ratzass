@@ -207,6 +207,7 @@ public class RPDDLProblem {
             }
         }
 
+        init.add(Pair.of("Supply", 6));
         for (UpgradeType upgradeType : upgradeTypes) {
             Pair<UpgradeType, Integer> upgradeTest = upgradesTest.stream()
                     .filter(pair -> pair.getKey() == upgradeType)
@@ -215,7 +216,6 @@ public class RPDDLProblem {
             int count = upgradeTest.getValue();
             init.add(Pair.of(upgradeType.toString(), count));
         }
-
     }
 
     private void resolveLive() {
@@ -227,10 +227,10 @@ public class RPDDLProblem {
             }
         }
         init.add(Pair.of("Supply", RBWListener.currentSupplyLeft)); // ooohhh yeahhhh
-        for (UpgradeType unitType : upgradeTypes) {
-            // TODO: check how to get the current upgrade level for each upgrade type. For now, we assume it's 0.
-            int count = 0;
-            init.add(Pair.of(unitType.toString(), count));
+        for (UpgradeType upgradeType : upgradeTypes) {
+            int level = RBWListener.game.self().getUpgradeLevel(upgradeType);
+            // int max = RBWListener.game.self().getMaxUpgradeLevel(upgradeType);
+            init.add(Pair.of(upgradeType.toString(), level));
         }
 
     }

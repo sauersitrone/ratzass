@@ -7,38 +7,35 @@ import isSquadNeeded:"de.simone.btree.logistic.IsSquadNeededCondition"
 import loadBunkers:"de.simone.btree.logistic.LoadBunkersTask"
 import repairUnit:"de.simone.btree.logistic.RepairUnitTask"
 
-repeat
+selector
     sequence
         # build the bare minimum infrastructure
-        train                   unitType:"Terran_SCV" count:2
-        train                   unitType:"Terran_Refinery" count:1
-        train                   unitType:"Terran_SCV" count:2
-        trainForceTo            level:2
+        train unitType:"Terran_SCV"         count:2
+        train unitType:"Terran_Refinery"    count:1
+        train unitType:"Terran_SCV"         count:2
 
+        # train unitType:"Terran_Barracks"    count:1 
+        
         # create defensive bunkers and load them with marines (train marine first)
-        # train                   unitType:"Terran_Bunker" count:1
-        # train                   unitType:"Terran_Marine" count:4
-        # loadBunkers
-        # train                   unitType:"Terran_Bunker" count:1
-        # train                   unitType:"Terran_Marine" count:4
-        # loadBunkers
+        repeat times:2
+            sequence
+                train unitType:"Terran_Marine" count:4
+                train unitType:"Terran_Bunker" count:1  wait:false
+                loadBunkers
+
+        train upgradeType:"U_238_Shells"    count:1
 
         # Create a patrol squad
-        train                   unitType:"Terran_Marine" count:2
-        createSquad             type:"Patrol" members:"2*Terran_Marine"
-        train                   unitType:"Terran_Marine" count:2
-        createSquad             type:"Patrol" members:"2*Terran_Marine"
+        train       unitType:"Terran_Marine"    count:2
+        createSquad type:"Patrol"               members:"2*Terran_Marine"
+        train       unitType:"Terran_Marine"    count:2
+        createSquad type:"Patrol"               members:"2*Terran_Marine"
 
-        # Create a platoon squad
-        # trainForceTo            level:2
-        # isSquadNeeded           type:"Strike" count:20
-        # train                   unitType:"Terran_Marine" count:10
-        # train                   unitType:"Terran_Medic" count:5
-        # train                   unitType:"Terran_Firebat" count:5
-        # createSquad             type:"Strike" members:"10*Terran_Marine,5*Terran_Medic,5*Terran_Firebat"
-        wait seconds:60
-        failure
-        
+    sequence
+        repairUnit
+        # check for destroyed bunkers, rebuild and reload them
+        wait seconds:30
+
         # Mechanized squad
         # sequence
         #     trainForceTo        level:3

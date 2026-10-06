@@ -186,12 +186,12 @@
         </dependency>
 
         <!-- annotations to simplify Java development by automating the generation of code -->
-        <dependency>
+        <!-- <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.44</version>
             <scope>compile</scope>
-        </dependency>
+        </dependency> -->
 
         <!-- Expressive Numeric Heuristic Planner. -->
         <dependency>
@@ -201,19 +201,19 @@
         </dependency>
 
         <!--  lightweight, embeddable planning engine -->
-        <dependency>
+        <!-- <dependency>
             <groupId>ai.timefold.solver</groupId>
             <artifactId>timefold-solver-core</artifactId>
             <version>2.3.0</version>
             <scope>compile</scope>
-        </dependency>
+        </dependency> -->
         <!-- Implementation of the SLF4J API for Logback,  -->
-        <dependency>
+        <!-- <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>1.5.38</version>
             <scope>compile</scope>
-        </dependency>
+        </dependency> -->
 
         <!-- ASCII Tables for Java -->
         <dependency>

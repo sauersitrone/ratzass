@@ -11,7 +11,6 @@ import java.util.Properties;
 
 public class Config {
     private static Properties properties = new Properties();
-
     private static File configFile;
     
     // game settings
@@ -23,14 +22,12 @@ public class Config {
 
     // StarCraft map drawing settings
     public static boolean drawIDs = true;
-    public static boolean drawPings = false;
     public static boolean drawPlayerUnits = true;
     public static boolean drawEnemyUnits = true;
     public static boolean drawNeutralUnits = true;
     public static boolean drawResources = true;
     public static boolean drawStartSpots = true;
     public static boolean drawRegions = true;
-    public static boolean drawAreas = true;
     public static boolean fillRegions = false;
     public static boolean drawChokepoints = true;
 
@@ -69,14 +66,12 @@ public class Config {
             showResources = Boolean.parseBoolean(properties.getProperty("showResources"));
 
             drawIDs = Boolean.parseBoolean(properties.getProperty("map.drawIDs"));
-            drawPings = Boolean.parseBoolean(properties.getProperty("map.drawPings"));
             drawPlayerUnits = Boolean.parseBoolean(properties.getProperty("map.drawPlayerUnits"));
             drawEnemyUnits = Boolean.parseBoolean(properties.getProperty("map.drawEnemyUnits"));
             drawNeutralUnits = Boolean.parseBoolean(properties.getProperty("map.drawNeutralUnits"));
             drawResources = Boolean.parseBoolean(properties.getProperty("map.drawResources"));
             drawStartSpots = Boolean.parseBoolean(properties.getProperty("map.drawStartSpots"));
             drawRegions = Boolean.parseBoolean(properties.getProperty("map.drawRegions"));
-            drawAreas = Boolean.parseBoolean(properties.getProperty("map.drawAreas"));
             fillRegions = Boolean.parseBoolean(properties.getProperty("map.fillRegions"));
             drawChokepoints = Boolean.parseBoolean(properties.getProperty("map.drawChokepoints"));
 
@@ -96,10 +91,8 @@ public class Config {
             properties.setProperty("fogOfWar", Boolean.toString(fogOfWar));
             properties.setProperty("showResources", Boolean.toString(showResources));
             properties.setProperty("map.drawIDs", Boolean.toString(drawIDs));
-            properties.setProperty("map.drawPings", Boolean.toString(drawPings));
             properties.setProperty("map.drawPlayerUnits", Boolean.toString(drawPlayerUnits));
             properties.setProperty("map.drawRegions", Boolean.toString(drawRegions));
-            properties.setProperty("map.drawAreas", Boolean.toString(drawAreas));
             properties.setProperty("map.drawEnemyUnits", Boolean.toString(drawEnemyUnits));
             properties.setProperty("map.drawNeutralUnits", Boolean.toString(drawNeutralUnits));
             properties.setProperty("map.drawResources", Boolean.toString(drawResources));

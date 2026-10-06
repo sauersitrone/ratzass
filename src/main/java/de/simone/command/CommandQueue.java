@@ -2,7 +2,6 @@ package de.simone.command;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import bwapi.Game;
 import bwapi.Position;
@@ -14,22 +13,18 @@ import bwapi.UnitFilter;
 import bwapi.UnitType;
 import bwapi.UpgradeType;
 import de.simone.RBWListener;
-import de.simone.StarCraftException;
 import de.simone.command.StarCraftConstants.OrderStatus;
-import lombok.extern.java.Log;
 
 /**
  * represent this app <-> starcraft bridge. This class is the main entry point
  * for all commands to be sent to the game.
  */
-@Log
 public class CommandQueue {
     public static enum ResourceType {
         Mineral,
         Gas
     }
 
-    public static Command currentCommand;
     private static ArrayList<Command> commands = new ArrayList<Command>();
     private static ArrayList<CommandQueueListener> listeners = new ArrayList<CommandQueueListener>();
 
@@ -48,7 +43,7 @@ public class CommandQueue {
             if (command.status != OrderStatus.Queued)
                 continue;
 
-            currentCommand = command;
+            RBWListener.lastCommand = command;
             boolean success = true;
             boolean ignored = false;
 
@@ -247,24 +242,18 @@ public class CommandQueue {
         listeners.forEach(listener -> listener.update(commands));
     }
 
-    public static Command gather(ResourceType resourceType) {
+    public static Command gather(Unit unit, ResourceType resourceType) {
         Command command = new Command(UnitCommandType.Gather, -1, -1, null);
-
-        // select idle SCV
-        Unit dTag = UnitsCenter.getIdleTerranSCV();
-        if (dTag == null) {
-            return setFail(command, "No SCV available to gather resources.");
-        }
 
         // select closest resource
         Unit resourceUnit = null;
         if (resourceType == ResourceType.Mineral) {
-            resourceUnit = RBWListener.game.getClosestUnit(dTag.getPosition(), UnitFilter.IsMineralField);
+            resourceUnit = RBWListener.game.getClosestUnit(unit.getPosition(), UnitFilter.IsMineralField);
         } else {
-            resourceUnit = RBWListener.game.getClosestUnit(dTag.getPosition(), UnitFilter.IsRefinery);
+            resourceUnit = RBWListener.game.getClosestUnit(unit.getPosition(), UnitFilter.IsRefinery);
         }
 
-        command.unitId = dTag.getID();
+        command.unitId = unit.getID();
         command.targetId = resourceUnit.getID();
         addCommand(command);
         return command;

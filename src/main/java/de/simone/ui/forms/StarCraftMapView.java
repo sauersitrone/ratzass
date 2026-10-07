@@ -14,14 +14,12 @@ public class StarCraftMapView extends Form {
 
     private StarCraftTileMap starCraftTileMap;
     private JCheckBox drawIDsCB;
-    private JCheckBox drawPingsCB;
     private JCheckBox drawPlayerUnitsCB;
     private JCheckBox drawEnemyUnitsCB;
     private JCheckBox drawNeutralUnitsCB;
     private JCheckBox drawResourcesCB;
     private JCheckBox drawStartSpotsCB;
     private JCheckBox drawRegionsCB;
-    private JCheckBox drawAreasCB;
     private JCheckBox drawChokepointsCB;
     private JPanel header;
     private JPanel controlPanel;
@@ -34,8 +32,6 @@ public class StarCraftMapView extends Form {
 
         drawIDsCB = UIUtils.getPropertyCheckBox("draw IDs", Config.drawIDs,
                 e -> Config.drawIDs = drawIDsCB.isSelected());
-        drawPingsCB = UIUtils.getPropertyCheckBox("draw Pings", Config.drawPings,
-                e -> Config.drawPings = drawPingsCB.isSelected());
         drawPlayerUnitsCB = UIUtils.getPropertyCheckBox("draw Player Units", Config.drawPlayerUnits,
                 e -> Config.drawPlayerUnits = drawPlayerUnitsCB.isSelected());
         drawEnemyUnitsCB = UIUtils.getPropertyCheckBox("draw Enemy Units", Config.drawEnemyUnits,
@@ -48,14 +44,12 @@ public class StarCraftMapView extends Form {
                 e -> Config.drawStartSpots = drawStartSpotsCB.isSelected());
         drawRegionsCB = UIUtils.getPropertyCheckBox("draw Regions", Config.drawRegions,
                 e -> Config.drawRegions = drawRegionsCB.isSelected());
-        drawAreasCB = UIUtils.getPropertyCheckBox("draw Areas", Config.drawAreas,
-                e -> Config.drawAreas = drawAreasCB.isSelected());
         drawChokepointsCB = UIUtils.getPropertyCheckBox("draw Chokepoints", Config.drawChokepoints,
                 e -> Config.drawChokepoints = drawChokepointsCB.isSelected());
 
-        controlPanel = UIUtils.getControlPanel("Controls", drawIDsCB, drawPingsCB, drawPlayerUnitsCB,
+        controlPanel = UIUtils.getControlPanel("Controls", drawIDsCB, drawPlayerUnitsCB,
                 drawEnemyUnitsCB, drawNeutralUnitsCB, drawResourcesCB, drawStartSpotsCB, drawRegionsCB,
-                drawAreasCB, drawChokepointsCB );
+                drawChokepointsCB);
 
         add(starCraftTileMap, BorderLayout.CENTER);
     }

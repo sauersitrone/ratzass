@@ -6,13 +6,10 @@ import bwapi.TilePosition;
 import bwapi.UnitCommandType;
 import bwapi.UnitType;
 import bwapi.UpgradeType;
-import de.simone.RBWListener;
 import de.simone.command.StarCraftConstants.OrderStatus;
 
 public class Command {
-
-    // unique id for this command
-    public int cycle = RBWListener.game.getFrameCount();
+    public int id = StarCraftConstants.idGenerator++;
 
     // unit that must this commmand execute
     public int unitId = -1;
@@ -36,6 +33,7 @@ public class Command {
     public TilePosition tilePosition = null;
     public int trys = 0;
 
+    @SuppressWarnings("unused")
     private Command() {
         //
     }
@@ -59,4 +57,12 @@ public class Command {
     public String toString() {
         return order + " " + unitType;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || getClass() != obj.getClass())
+            return false;
+        return ((Command) obj).id == this.id;
+    }
+
 }

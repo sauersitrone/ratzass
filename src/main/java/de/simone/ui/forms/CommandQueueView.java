@@ -36,7 +36,7 @@ public class CommandQueueView extends Form implements CommandQueueListener {
     @Override
     public void update(List<Command> commands) {
         textArea.setText(AsciiTable.getTable(AsciiTable.NO_BORDERS, commands, Arrays.asList(
-                new Column().header("Cicle").with(c -> "" + c.cycle),
+                new Column().header("Id").with(c -> "" + c.id),
                 new Column().header("UnitId").with(c -> "" + c.unitId),
                 new Column().header("unitType").with(c -> "" + c.unitType),
                 new Column().header("targetId").with(c -> "" + c.targetId),

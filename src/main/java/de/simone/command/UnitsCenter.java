@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import bwapi.Order;
 import bwapi.Pair;
 import bwapi.Position;
 import bwapi.TechType;
@@ -185,7 +186,8 @@ public class UnitsCenter {
     }
 
     /**
-     * Get a list of all units controlled by the player. the method returns only units that are completed and not dead.
+     * Get a list of all units controlled by the player. the method returns only
+     * units that are completed and not dead.
      * 
      * @return the list
      */
@@ -196,9 +198,14 @@ public class UnitsCenter {
         return units;
     }
 
-    public static Unit getIdleTerranSCV() {
+    /**
+     * Get a free SCV that is idle and not currently executing any orders.
+     * 
+     * @return the scv
+     */
+    public static Unit getSCVForGather() {
         List<Unit> units = getUnits().stream()
-                .filter(u -> u.getType() == UnitType.Terran_SCV && u.isIdle())
+                .filter(u -> u.getType() == UnitType.Terran_SCV && u.isIdle() && u.getOrder() == Order.None)
                 .toList();
         List<Unit> units2 = new ArrayList<>(units);
         Collections.shuffle(units2);

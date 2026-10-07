@@ -11,7 +11,6 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -31,15 +30,11 @@ import bwapi.Game;
 import bwapi.Region;
 import bwapi.TilePosition;
 import bwapi.Unit;
-import bwapi.UnitCommandType;
 import bwapi.WalkPosition;
-import bwem.Area;
 import bwem.ChokePoint;
 import de.simone.Config;
 import de.simone.RBWListener;
 import de.simone.command.CombatCenter;
-import de.simone.command.Command;
-import de.simone.command.CommandQueueListener;
 
 /**
  * Tiled-map-backed GUI showing the ProxyBot's view of the game state.
@@ -48,7 +43,7 @@ import de.simone.command.CommandQueueListener;
  * structures.
  */
 public class StarCraftTileMap extends JPanel
-        implements MouseWheelListener, MouseMotionListener, MouseListener, CommandQueueListener {
+        implements MouseWheelListener, MouseMotionListener, MouseListener {
 
     private Game game;
 
@@ -92,7 +87,6 @@ public class StarCraftTileMap extends JPanel
 
     private TileLayer terrainLayer;
     private ObjectGroup regionsGroup;
-    private ObjectGroup areasGroup;
     private ObjectGroup chokepointsGroup;
     private ObjectGroup startSpotsGroup;
     private ObjectGroup mineralsGroup;
@@ -184,7 +178,6 @@ public class StarCraftTileMap extends JPanel
 
         // one ObjectGroup per entity category; colour is stored as hex string
         regionsGroup = addObjectGroup("regions", "#ffa500");
-        areasGroup = addObjectGroup("areas", "#00ff00");
         chokepointsGroup = addObjectGroup("chokepoints", "#ffffff");
         startSpotsGroup = addObjectGroup("starting_locations", "#8A2BE2");
         mineralsGroup = addObjectGroup("minerals", "#00ffff");
@@ -259,7 +252,6 @@ public class StarCraftTileMap extends JPanel
         refreshResources();
         refreshUnits();
         refreshRegions();
-        refreshAreas();
         refreshChokepoints();
         refreshStartSpots();
     }
@@ -275,24 +267,6 @@ public class StarCraftTileMap extends JPanel
             MapObject obj = createMapObject(x, y, tileSize, tileSize, 0);
             obj.setType("region");
             regionsGroup.addObject(obj);
-        }
-    }
-
-    private void refreshAreas() {
-        areasGroup.getObjects().clear();
-        if (!Config.drawAreas || RBWListener.bwem == null)
-            return;
-
-        for (Area area : RBWListener.bwem.getMap().getAreas()) {
-            TilePosition topLeft = area.getTopLeft();
-            TilePosition bottomRight = area.getBottomRight();
-            int x = topLeft.x * tileSize;
-            int y = topLeft.y * tileSize;
-            int width = (bottomRight.x - topLeft.x + 1) * tileSize;
-            int height = (bottomRight.y - topLeft.y + 1) * tileSize;
-            MapObject obj = createMapObject(x, y, width, height, 0);
-            obj.setType("area");
-            areasGroup.addObject(obj);
         }
     }
 
@@ -402,7 +376,7 @@ public class StarCraftTileMap extends JPanel
     @Override
     public void paint(Graphics g) {
         if (System.currentTimeMillis() > (1000 + lastRedraw)) {
-            orders.clear();
+
         }
         lastRedraw = System.currentTimeMillis();
 
@@ -418,9 +392,6 @@ public class StarCraftTileMap extends JPanel
                 paintTerrainLayer(g2);
                 if (Config.drawRegions)
                     paintObjectGroupOutline(g2, regionsGroup);
-
-                if (Config.drawAreas)
-                    paintObjectGroupOutline(g2, areasGroup);
 
                 if (Config.drawChokepoints)
                     paintObjectGroupEllipses(g2, chokepointsGroup);
@@ -445,8 +416,6 @@ public class StarCraftTileMap extends JPanel
             if (Config.drawIDs && mapInitialized)
                 paintUnitLabels(g2);
 
-            if (Config.drawPings)
-                paintPings(g2);
         } else {
             paintInfluenceMap(g2);
         }
@@ -560,27 +529,6 @@ public class StarCraftTileMap extends JPanel
                             (int) mo.getY() + 2 + textSize);
                 }
             }
-        }
-    }
-
-    private void paintPings(Graphics2D g2) {
-        g2.setColor(Color.YELLOW);
-        ArrayList<Order> remove = new ArrayList<>();
-        for (Order order : new ArrayList<>(orders)) {
-            order.timer++;
-            if (order.timer > 15) {
-                remove.add(order);
-                continue;
-            }
-            int x = order.x * tileSize + tileSize / 2;
-            int y = order.y * tileSize + tileSize / 2;
-            g2.drawLine(x + 3 * order.timer, y - (25 - order.timer), x + 3 * order.timer, y + (25 - order.timer));
-            g2.drawLine(x - 3 * order.timer, y - (25 - order.timer), x - 3 * order.timer, y + (25 - order.timer));
-            g2.drawLine(x - 20, y + 3 * order.timer, x + (25 - order.timer), y + 3 * order.timer);
-            g2.drawLine(x - 20, y - 3 * order.timer, x + (25 - order.timer), y - 3 * order.timer);
-        }
-        synchronized (orders) {
-            orders.removeAll(remove);
         }
     }
 
@@ -708,68 +656,5 @@ public class StarCraftTileMap extends JPanel
 
     @Override
     public void mouseClicked(MouseEvent e) {
-    }
-
-    // -------------------------------------------------------------------------
-    // command queue pings (adapted from original, using new Command fields)
-    // -------------------------------------------------------------------------
-
-    private static class Order {
-        int timer = -5;
-        final int x, y;
-
-        Order(int x, int y) {
-            this.x = x;
-            this.y = y;
-        }
-    }
-
-    private final ArrayList<Order> orders = new ArrayList<>();
-
-    @Override
-    public void update(List<Command> command) {
-        // for (Command c : command) {
-        // int px = -1, py = -1;
-        // UnitCommandType order = command.order;
-
-        // if (isPositionBased(order)) {
-        // if (command.position != null) {
-        // px = command.position.x / 32;
-        // py = command.position.y / 32;
-        // }
-        // } else if (isTargetUnitBased(order)) {
-        // Unit target = game.getUnit(command.targetId);
-        // if (target != null) {
-        // px = target.getX();
-        // py = target.getY();
-        // }
-        // } else {
-        // // self-unit commands (train, siege, research, …)
-        // Unit unit = game.getUnit(command.unitId);
-        // if (unit != null) {
-        // px = unit.getX();
-        // py = unit.getY();
-        // }
-        // }
-
-        // if (px >= 0 && py >= 0)
-        // orders.add(new Order(px, py));
-        // }
-    }
-
-    private static boolean isPositionBased(UnitCommandType o) {
-        return o == UnitCommandType.Attack_Move
-                || o == UnitCommandType.Move
-                || o == UnitCommandType.Patrol
-                || o == UnitCommandType.Right_Click_Position
-                || o == UnitCommandType.Use_Tech_Position
-                || o == UnitCommandType.Build;
-    }
-
-    private static boolean isTargetUnitBased(UnitCommandType o) {
-        return o == UnitCommandType.Attack_Unit
-                || o == UnitCommandType.Right_Click_Unit
-                || o == UnitCommandType.Follow
-                || o == UnitCommandType.Use_Tech_Unit;
     }
 }

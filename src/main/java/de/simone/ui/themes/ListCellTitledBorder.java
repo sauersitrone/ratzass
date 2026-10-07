@@ -8,6 +8,7 @@ import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
+@SuppressWarnings ({"rawtypes"})
 public class ListCellTitledBorder implements Border {
 
     private final JList list;

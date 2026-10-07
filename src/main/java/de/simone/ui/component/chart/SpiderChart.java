@@ -17,6 +17,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
+@SuppressWarnings ({"rawtypes", "unchecked"})
 public class SpiderChart extends DefaultChartPanel {
 
     public SpiderChart() {

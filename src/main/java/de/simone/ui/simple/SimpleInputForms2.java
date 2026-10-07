@@ -5,6 +5,7 @@ import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 
+@SuppressWarnings ({"rawtypes", "unchecked"})
 public class SimpleInputForms2 extends JPanel {
 
     public SimpleInputForms2() {

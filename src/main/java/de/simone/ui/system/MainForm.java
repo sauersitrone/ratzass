@@ -124,7 +124,7 @@ public class MainForm extends JPanel {
     private Component createMain() {
         mainPanel = new JPanel(new BorderLayout());
         mainControlPanel = new ControlPanel();
-        northPanel = new JPanel(new MigLayout("wrap,top", "[fill]"));
+        northPanel = new JPanel(new MigLayout("wrap,top", "[grow,fill]"));
         northPanel.add(mainControlPanel);
         mainPanel.add(northPanel, BorderLayout.NORTH);
         return mainPanel;

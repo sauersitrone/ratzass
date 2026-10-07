@@ -11,7 +11,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 
 import com.badlogic.gdx.ai.btree.BehaviorTree;
 import com.hstairs.ppmajal.transition.TransitionGround;
@@ -37,8 +36,6 @@ public class LogisticCenter {
     private static List<LogisticCenterListener> listeners = new ArrayList<>();
     private static List<BuildOrder> buildOrders = new ArrayList<>();
     private static ExecutorService executorService;
-    private static int voucherIdx = 0;
-    // private static Future<List<BuildOrder>> futureOrder;
     public static Map<String, List<BuildOrder>> orders = new TreeMap<>();
     public final static BehaviorTree<Blackboard> behaviorTree;
 
@@ -73,9 +70,9 @@ public class LogisticCenter {
      */
     public static void heartBeat() {
         /**
-         * ensure the scv are working
+         * ensure all free SCVs are gathering resources
          */
-        Unit unit = UnitsCenter.getIdleTerranSCV();
+        Unit unit = UnitsCenter.getSCVForGather();
         if (unit != null) {
             // at least 2 gathering gas
             Unit refinery = UnitsCenter.getUnits().stream().filter(u -> u.getType() == UnitType.Terran_Refinery)
@@ -83,9 +80,9 @@ public class LogisticCenter {
             int gGas = (int) UnitsCenter.getUnits().stream()
                     .filter(u -> u.getType() == UnitType.Terran_SCV && u.isGatheringGas()).count();
             if (gGas < StarCraftConstants.SCV_GATHERING_GAS && refinery != null) {
-                CommandQueue.gather(ResourceType.Gas);
+                CommandQueue.gather(unit, ResourceType.Gas);
             } else {
-                CommandQueue.gather(ResourceType.Mineral);
+                CommandQueue.gather(unit, ResourceType.Mineral);
             }
         }
 
@@ -128,7 +125,7 @@ public class LogisticCenter {
         }
 
         /**
-         * only 1 build at the time. this aboid selectind adjacents areas to 2 o more
+         * only 1 build at the time. this avoids selecting adjacent areas to 2 or more
          * builds & upgrades and research may need the completed building
          */
         optional = buildOrders.stream()
@@ -136,8 +133,22 @@ public class LogisticCenter {
                         && bo.getStatus() == OrderStatus.Running)
                 .findFirst();
         if (optional.isPresent()) {
-            listeners.forEach(l -> l.update(buildOrders));
-            return;
+            BuildOrder buildOrder = optional.get();
+            /**
+             * instead of inmeditely return, check if the next in line is a train action. if
+             * it is, allow it to proceed. otherwise, return.
+             */
+            optional = buildOrders.stream()
+                    .filter(bo -> (bo.action == StarCraftConstants.PlannedAction.train)
+                            && bo.getStatus() == OrderStatus.Queued)
+                    .findFirst();
+            if (optional.isPresent()) {
+                BuildOrder trainOrder = optional.get();
+                if (buildOrders.indexOf(buildOrder) != buildOrders.indexOf(trainOrder) + 1) {
+                    listeners.forEach(l -> l.update(buildOrders));
+                    return;
+                }
+            }
         }
 
         /**
@@ -150,23 +161,19 @@ public class LogisticCenter {
                 .findFirst();
         if (optional.isPresent()) {
             BuildOrder buildOrder = optional.get();
+            Command command = null;
             // train
-            if (buildOrder.action == StarCraftConstants.PlannedAction.train) {
-                Command command = CommandQueue.train(buildOrder.unitType);
-                buildOrder.message = command.message;
-                buildOrder.setStatus(OrderStatus.Running);
-                listeners.forEach(l -> l.update(buildOrders));
-                return;
-            }
+            if (buildOrder.action == StarCraftConstants.PlannedAction.train)
+                command = CommandQueue.train(buildOrder.unitType);
 
             // build
-            if (buildOrder.action == StarCraftConstants.PlannedAction.build) {
-                Command command = CommandQueue.build(buildOrder.unitType);
-                buildOrder.message = command.message;
-                buildOrder.setStatus(OrderStatus.Running);
-                listeners.forEach(l -> l.update(buildOrders));
-                return;
-            }
+            if (buildOrder.action == StarCraftConstants.PlannedAction.build)
+                command = CommandQueue.build(buildOrder.unitType);
+
+            buildOrder.message = command.message;
+            buildOrder.setStatus(OrderStatus.Running);
+            listeners.forEach(l -> l.update(buildOrders));
+            return;
         }
 
         /**
@@ -179,19 +186,17 @@ public class LogisticCenter {
                 .findFirst();
         if (optional.isPresent()) {
             BuildOrder buildOrder = optional.get();
+            Command command = null;
             // Research
-            if (buildOrder.action == StarCraftConstants.PlannedAction.research) {
-                Command command = CommandQueue.research(buildOrder.techType);
-                buildOrder.message = command.message;
-                buildOrder.setStatus(OrderStatus.Running);
-            }
+            if (buildOrder.action == StarCraftConstants.PlannedAction.research)
+                command = CommandQueue.research(buildOrder.techType);
 
             // upgrade
-            if (buildOrder.action == StarCraftConstants.PlannedAction.upgrade) {
-                Command command = CommandQueue.upgrade(buildOrder.upgradeType);
-                buildOrder.message = command.message;
-                buildOrder.setStatus(OrderStatus.Running);
-            }
+            if (buildOrder.action == StarCraftConstants.PlannedAction.upgrade)
+                command = CommandQueue.upgrade(buildOrder.upgradeType);
+
+            buildOrder.message = command.message;
+            buildOrder.setStatus(OrderStatus.Running);
         }
 
         // notify all listeners about the updated build orders
@@ -218,7 +223,7 @@ public class LogisticCenter {
             throw new StarCraftException("An order for " + quantity + " of " + unitType + " is already in.");
         }
 
-        String voucher = "B-" + ++voucherIdx;
+        String voucher = "B-" + StarCraftConstants.idGenerator++;
         RPDDLProblem pddlProblem = new RPDDLProblem("Build goal for " + unitType + " x" + quantity);
         pddlProblem.setBuildGoal(unitType, quantity);
 
@@ -232,7 +237,7 @@ public class LogisticCenter {
     public static String addBuildOrder(UpgradeType upgradeType, int quantity) {
         RPDDLProblem pddlProblem = new RPDDLProblem("Upgrade goal for " + upgradeType);
         pddlProblem.setUpgradeGoal(upgradeType, quantity);
-        String voucher = "U-" + ++voucherIdx;
+        String voucher = "U-" + StarCraftConstants.idGenerator++;
 
         executorService.submit(() -> solve(voucher, pddlProblem));
 
@@ -242,7 +247,7 @@ public class LogisticCenter {
     }
 
     public static String addBuildOrder(TechType techType) {
-        String voucher = "R-" + ++voucherIdx;
+        String voucher = "R-" + StarCraftConstants.idGenerator++;
         RPDDLProblem pddlProblem = new RPDDLProblem("Research goal for " + techType);
         pddlProblem.setResearchGoal(techType);
 

@@ -12,6 +12,7 @@ public class StarCraftConstants {
     public static final int SCV_GATHERING_GAS = 2;
     public static final int MINERAL_LOAD = 5;
     public static final int GAS_LOAD = 4;
+    public static int idGenerator = 1;
 
     // general status of a order (eg. buildOrder or combatOrder)
     public enum OrderStatus {

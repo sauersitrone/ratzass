@@ -1,49 +1,56 @@
-import isUnitNeeded:"de.simone.btree.logistic.IsUnitNeededCondition"
-import isCombatUnitNeeded:"de.simone.btree.logistic.IsCombatUnitNeededCondition"
 import train:"de.simone.btree.logistic.TrainTask"
 import createSquad:"de.simone.btree.logistic.CreateSquadTask"
-import trainForceTo:"de.simone.btree.logistic.TrainForceToTask"
-import isSquadNeeded:"de.simone.btree.logistic.IsSquadNeededCondition"
 import loadBunkers:"de.simone.btree.logistic.LoadBunkersTask"
 import repairUnit:"de.simone.btree.logistic.RepairUnitTask"
+import isSquadNeeded:"de.simone.btree.logistic.IsSquadNeededCondition"
 
 selector
     sequence
         # build the bare minimum infrastructure
-        train unitType:"Terran_SCV"         count:2
-        train unitType:"Terran_Refinery"    count:1
-        train unitType:"Terran_SCV"         count:2
+        train unitType:"Terran_SCV" increase:2
+        train unitType:"Terran_Refinery" total:1
+        train unitType:"Terran_SCV" increase:2
 
-        # train unitType:"Terran_Barracks"    count:1 
-        
         # create defensive bunkers and load them with marines (train marine first)
+        train unitType:"Terran_Barracks" total:1 
         repeat times:2
             sequence
-                train unitType:"Terran_Marine" count:4
-                train unitType:"Terran_Bunker" count:1  wait:false
+                train unitType:"Terran_Marine" increase:4
+                train unitType:"Terran_Bunker" total:1 
                 loadBunkers
 
-        train upgradeType:"U_238_Shells"    count:1
+        train upgradeType:"U_238_Shells" total:1
+        train unitType:"Terran_Engineering_Bay" total:1
 
         # Create a patrol squad
-        train       unitType:"Terran_Marine"    count:2
-        createSquad type:"Patrol"               members:"2*Terran_Marine"
-        train       unitType:"Terran_Marine"    count:2
-        createSquad type:"Patrol"               members:"2*Terran_Marine"
+        train unitType:"Terran_Marine" increase:4
+        createSquad type:"Patrol" members:"4*Terran_Marine"
 
-    sequence
-        repairUnit
-        # check for destroyed bunkers, rebuild and reload them
-        wait seconds:30
+    repeat
+        selector
+            ## repair infrastructure
+            sequence
+                repairUnit
+                train unitType:"Terran_Marine" total:4
+                train unitType:"Terran_Bunker" total:1 
+                loadBunkers
+                wait seconds:10
+
+            # resupply squads
+            sequence
+                isSquadNeeded type:"Patrol"
+                train unitType:"Terran_Marine" total:4
+                createSquad type:"Patrol" members:"4*Terran_Marine"
+                wait seconds:10
+
 
         # Mechanized squad
         # sequence
         #     trainForceTo        level:3
-        #     isSquadNeeded        type:"Combat" count:30
-        #     train               unitType:"Terran_SCV" count:1
-        #     train               unitType:"Terran_Marine" count:10
-        #     train               unitType:"Terran_Medic" count:4
-        #     train               unitType:"Terran_Firebat" count:5
-        #     train               unitType:"Terran_Siege_Tank_Tank_Mode" count:5
-        #     train               unitType:"Terran_Goliath" count:5
+        #     train               unitType:"Terran_SCV" total:1
+        #     train               unitType:"Terran_Marine" total:10
+        #     train               unitType:"Terran_Medic" total:4
+        #     train               unitType:"Terran_Firebat" total:5
+        #     train               unitType:"Terran_Siege_Tank_Tank_Mode" total:5
+        #     train               unitType:"Terran_Goliath" total:5
         #     createSquad         type:"Combat" members:"Terran_SCV,4*Terran_Medic,5*Terran_Firebat,5*Terran_Siege_Tank_Tank_Mode,5*Terran_Goliath,10*Terran_Marine"

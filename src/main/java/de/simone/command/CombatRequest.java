@@ -16,6 +16,7 @@ public class CombatRequest {
     public String message = "";
     public Position position = null;
 
+    @SuppressWarnings("unused")
     private CombatRequest() {
         //
     }

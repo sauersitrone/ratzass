@@ -3,6 +3,7 @@ package de.simone.ui.forms;
 import java.awt.Color;
 import java.awt.FlowLayout;
 
+import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -17,7 +18,6 @@ import de.simone.UIUtils;
 
 public class ControlPanel extends JPanel {
 
-    private JButton restartGame;
     private JButton pauseResumeGame;
     private JCheckBox fogOfWar;
     private JCheckBox userInput;
@@ -41,10 +41,6 @@ public class ControlPanel extends JPanel {
         });
         timer.start();
 
-        // restartGame = new JButton("Restart Game");
-        // restartGame.addActionListener(e -> {
-        // RBWListener.game.restartGame();
-        // });
         pauseResumeGame = new JButton("Pause Game");
         pauseResumeGame.addActionListener(e -> {
             if (RBWListener.game.isPaused()) {

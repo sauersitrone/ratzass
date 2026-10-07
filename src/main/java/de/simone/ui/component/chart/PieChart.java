@@ -14,6 +14,7 @@ import org.jfree.data.general.PieDataset;
 
 import java.awt.*;
 
+@SuppressWarnings ({"rawtypes", "unchecked"})
 public class PieChart extends DefaultChartPanel {
 
     public PieChart() {

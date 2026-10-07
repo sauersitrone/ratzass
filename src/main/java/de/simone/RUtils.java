@@ -3,16 +3,12 @@ package de.simone;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
-import java.util.logging.Level;
 
 import javax.swing.ImageIcon;
 
 import com.badlogic.gdx.ai.btree.BehaviorTree;
 import com.badlogic.gdx.ai.btree.utils.BehaviorTreeParser;
 
-import lombok.extern.java.Log;
-
-@Log
 public class RUtils {
 
     private static List<String> validImages = List.of(".png", ".jpg", ".jpeg", ".gif", ".bmp");
@@ -43,7 +39,7 @@ public class RUtils {
             Runtime.getRuntime().exec(command);
             Thread.sleep(120);
         } catch (Exception e) {
-            log.log(Level.SEVERE, e.getMessage());
+            System.err.println(e.getMessage());
         }
     }
 
@@ -63,7 +59,7 @@ public class RUtils {
             file = file.replaceAll("%20", " ");
             return file;
         } catch (Exception e) {
-            log.log(Level.SEVERE, e.getMessage());
+            e.printStackTrace();
             return null;
         }
     }
@@ -100,7 +96,7 @@ public class RUtils {
             BehaviorTree<T> behaviorTree = parser.parse(inputStream, backboard);
             return behaviorTree;
         } catch (Exception e) {
-            log.log(Level.SEVERE, "", e);
+            e.printStackTrace();
         }
         return null;
     }

@@ -405,7 +405,7 @@ public class FormSetting extends Form {
         final PanelThemes panelThemes = new PanelThemes();
         JPanel panelHeader = new JPanel(new MigLayout("fillx,insets 3", "[grow 0]push[]"));
         panelHeader.add(new JLabel("Themes"));
-        JComboBox combo = new JComboBox(new Object[]{"All", "Light", "Dark"});
+        JComboBox<String> combo = new JComboBox<>(new String[]{"All", "Light", "Dark"});
         combo.addActionListener(e -> {
             panelThemes.updateThemesList(combo.getSelectedIndex());
         });

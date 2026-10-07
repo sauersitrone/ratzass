@@ -16,6 +16,7 @@ import bwapi.TilePosition;
 import bwapi.Unit;
 import bwapi.UnitType;
 import bwem.BWEM;
+import de.simone.command.Command;
 import de.simone.command.CommandQueue;
 import de.simone.command.LogisticCenter;
 import de.simone.command.Squad;
@@ -27,17 +28,19 @@ public class RBWListener extends DefaultBWListener {
     public static Game game;
     public static LocalDateTime startTime;
     public static BWEM bwem;
-    public static LogisticCenter logisticCenter;
     public static int currentMinerals = 0;
     public static int currentGas = 0;
     public static int currentSupplyTotal = 0;
     public static int currentSupplyUsed = 0;
     public static int currentSupplyLeft = 0;
-    public static double gameSeconds;
-    public static double lastBehaviorTreeStep;
-    public static double lastTick;
     public static int codeSpeed;
     public static boolean isPaused = false;
+    public static Command lastCommand;
+
+    private static Command lastPaintedCommand;
+    private static double lastTick;
+    private static double gameSeconds;
+    private static double lastPaint;
 
     private RBWListener() {
         bwClient = new BWClient(this);
@@ -82,19 +85,22 @@ public class RBWListener extends DefaultBWListener {
         currentSupplyLeft = currentSupplyTotal - currentSupplyUsed;
 
         // test autocamera parameter
-        // if (Config.autoCamera && CommandQueue.currentCommand != null &&
-        // (CommandQueue.currentCommand.position != null
-        // || CommandQueue.currentCommand.tilePosition != null)) {
-        // if (CommandQueue.currentCommand.position != null)
-        // game.setScreenPosition(CommandQueue.currentCommand.position);
-        // if (CommandQueue.currentCommand.tilePosition != null)
-        // game.setScreenPosition(CommandQueue.currentCommand.tilePosition.toPosition());
-        // }
+        if (Config.autoCamera && lastCommand != null && lastCommand != lastPaintedCommand
+                && (lastCommand.position != null || lastCommand.tilePosition != null)) {
 
-        if (CommandQueue.currentCommand != null && CommandQueue.currentCommand.tilePosition != null) {
+            if (lastCommand.position != null)
+                game.setScreenPosition(lastCommand.position);
+
+            if (lastCommand.tilePosition != null)
+                game.setScreenPosition(lastCommand.tilePosition.toPosition());
+
+            lastPaintedCommand = lastCommand;
+        }
+
+        if (Config.autoCamera && lastCommand != null && lastCommand.tilePosition != null) {
             // The target tilePosition is a build footprint’s top-left tile.
-            TilePosition tilePosition = CommandQueue.currentCommand.tilePosition;
-            UnitType unitType = CommandQueue.currentCommand.unitType;
+            TilePosition tilePosition = lastCommand.tilePosition;
+            UnitType unitType = lastCommand.unitType;
             int left = tilePosition.x * TilePosition.SIZE_IN_PIXELS;
             int top = tilePosition.y * TilePosition.SIZE_IN_PIXELS;
             int right = left + unitType.tileWidth() * TilePosition.SIZE_IN_PIXELS;
@@ -106,12 +112,7 @@ public class RBWListener extends DefaultBWListener {
         // RBWListener.game.drawText(CoordinateType.Screen, 8, 16, "FPS: " +
         // game.getFPS(), Text.Blue);
 
-        /**
-         * heartbeat for units center, logistic center, and command queue.
-         * 
-         * NOTE: much of * the listener take into account, that this coed will be
-         * executed every 100ms
-         */
+        // heartbeat for units center, logistic center, and command queue.
         if (gameSeconds - lastTick >= 0.1) {
             lastTick = gameSeconds;
             long t1 = System.currentTimeMillis();
@@ -121,7 +122,7 @@ public class RBWListener extends DefaultBWListener {
             LogisticCenter.heartBeat();
             CommandQueue.dispatchCommands();
             LogisticCenter.behaviorTree.step();
-            
+
             List<Squad> squads = UnitsCenter.getSquads();
             for (Squad squad : squads) {
                 squad.updateStatus();

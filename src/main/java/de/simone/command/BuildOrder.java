@@ -12,9 +12,6 @@ import de.simone.command.StarCraftConstants.OrderPriority;
 import de.simone.command.StarCraftConstants.OrderStatus;
 
 public class BuildOrder {
-
-    private static int idGenerator = 1;
-
     public OrderPriority priority = OrderPriority.Normal;
     public UnitType unitType = UnitType.None;
     public TechType techType = TechType.None;
@@ -22,7 +19,7 @@ public class BuildOrder {
     public int quantity;
     private OrderStatus status = OrderStatus.Queued;
     public String message = "";
-    public int id = idGenerator++;
+    public int id = StarCraftConstants.idGenerator++;
     public PlannedAction action;
 
     public BuildOrder(UnitType unitType, int quantity) {
@@ -87,7 +84,7 @@ public class BuildOrder {
             plan2.removeIf(action -> action.equals("gather-Mineral"));
         }
         if (gasCount > 0) {
-            BuildOrder buildOrder = new BuildOrder(UnitType.None, mineralCount);
+            BuildOrder buildOrder = new BuildOrder(UnitType.None, gasCount);
             buildOrder.action = PlannedAction.gather_Gas;
             BuildOrders.add(buildOrder);
             plan2.removeIf(action -> action.equals("gather-Gas"));
@@ -97,57 +94,22 @@ public class BuildOrder {
         for (String action : plan2) {
             String[] action_UnitName = action.split("-");
             BuildOrder buildOrder = null;
-            if(PlannedAction.train.toString().equals(action_UnitName[0])) 
+            if (PlannedAction.train.toString().equals(action_UnitName[0]))
                 buildOrder = new BuildOrder(UnitType.valueOf(action_UnitName[1]), 1);
-                
-            if(PlannedAction.build.toString().equals(action_UnitName[0])) 
+
+            if (PlannedAction.build.toString().equals(action_UnitName[0]))
                 buildOrder = new BuildOrder(UnitType.valueOf(action_UnitName[1]), 1);
-                
-            if(PlannedAction.upgrade.toString().equals(action_UnitName[0])) 
+
+            if (PlannedAction.upgrade.toString().equals(action_UnitName[0]))
                 buildOrder = new BuildOrder(UpgradeType.valueOf(action_UnitName[1]), 1);
-                
-            if(PlannedAction.research.toString().equals(action_UnitName[0]))  
+
+            if (PlannedAction.research.toString().equals(action_UnitName[0]))
                 buildOrder = new BuildOrder(TechType.valueOf(action_UnitName[1]));
 
-            // fail save 
-            if(buildOrder == null) 
+            // fail save
+            if (buildOrder == null)
                 throw new StarCraftException("Unknown action type: " + action_UnitName[0]);
-            
-            buildOrder.action = PlannedAction.valueOf(action_UnitName[0]);
-            BuildOrders.add(buildOrder);
-        }
-        return BuildOrders;
-    }
 
-    public static List<BuildOrder> getBuildOrdersOld(List<String> plan) {
-        List<String> plan2 = new ArrayList<>(plan);
-        List<BuildOrder> BuildOrders = new ArrayList<>();
-
-        // check the gatherTask_mineral and gatherTask_gas actions and convert them to
-        // one BuildAction with the correct quantity
-        int mineralCount = plan2.stream().filter(action -> action.equals("gather-Mineral")).toList().size();
-        mineralCount *= StarCraftConstants.MINERAL_LOAD;
-
-        int gasCount = plan2.stream().filter(action -> action.equals("gather-Gas")).toList().size();
-        gasCount *= StarCraftConstants.GAS_LOAD;
-
-        if (mineralCount > 0) {
-            BuildOrder buildOrder = new BuildOrder(UnitType.None, mineralCount);
-            buildOrder.action = PlannedAction.gather_Mineral;
-            BuildOrders.add(buildOrder);
-            plan2.removeIf(action -> action.equals("gather-Mineral"));
-        }
-        if (gasCount > 0) {
-            BuildOrder buildOrder = new BuildOrder(UnitType.None, mineralCount);
-            buildOrder.action = PlannedAction.gather_Gas;
-            BuildOrders.add(buildOrder);
-            plan2.removeIf(action -> action.equals("gather-Gas"));
-        }
-
-        // pack the rest of the actions into BuildAction objects
-        for (String action : plan2) {
-            String[] action_UnitName = action.split("-");
-            BuildOrder buildOrder = new BuildOrder(UnitType.valueOf(action_UnitName[1]), 1);
             buildOrder.action = PlannedAction.valueOf(action_UnitName[0]);
             BuildOrders.add(buildOrder);
         }
@@ -156,8 +118,13 @@ public class BuildOrder {
 
     @Override
     public String toString() {
-        return id + ", ut=" + unitType + ", a=" + action + ", q=" + quantity + ", s=" + status
-                + ", m=" + message;
+        return action + " unitType=" + unitType + " techType=" + techType + " upgradeType=" + upgradeType;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || getClass() != obj.getClass())
+            return false;
+        return ((BuildOrder) obj).id == this.id;
+    }
 }

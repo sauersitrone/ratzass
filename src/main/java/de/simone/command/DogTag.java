@@ -4,7 +4,6 @@ import bwapi.Position;
 import bwapi.Unit;
 import bwapi.UnitCommandType;
 import bwapi.UnitType;
-import de.simone.RBWListener;
 
 public class DogTag implements Comparable<DogTag> {
     public Unit unit = null;

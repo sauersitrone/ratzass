@@ -18,7 +18,6 @@ import bwapi.UnitCommandType;
 import bwapi.UnitType;
 import bwapi.WalkPosition;
 import bwem.ChokePoint;
-import de.simone.RBWListener;
 import de.simone.Vec;
 import de.simone.command.StarCraftConstants.OrderStatus;
 

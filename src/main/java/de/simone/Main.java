@@ -19,6 +19,7 @@ import de.simone.btree.Blackboard;
 import de.simone.command.CombatCenter;
 import de.simone.command.CommandQueue;
 import de.simone.command.LogisticCenter;
+import de.simone.command.RBWListener;
 import de.simone.command.UnitsCenter;
 import de.simone.ui.menu.MyDrawerBuilder;
 import de.simone.ui.system.FormManager;
@@ -49,7 +50,7 @@ public class Main extends JFrame {
         getRootPane().putClientProperty(FlatClientProperties.FULL_WINDOW_CONTENT, true);
         Drawer.installDrawer(this, MyDrawerBuilder.getInstance());
         FormManager.install(this);
-        setSize(new Dimension(1366, 800));
+        setSize(new Dimension(1210, 820));
         setLocationRelativeTo(null);
     }
 

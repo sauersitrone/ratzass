@@ -33,8 +33,8 @@ import bwapi.Unit;
 import bwapi.WalkPosition;
 import bwem.ChokePoint;
 import de.simone.Config;
-import de.simone.RBWListener;
 import de.simone.command.CombatCenter;
+import de.simone.command.RBWListener;
 
 /**
  * Tiled-map-backed GUI showing the ProxyBot's view of the game state.
@@ -103,7 +103,6 @@ public class StarCraftTileMap extends JPanel
         addMouseWheelListener(this);
         addMouseMotionListener(this);
         addMouseListener(this);
-
         repaintTimer = new Timer(200, e -> {
             if (game == null) {
                 return;
@@ -112,7 +111,7 @@ public class StarCraftTileMap extends JPanel
             fitMapOnFirstVisible();
             repaint();
         });
-                repaintTimer.start();
+        repaintTimer.start();
 
     }
 

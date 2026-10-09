@@ -10,7 +10,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import bwapi.TechType;
 import bwapi.UnitType;
 import bwapi.UpgradeType;
-import de.simone.RBWListener;
 import de.simone.StarCraftException;
 
 /**

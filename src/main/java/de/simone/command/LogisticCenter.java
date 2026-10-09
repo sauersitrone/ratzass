@@ -19,7 +19,6 @@ import bwapi.TechType;
 import bwapi.Unit;
 import bwapi.UnitType;
 import bwapi.UpgradeType;
-import de.simone.RBWListener;
 import de.simone.RUtils;
 import de.simone.StarCraftException;
 import de.simone.btree.Blackboard;

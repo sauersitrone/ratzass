@@ -16,7 +16,6 @@ import bwapi.Position;
 import bwapi.Unit;
 import bwapi.UnitCommandType;
 import bwapi.UnitType;
-import de.simone.RBWListener;
 import de.simone.RUtils;
 import de.simone.SimplifyPolyline;
 import de.simone.StarCraftException;

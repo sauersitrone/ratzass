@@ -42,8 +42,7 @@ public class About extends JPanel {
         setLayout(new MigLayout("fillx,wrap,insets 5 30 5 30,width 500", "[fill,400::]", "[][]20[]"));
 
         JTextPane title = createText(Main.APP_DESCRIPTION);
-        title.putClientProperty(FlatClientProperties.STYLE, "" +
-                "font:bold +5");
+        title.putClientProperty(FlatClientProperties.STYLE,  "font:bold +5");
 
         JTextPane description = createText("");
         description.setContentType("text/html");
@@ -63,7 +62,7 @@ public class About extends JPanel {
         add(slidePane);
         nextSlide();
 
-        timer = new Timer(8000, e -> nextSlide());
+        timer = new Timer(5000, e -> nextSlide());
         timer.start();
     }
 

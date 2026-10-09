@@ -6,6 +6,7 @@ import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.util.ColorFunctions;
 
+import de.simone.Main;
 import de.simone.ui.component.About;
 import de.simone.ui.forms.Login;
 import de.simone.ui.forms.LogisticCenterView;
@@ -29,7 +30,7 @@ public class FormManager {
         // logout();
 
         // Terry: avoid login screen and set the user to jump direct to the dashboard
-        ModelUser user = new ModelUser("Ratzass", "StarCraft II boot", ModelUser.Role.ADMIN);
+        ModelUser user = new ModelUser(Main.APP_NAME, Main.APP_DESCRIPTION, ModelUser.Role.ADMIN);
         MyDrawerBuilder.getInstance().setUser(user);
         login();
     }

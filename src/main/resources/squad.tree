@@ -23,8 +23,6 @@ repeat
         sequence
             isSquadInBadShape
             retreat
-            # add in logistic the build bunkers on the chocks points
-            # add if the squad reach base, check bunker and jump in if it is available
         # survival
         sequence
             isDangerous

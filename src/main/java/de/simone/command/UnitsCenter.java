@@ -13,7 +13,6 @@ import bwapi.TechType;
 import bwapi.Unit;
 import bwapi.UnitType;
 import bwapi.UpgradeType;
-import de.simone.RBWListener;
 
 /**
  * Manages and tracks all units, unit events, and combat squads.

@@ -12,7 +12,6 @@ import bwapi.UnitCommandType;
 import bwapi.UnitFilter;
 import bwapi.UnitType;
 import bwapi.UpgradeType;
-import de.simone.RBWListener;
 import de.simone.command.StarCraftConstants.OrderStatus;
 
 /**

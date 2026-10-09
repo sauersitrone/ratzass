@@ -38,7 +38,7 @@ selector
 
             # resupply squads
             sequence
-                isSquadNeeded type:"Patrol"
+                isSquadNeeded type:"Patrol" count:1
                 train unitType:"Terran_Marine" total:4
                 createSquad type:"Patrol" members:"4*Terran_Marine"
                 wait seconds:10

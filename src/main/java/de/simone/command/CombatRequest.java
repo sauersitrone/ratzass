@@ -1,7 +1,6 @@
 package de.simone.command;
 
 import bwapi.Position;
-import de.simone.RBWListener;
 import de.simone.command.CombatCenter.RequestName;
 import de.simone.command.StarCraftConstants.OrderStatus;
 

@@ -59,7 +59,7 @@ public class RUtils {
             file = file.replaceAll("%20", " ");
             return file;
         } catch (Exception e) {
-            e.printStackTrace();
+            // silent ignore
             return null;
         }
     }

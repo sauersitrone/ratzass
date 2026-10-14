@@ -60,13 +60,12 @@
     </dependencyManagement>
 
     <dependencies>
-
+        <!-- Java Swing UI library custom with FlatLaf -->
         <dependency>
             <groupId>io.github.dj-raven</groupId>
             <artifactId>modal-dialog</artifactId>
             <version>2.6.2-SNAPSHOT</version>
         </dependency>
-
         <dependency>
             <groupId>io.github.dj-raven</groupId>
             <artifactId>swing-datetime-picker</artifactId>
@@ -87,7 +86,13 @@
             <artifactId>jfreechart</artifactId>
             <version>1.5.6</version>
         </dependency>
+        <dependency>
+            <groupId>com.fifesoft</groupId>
+            <artifactId>rsyntaxtextarea</artifactId>
+            <version>3.4.0</version>
+        </dependency>
 
+        <!-- FlatLaf - Swing Look and Feel (with Darcula/IntelliJ themes support) -->
         <dependency>
             <groupId>com.formdev</groupId>
             <artifactId>flatlaf-intellij-themes</artifactId>
@@ -97,11 +102,6 @@
             <groupId>com.formdev</groupId>
             <artifactId>flatlaf-fonts-roboto</artifactId>
             <version>2.137</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fifesoft</groupId>
-            <artifactId>rsyntaxtextarea</artifactId>
-            <version>3.4.0</version>
         </dependency>
 
         <!-- utility methods for working with Strings, numbers, objects, concurrency, and more -->
@@ -127,46 +127,11 @@
             <version>1.12.0</version>
         </dependency>
 
-        <!-- Source: https://mvnrepository.com/artifact/org.apache.commons/commons-csv -->
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-csv</artifactId>
-            <version>1.14.0</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <!-- Guava: Google Core Libraries for Java -->
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>33.6.0-jre</version>
-        </dependency>
-
         <!-- JavaBWAPI: Java wrapper for BWAPI -->
         <dependency>
             <groupId>com.github.JavaBWAPI</groupId>
             <artifactId>JBWAPI</artifactId>
             <version>2.1.0</version>
-        </dependency>
-
-        <!-- Complex Event Processing, Streaming SQL and Event Series Analysis -->
-        <dependency>
-            <groupId>com.espertech</groupId>
-            <artifactId>esper-common</artifactId>
-            <version>9.0.0</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.espertech</groupId>
-            <artifactId>esper-runtime</artifactId>
-            <version>9.0.0</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.espertech</groupId>
-            <artifactId>esper-compiler</artifactId>
-            <version>9.0.0</version>
-            <scope>compile</scope>
         </dependency>
 
         <!-- Java dataframe and visualization library -->
@@ -200,20 +165,29 @@
             <version>20-0.21.0</version>
         </dependency>
 
-        <!--  lightweight, embeddable planning engine -->
-        <!-- <dependency>
-            <groupId>ai.timefold.solver</groupId>
-            <artifactId>timefold-solver-core</artifactId>
-            <version>2.3.0</version>
-            <scope>compile</scope>
-        </dependency> -->
-        <!-- Implementation of the SLF4J API for Logback,  -->
-        <!-- <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.5.38</version>
-            <scope>compile</scope>
-        </dependency> -->
+        <!--  The simple, stupid rules engine for Java -->
+        <dependency>
+            <groupId>org.jeasy</groupId>
+            <artifactId>easy-rules-core</artifactId>
+            <version>4.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jeasy</groupId>
+            <artifactId>easy-rules-support</artifactId>
+            <version>4.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jeasy</groupId>
+            <artifactId>easy-rules-mvel</artifactId>
+            <version>4.1.0</version>
+        </dependency>
+
+        <!-- MVEL (MVFLEX Expression Language) -->
+        <dependency>
+            <groupId>org.mvel</groupId>
+            <artifactId>mvel2</artifactId>
+            <version>2.4.14.Final</version>
+        </dependency>
 
         <!-- ASCII Tables for Java -->
         <dependency>
@@ -251,7 +225,6 @@
             <version>1.14.0</version>
             <scope>compile</scope>
         </dependency>
-
     </dependencies>
 
     <build>

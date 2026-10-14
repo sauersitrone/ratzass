@@ -16,6 +16,7 @@ import bwapi.TilePosition;
 import bwapi.Unit;
 import bwapi.UnitType;
 import bwem.BWEM;
+import bwem.BWMap;
 import de.simone.Config;
 
 public class RBWListener extends DefaultBWListener {
@@ -23,7 +24,8 @@ public class RBWListener extends DefaultBWListener {
     public static BWClient bwClient;
     public static Game game;
     public static LocalDateTime startTime;
-    public static BWEM bwem;
+    // public static BWEM bwem;
+    public static BWMap bwMap;
     public static int currentMinerals = 0;
     public static int currentGas = 0;
     public static int currentSupplyTotal = 0;
@@ -58,9 +60,10 @@ public class RBWListener extends DefaultBWListener {
         if (Config.userInput)
             game.enableFlag(Flag.UserInput);
 
-        bwem = new BWEM(game);
+        BWEM bwem = new BWEM(game);
         bwem.initialize();
-        bwem.getMap().assignStartingLocationsToSuitableBases();
+        bwMap = bwem.getMap();
+        bwMap.assignStartingLocationsToSuitableBases();
     }
 
     @Override

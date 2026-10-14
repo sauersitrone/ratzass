@@ -218,8 +218,14 @@ public class CombatCenter {
         return box;
     }
 
+    /**
+     * Returns the closest chokepoint to the given start position.
+     * 
+     * @param startPosition - the start position
+     * @return the chokepoint
+     */
     public static ChokePoint getChokePoint(TilePosition startPosition) {
-        List<ChokePoint> chokePoints = RBWListener.bwem.getMap().getChokePoints();
+        List<ChokePoint> chokePoints = RBWListener.bwMap.getChokePoints();
         ChokePoint chokePoint = null;
         double distance = Integer.MAX_VALUE;
         for (ChokePoint cp : chokePoints) {
@@ -231,6 +237,22 @@ public class CombatCenter {
             }
         }
         return chokePoint;
+    }
+
+    /**
+     * compute radius from the center of the chokepoint
+     * 
+     * @param chokePoint - the chokepoint
+     * @return the radious
+     */
+    public static int getChokePointRadious(ChokePoint chokePoint) {
+        WalkPosition center = chokePoint.getCenter();
+        List<WalkPosition> geom = chokePoint.getGeometry();
+        int extentWalk = geom.stream()
+                .mapToInt(p -> Math.max(Math.abs(p.x - center.x), Math.abs(p.y - center.y)))
+                .max().orElse(4);
+        int radius = Math.max(1, extentWalk / 4) * TilePosition.SIZE_IN_PIXELS;
+        return radius;
     }
 
     public static TilePosition getBunkerLocation() {

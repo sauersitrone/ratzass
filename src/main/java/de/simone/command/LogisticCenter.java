@@ -125,7 +125,7 @@ public class LogisticCenter {
 
         /**
          * only 1 build at the time. this avoids selecting adjacent areas to 2 or more
-         * builds & upgrades and research may need the completed building
+         * builds. upgrades and research may need the completed building too
          */
         optional = buildOrders.stream()
                 .filter(bo -> (bo.action == StarCraftConstants.PlannedAction.build)

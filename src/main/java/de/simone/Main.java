@@ -18,6 +18,7 @@ import com.formdev.flatlaf.util.FontUtils;
 import de.simone.btree.Blackboard;
 import de.simone.command.CombatCenter;
 import de.simone.command.CommandQueue;
+import de.simone.command.InformationCenter;
 import de.simone.command.LogisticCenter;
 import de.simone.command.RBWListener;
 import de.simone.command.UnitsCenter;
@@ -58,6 +59,7 @@ public class Main extends JFrame {
         new Config();
         new CommandQueue();
         new UnitsCenter();
+        new InformationCenter();
         new LogisticCenter();
         new CombatCenter();
 

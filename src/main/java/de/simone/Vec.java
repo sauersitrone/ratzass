@@ -199,8 +199,8 @@ public class Vec {
             throw new IllegalArgumentException("Radius must not be negative");
         }
 
-        List<Point2D> points = new ArrayList<>(6);
-        for (int degree = 0; degree < 360; degree += 60) {
+        List<Point2D> points = new ArrayList<>();
+        for (int degree = 0; degree < 360; degree += 60) { // compute only 6 intersection points
             double angle = Math.toRadians(degree);
             Point2D point2d = of(center.getX() + r * Math.cos(angle), center.getY() + r * Math.sin(angle));
             points.add(point2d);

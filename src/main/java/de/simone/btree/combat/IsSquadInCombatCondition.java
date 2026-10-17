@@ -10,7 +10,7 @@ public class IsSquadInCombatCondition extends CombatTask {
     @Override
     public Status execute() {
         Squad squad = getObject();
-        int inCombat = (int) squad.getAliveMembers().stream().map(dt -> dt.unit).filter(u -> u.isAttacking()).count();
+        int inCombat = (int) squad.getSquadUnits().stream().map(dt -> dt.unit).filter(u -> u.isAttacking()).count();
 
         Status status = inCombat > 0 ? Status.SUCCEEDED : Status.FAILED;
         return status;

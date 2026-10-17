@@ -13,7 +13,7 @@ public class IsSquadInBadShapeCondition extends CombatTask {
     public Status execute() {
         Squad squad = getObject();
         int units = squad.getSquadUnits().size();
-        int aliveUnits = squad.getAliveMembers().size();
+        int aliveUnits = squad.getSquadUnits().size();
 
         return aliveUnits < units / 2 ? Status.SUCCEEDED : Status.FAILED;
     }

@@ -29,7 +29,7 @@ public class MoveTask extends CombatTask {
         if (to == RequestName.CallSupport)
             sendCommunication("Hold on brothers! we are coming !");
 
-        return Status.SUCCEEDED;
+        return Status.RUNNING;
     }
 
     @Override

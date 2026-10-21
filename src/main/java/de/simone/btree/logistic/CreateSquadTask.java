@@ -12,6 +12,16 @@ import de.simone.command.Squad;
 import de.simone.command.Squad.SquadStatus;
 import de.simone.command.Squad.SquadType;
 
+/**
+ * create a squad of units. This leaft will be runing until all the specifies
+ * units are recruited. Use in conjuntion with <code>TrainTask</code> node to
+ * sincroize recruitment.
+ * 
+ * TODO: implement mesures to avoid the squad bein stuck in recruitment process.
+ * like if base is under atack, the Combat center should release the squad from
+ * recruitment status.
+ *
+ */
 public class CreateSquadTask extends LogisticTask {
 
     @TaskAttribute(required = true)
@@ -33,7 +43,7 @@ public class CreateSquadTask extends LogisticTask {
             currentSquad = new Squad(type, memberList);
             currentSquad.recruitMembers();
         }
-        
+
         return currentSquad.status == SquadStatus.Assembling ? Status.RUNNING : Status.SUCCEEDED;
     }
 

@@ -55,9 +55,7 @@ public class UnitsCenterView extends Form implements UnitsCenterListener {
                 new Column().header("Id").with(c -> "" + c.unit.getID()),
                 new Column().header("UnitType").with(c -> c.unitType.toString()),
                 new Column().header("Order").with(c -> c.unit.getOrder().toString()),
-                new Column().header("SquadId").with(c -> "" + c.squadID),
-                new Column().header("isEnemy").with(c -> "" + c.isEnemy),
-                new Column().header("isAlive").with(c -> "" + c.isAlive))));
+                new Column().header("SquadId").with(c -> "" + c.squadID))));
     }
 
     public JComponent getTitle() {

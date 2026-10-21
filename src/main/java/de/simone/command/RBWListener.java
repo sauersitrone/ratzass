@@ -53,9 +53,10 @@ public class RBWListener extends DefaultBWListener {
     public void onStart() {
         game = bwClient.getGame();
         startTime = LocalDateTime.now();
-        game.setRevealAll(!Config.fogOfWar);
-        if (Config.fogOfWar)
-            game.enableFlag(Flag.CompleteMapInformation);
+        // TODO: remove. i want devellop my api the most realistic way possible
+        // game.setRevealAll(!Config.fogOfWar);
+        // if (Config.fogOfWar)
+        //     game.enableFlag(Flag.CompleteMapInformation);
 
         if (Config.userInput)
             game.enableFlag(Flag.UserInput);
@@ -120,7 +121,8 @@ public class RBWListener extends DefaultBWListener {
             long t1 = System.currentTimeMillis();
             GdxAI.getTimepiece().update((float) gameSeconds);
 
-            UnitsCenter.controlPersonal();
+            UnitsCenter.heartBeat();
+            InformationCenter.heartBeat();
             LogisticCenter.heartBeat();
             CommandQueue.dispatchCommands();
             LogisticCenter.behaviorTree.step();

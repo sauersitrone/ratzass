@@ -222,7 +222,7 @@ public class CommandQueue {
 
     public static List<Command> addCommand(UnitCommandType command, Squad squad, Position position) {
         List<Command> addedCommands = new ArrayList<>();
-        for (DogTag tag : squad.getAliveMembers()) {
+        for (DogTag tag : squad.getSquadUnits()) {
             Command command2 = new Command(command, tag.unit.getID(), position);
             addCommand(command2);
             addedCommands.add(command2);
@@ -272,7 +272,7 @@ public class CommandQueue {
      * 
      */
     public static void rightClick(Squad squad, Position position) {
-        for (DogTag tag : squad.getAliveMembers()) {
+        for (DogTag tag : squad.getSquadUnits()) {
             addCommand(new Command(UnitCommandType.Right_Click_Position, tag.unit.getID(), -1, position));
         }
     }

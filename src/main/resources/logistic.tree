@@ -1,6 +1,7 @@
 import train:"de.simone.btree.logistic.TrainTask"
 import createSquad:"de.simone.btree.logistic.CreateSquadTask"
 import loadBunkers:"de.simone.btree.logistic.LoadBunkersTask"
+import buildBunker:"de.simone.btree.logistic.BuildBunkerTask"
 import repairUnit:"de.simone.btree.logistic.RepairUnitTask"
 import isSquadNeeded:"de.simone.btree.logistic.IsSquadNeededCondition"
 
@@ -12,12 +13,8 @@ selector
         train unitType:"Terran_SCV" increase:2
 
         # create defensive bunkers and load them with marines (train marine first)
-        train unitType:"Terran_Barracks" total:1 
-        repeat times:2
-            sequence
-                train unitType:"Terran_Marine" increase:4
-                train unitType:"Terran_Bunker" total:1 
-                loadBunkers
+        train unitType:"Terran_Barracks" total:1
+        buildBunker
 
         train upgradeType:"U_238_Shells" total:1
         train unitType:"Terran_Engineering_Bay" total:1
@@ -31,8 +28,8 @@ selector
             ## repair infrastructure
             sequence
                 repairUnit
-                train unitType:"Terran_Marine" total:4
-                train unitType:"Terran_Bunker" total:1 
+                train unitType:"Terran_Marine" total:8
+                train unitType:"Terran_Bunker" total:2 
                 loadBunkers
                 wait seconds:10
 

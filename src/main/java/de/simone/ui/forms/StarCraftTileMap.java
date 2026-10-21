@@ -198,8 +198,8 @@ public class StarCraftTileMap extends JPanel
         return group;
     }
 
-    private MapObject createMapObject(double x, double y, double width, double height, double rotation) {
-        MapObject object = new MapObject(x, y, width, height, rotation);
+    private MapObject createMapObject(double x, double y, double width, double height) {
+        MapObject object = new MapObject(x, y, width, height, 0);
         object.setId(tiledMap.getNextobjectid());
         tiledMap.setNextobjectid(tiledMap.getNextobjectid() + 1);
         return object;
@@ -263,7 +263,7 @@ public class StarCraftTileMap extends JPanel
         for (Region region : game.getAllRegions()) {
             int x = region.getCenter().getX() - tileSize / 2;
             int y = region.getCenter().getY() - tileSize / 2;
-            MapObject obj = createMapObject(x, y, tileSize, tileSize, 0);
+            MapObject obj = createMapObject(x, y, tileSize, tileSize);
             obj.setType("region");
             regionsGroup.addObject(obj);
         }
@@ -271,26 +271,18 @@ public class StarCraftTileMap extends JPanel
 
     private void refreshChokepoints() {
         chokepointsGroup.getObjects().clear();
-        if (!Config.drawChokepoints || RBWListener.bwem == null)
+        if (!Config.drawChokepoints || RBWListener.bwMap == null)
             return;
 
-        for (ChokePoint cp : RBWListener.bwem.getMap().getChokePoints()) {
+        for (ChokePoint cp : RBWListener.bwMap.getChokePoints()) {
             // Center is a WalkPosition (8px units); 4 walk tiles = 1 map tile
             WalkPosition center = cp.getCenter();
-            List<WalkPosition> geom = cp.getGeometry();
-
-            // compute radius from geometry extent (in walk tiles), convert to display
-            // pixels
-            int extentWalk = geom.stream()
-                    .mapToInt(p -> Math.max(Math.abs(p.x - center.x), Math.abs(p.y - center.y)))
-                    .max().orElse(4);
-            int radius = Math.max(1, extentWalk / 4) * tileSize;
-
+            int radius = CombatCenter.getChokePointRadious(cp);
             double cx = (double) center.x / 4 * tileSize - radius;
             double cy = (double) center.y / 4 * tileSize - radius;
             int diameter = radius * 2;
 
-            MapObject obj = createMapObject(cx, cy, diameter, diameter, 0);
+            MapObject obj = createMapObject(cx, cy, diameter, diameter);
             obj.setShape(new Ellipse2D.Double(0, 0, diameter, diameter));
             obj.setType("chokepoint");
             chokepointsGroup.addObject(obj);
@@ -304,7 +296,7 @@ public class StarCraftTileMap extends JPanel
 
         for (TilePosition loc : game.getStartLocations()) {
             MapObject obj = createMapObject(loc.x * tileSize, loc.y * tileSize,
-                    4.0 * tileSize, 3.0 * tileSize, 0);
+                    4.0 * tileSize, 3.0 * tileSize);
             obj.setType("starting_location");
             startSpotsGroup.addObject(obj);
         }
@@ -318,13 +310,13 @@ public class StarCraftTileMap extends JPanel
 
         List<Unit> list = game.getMinerals();
         for (Unit mineral : list) {
-            MapObject obj = createMapObject(mineral.getX(), mineral.getY(), tileSize, tileSize, 0);
+            MapObject obj = createMapObject(mineral.getX(), mineral.getY(), tileSize, tileSize);
             obj.setType("mineral");
             mineralsGroup.addObject(obj);
         }
         for (Unit geyser : game.getGeysers()) {
             MapObject obj = createMapObject(geyser.getX(), geyser.getY(), geyser.getType().tileWidth() * tileSize,
-                    geyser.getType().tileHeight() * tileSize, 0);
+                    geyser.getType().tileHeight() * tileSize);
             obj.setType("geyser");
             geysersGroup.addObject(obj);
         }
@@ -337,7 +329,7 @@ public class StarCraftTileMap extends JPanel
                 if (unit.getPlayer() == null || !game.self().isEnemy(unit.getPlayer()))
                     continue;
                 MapObject obj = createMapObject(unit.getX(), unit.getY(), unit.getType().tileWidth() * tileSize,
-                        unit.getType().tileHeight() * tileSize, 0);
+                        unit.getType().tileHeight() * tileSize);
                 obj.setType("enemy_unit");
                 if (Config.drawIDs)
                     obj.setName(String.valueOf(unit.getID()));
@@ -351,7 +343,7 @@ public class StarCraftTileMap extends JPanel
                 if (unit.getPlayer() == null || unit.getPlayer().getID() != game.self().getID())
                     continue;
                 MapObject obj = createMapObject(unit.getX(), unit.getY(), unit.getType().tileWidth() * tileSize,
-                        unit.getType().tileHeight() * tileSize, 0);
+                        unit.getType().tileHeight() * tileSize);
                 obj.setType("ally_unit");
                 if (Config.drawIDs)
                     obj.setName(String.valueOf(unit.getID()));
@@ -363,7 +355,7 @@ public class StarCraftTileMap extends JPanel
         if (Config.drawNeutralUnits) {
             for (Unit unit : game.getNeutralUnits()) {
                 MapObject obj = createMapObject(unit.getX(), unit.getY(), unit.getType().tileWidth() * tileSize,
-                        unit.getType().tileHeight() * tileSize, 0);
+                        unit.getType().tileHeight() * tileSize);
                 obj.setType("neutral_unit");
                 if (Config.drawIDs)
                     obj.setName(String.valueOf(unit.getID()));

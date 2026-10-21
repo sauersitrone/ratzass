@@ -1,7 +1,5 @@
 package de.simone.command;
 
-import java.awt.Graphics2D;
-import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -10,15 +8,12 @@ import java.util.List;
 
 import com.badlogic.gdx.ai.btree.BehaviorTree;
 
-import bwapi.Color;
-import bwapi.CoordinateType;
 import bwapi.Position;
+import bwapi.TilePosition;
 import bwapi.Unit;
 import bwapi.UnitCommandType;
 import bwapi.UnitType;
 import de.simone.RUtils;
-import de.simone.SimplifyPolyline;
-import de.simone.StarCraftException;
 
 /**
  * This class provides a structured way to manage a group of units as a single
@@ -32,7 +27,7 @@ import de.simone.StarCraftException;
  */
 public class Squad {
     public enum SquadStatus {
-        None, Assembling, Assembled, Moving, Ready
+        None, Assembling, Moving, Ready, Dead
     }
 
     public enum SquadType {
@@ -45,10 +40,10 @@ public class Squad {
     public SquadType type = SquadType.Patrol;
     public BehaviorTree<Squad> behaviorTree;
 
-    // used to anotate the retreat position
+    // used to anotate the position of the squad movement
     public Position targetPosition;
 
-    private List<Point2D> positionsTracking = new ArrayList<>();
+    private List<Position> positionsTracking = new ArrayList<>();
     private List<UnitType> members = new ArrayList<>();
 
     public Squad(SquadType type, List<UnitType> members) {
@@ -61,8 +56,10 @@ public class Squad {
 
     public void updateStatus() {
         // update the status, so the running behavior tree has the correct context.
-        if (isAlive())
-            status = SquadStatus.None;
+        if (!isAlive()) {
+            status = SquadStatus.Dead;
+            return;
+        }
 
         // check if the squad has reached the target position
         if (targetPosition != null && isSquadInPosition(targetPosition))
@@ -72,28 +69,16 @@ public class Squad {
 
     public boolean isAlive() {
         List<DogTag> units = new ArrayList<>(UnitsCenter.getSquadUnits(squadID));
-        units.removeIf(u -> !u.isAlive);
         return !units.isEmpty();
     }
 
     /**
-     * return all the units. dead or alive.
+     * return all the alive units.
      * 
      * @return - all units
      */
     public List<DogTag> getSquadUnits() {
         List<DogTag> units = UnitsCenter.getSquadUnits(squadID);
-        return units;
-    }
-
-    public List<DogTag> getAliveMembers() {
-        List<DogTag> units = new ArrayList<>(getSquadUnits());
-        units.removeIf(u -> !u.isAlive);
-
-        // fail save. if the squad has no alive members no more calculations are allows.
-        // the behavior tree should be off and the squad retired.
-        if (units.isEmpty())
-            throw new StarCraftException("No alive members in the squad.");
         return units;
     }
 
@@ -110,10 +95,10 @@ public class Squad {
                 unit.squadID = squadID;
             }
         }
-
+        status = SquadStatus.Assembling;
         requiredUnits = getRequiredUnits();
         if (requiredUnits.isEmpty()) {
-            status = SquadStatus.Assembled;
+            status = SquadStatus.Ready;
             UnitsCenter.addSquad(this);
         }
     }
@@ -147,20 +132,26 @@ public class Squad {
 
     public Position trackPosition() {
         Position position2 = getPosition();
-        positionsTracking.add(new Point2D.Double(position2.x, position2.y));
+        positionsTracking.add(position2);
         return position2;
     }
 
+    /**
+     * Checks if the squad is within a certain distance of the given position. if
+     * yes, the squad is considered to be in position.
+     * 
+     * @param position - the position
+     * @return - true or false
+     */
     public boolean isSquadInPosition(Position position) {
         Position center = getPosition();
-        // TODO: check this method
-        // return Point2D.distanceSq(center.x, center.y, position.x, position.y) <=
-        // patrolRadius;
-        return Point2D.distanceSq(center.x, center.y, position.x, position.y) <= 100;
+        return Point2D.distanceSq(center.x, center.y, position.x, position.y) <= 2 * TilePosition.SIZE_IN_PIXELS
+                * TilePosition.SIZE_IN_PIXELS;
     }
 
     public void retreat() {
-        targetPosition = getRetreatPosition(this); // TODO: check this method
+        // targetPosition = getRetreatPosition(this);
+        targetPosition = positionsTracking.remove(positionsTracking.size() - 1);
         CommandQueue.addCommand(UnitCommandType.Right_Click_Position, this, targetPosition);
         CombatCenter.sendCommunication(this, UnitCommandType.Right_Click_Position);
         status = SquadStatus.Moving;
@@ -176,13 +167,14 @@ public class Squad {
 
     public void attack(Position position) {
         trackPosition();
-        CommandQueue.addCommand(UnitCommandType.Attack_Move, this, position);
+        targetPosition = new Position(position.x, position.y);
+        CommandQueue.addCommand(UnitCommandType.Attack_Move, this, targetPosition);
         CombatCenter.sendCommunication(this, UnitCommandType.Attack_Move);
         status = SquadStatus.Moving;
     }
 
     public boolean canAttackAir() {
-        List<DogTag> units = getAliveMembers();
+        List<DogTag> units = getSquadUnits();
         for (DogTag unit : units) {
             if (unit.unitType.airWeapon().targetsAir())
                 return true;
@@ -191,16 +183,8 @@ public class Squad {
         return false;
     }
 
-    // TODO: delete?? i dont what to draw nothing in starcraft
-    public void draw(Graphics2D g) {
-        Position center = getPosition();
-
-        Color color = RBWListener.game.self().getColor();
-        RBWListener.game.drawCircle(CoordinateType.Map, 16 + center.x, 16 + center.y, getSpread(), color, false);
-    }
-
     public int getSpread() {
-        List<Unit> units = getAliveMembers().stream().map(d -> d.unit).toList();
+        List<Unit> units = getSquadUnits().stream().map(d -> d.unit).toList();
         Rectangle2D box = CombatCenter.getBox(units);
         double spread = Math.hypot(box.getX(), box.getY());
 
@@ -218,7 +202,7 @@ public class Squad {
     }
 
     public Position getPosition() {
-        List<Unit> units = getAliveMembers().stream().map(d -> d.unit).toList();
+        List<Unit> units = getSquadUnits().stream().map(d -> d.unit).toList();
         Rectangle2D box = CombatCenter.getBox(units);
         Position position = new Position((int) box.getCenterX(), (int) box.getCenterY());
 
@@ -237,7 +221,7 @@ public class Squad {
      */
     public static List<Position> calculateLine(Squad squad, double angle) {
         List<Position> line = new ArrayList<>();
-        List<DogTag> units = squad.getAliveMembers();
+        List<DogTag> units = squad.getSquadUnits();
         if (units.isEmpty())
             return line;
 
@@ -270,7 +254,7 @@ public class Squad {
      */
     public static List<Position> calculateColumn(Squad squad, double angle) {
         List<Position> line = new ArrayList<>();
-        List<DogTag> units = squad.getAliveMembers();
+        List<DogTag> units = squad.getSquadUnits();
         if (units.isEmpty())
             return line;
 
@@ -299,7 +283,6 @@ public class Squad {
      * now i explore region center with path. this method must retunr only the
      * nearest point of the already explored path.
      * 
-     */
     private static Position getRetreatPosition(Squad squad) {
         List<Point2D> positions = new ArrayList<>(squad.positionsTracking);
         // positions = SimplifyPolyline.simplify(positions, Squad.patrolRadius, false);
@@ -327,5 +310,6 @@ public class Squad {
 
         return new Position((int) prevPoint.getX(), (int) prevPoint.getY());
     }
+     */
 
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 
 import bwapi.UnitCommandType;
+import bwapi.UnitType;
 
 public class StarCraftConstants {
 
@@ -185,4 +186,48 @@ public class StarCraftConstants {
             Pair.of(UnitCommandType.None, "Awaiting orders!"),
             Pair.of(UnitCommandType.Unknown, "Command unclear; say again!"),
             Pair.of(UnitCommandType.Unknown, "Unable to identify that order!"));
+
+    /**
+     * List of unit types in order of attack priority.
+     * Units at the top of the list should be targeted first.
+     */
+    public static final List<UnitType> attackPriorities = List.of(
+            UnitType.Terran_Siege_Tank_Siege_Mode,
+            UnitType.Zerg_Lurker,
+            UnitType.Protoss_High_Templar,
+            UnitType.Zerg_Defiler,
+            UnitType.Protoss_Reaver,
+            UnitType.Terran_Firebat,
+            UnitType.Zerg_Infested_Terran,
+            UnitType.Protoss_Archon,
+            UnitType.Terran_Science_Vessel,
+            UnitType.Protoss_Dark_Templar,
+            UnitType.Zerg_Queen,
+            UnitType.Protoss_Dark_Archon,
+            UnitType.Protoss_Arbiter,
+            UnitType.Zerg_Hydralisk,
+            UnitType.Protoss_Dragoon,
+            UnitType.Terran_Marine,
+            UnitType.Zerg_Mutalisk,
+            UnitType.Terran_Goliath,
+            UnitType.Zerg_Guardian,
+            UnitType.Terran_Ghost,
+            UnitType.Protoss_Scout,
+            UnitType.Terran_Wraith,
+            UnitType.Terran_Siege_Tank_Tank_Mode,
+            UnitType.Protoss_Zealot,
+            UnitType.Zerg_Zergling,
+            UnitType.Terran_Vulture,
+            UnitType.Protoss_Carrier,
+            UnitType.Terran_Battlecruiser,
+            UnitType.Terran_Valkyrie,
+            UnitType.Protoss_Corsair,
+            UnitType.Zerg_Devourer,
+            UnitType.Zerg_Scourge,
+            UnitType.Terran_Medic,
+            UnitType.Zerg_Overlord,
+            UnitType.Protoss_Observer,
+            UnitType.Terran_Dropship,
+            UnitType.Protoss_Shuttle);
+
 }

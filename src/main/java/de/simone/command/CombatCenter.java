@@ -5,13 +5,13 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.badlogic.gdx.ai.btree.BehaviorTree;
 
 import bwapi.Position;
-import bwapi.Region;
 import bwapi.TilePosition;
 import bwapi.Unit;
 import bwapi.UnitCommandType;
@@ -36,30 +36,16 @@ public class CombatCenter {
     private static List<CombatCenterListener> listeners = new ArrayList<>();
     private static StringBuilder comms = new StringBuilder();
     private static List<CombatRequest> squadRequests = new ArrayList<>();
-    private static List<Region> regions = new ArrayList<>();
 
     public static boolean requestPermition(Squad squad, RequestName request) {
-        initRegions();
         if (request == RequestName.PatrolPosition) {
-            for (Region region : regions) {
-                Position position = region.getCenter();
-                TilePosition tilePosition = position.toTilePosition();
-                WalkPosition walkPosition = new WalkPosition(position);
-                if (RBWListener.game.isWalkable(walkPosition)
-                        && !RBWListener.game.isExplored(tilePosition)
-                        && RBWListener.game.hasPath(squad.getPosition(), position)) {
-                    CombatRequest combatRequest = new CombatRequest(squad, request, position);
-                    squadRequests.add(combatRequest);
-                    return true;
-                }
-            }
-            // if all regions has been explored, return the first region
-            // int i = (int) Math.random() * (regions.size() - 1);
-            // Position position = regions.get(i).getCenter();
-            // CombatRequest combatRequest = new CombatRequest(squad, request, position);
-            // squadRequests.add(combatRequest);
-            // return true;
-            return false;
+            Position regionCenter = InformationCenter.getPatrolTarget(squad.getPosition());
+            if (regionCenter == null)
+                return false;
+
+            CombatRequest combatRequest = new CombatRequest(squad, request, regionCenter);
+            squadRequests.add(combatRequest);
+            return true;
         }
 
         if (request == RequestName.AttackPosition) {
@@ -74,7 +60,8 @@ public class CombatCenter {
 
         if (request == RequestName.CallSupport) {
             Position position = squad.getPosition();
-            CombatRequest combatRequest = new CombatRequest(squad, request, position);
+            CombatRequest combatRequest = new CombatRequest(squad, request,
+                    position);
             squadRequests.add(combatRequest);
             return true;
         }
@@ -136,6 +123,26 @@ public class CombatCenter {
         listeners.add(listener);
     }
 
+    public static Unit getTarget(Squad squad) {
+        Unit target = null;
+        List<Unit> enemies = CombatCenter.getEnemiesInSight(squad);
+        Optional<Unit> optional = enemies.stream()
+                .min((u1, u2) -> {
+                    int i1 = StarCraftConstants.attackPriorities.indexOf((u1.getType()));
+                    int i2 = StarCraftConstants.attackPriorities.indexOf((u2.getType()));
+                    return Integer.compare(i1, i2);
+                });
+
+        // priority target found, returnt it, else, find closest
+        if (optional.isPresent()) {
+            target = optional.get();
+        } else {
+            target = getClosestEnemy(squad);
+        }
+
+        return target;
+    }
+
     /**
      * Return the list of enemy units currently in sight of all members of the given
      * squad.
@@ -144,29 +151,33 @@ public class CombatCenter {
      * @return
      */
     public static List<Unit> getEnemiesInSight(Squad squad) {
-        List<DogTag> dTags = squad.getAliveMembers();
+        List<DogTag> dTags = squad.getSquadUnits();
         List<Unit> enemyUnits = new ArrayList<>();
         for (DogTag tag : dTags) {
-            enemyUnits.addAll(UnitsCenter.getEnemyUnits(tag.unit));
+            enemyUnits.addAll(getEnemiesInSight(tag.unit));
         }
         return enemyUnits;
     }
 
+    public static Unit getClosestEnemy(Squad squad) {
+        List<Unit> enemies = CombatCenter.getEnemiesInSight(squad);
+        Position position = squad.getPosition();
+        Unit closestUnit = enemies.stream().min((e1, e2) -> Double.compare(position.getDistance(e1.getPosition()),
+                position.getDistance(e2.getPosition()))).orElse(null);
+        return closestUnit;
+    }
+
     /**
-     * initialize the list of regions, ordered by distance to the start location.
+     * Return a list of enemy units currently in sight of the given unit.
+     * 
+     * @param unit - the unit
+     * @return - the enemies
      */
-    private static void initRegions() {
-        if (regions.isEmpty()) {
-            regions.addAll(RBWListener.game.getAllRegions());
-            regions.sort((r1, r2) -> {
-                TilePosition p1 = r1.getCenter().toTilePosition();
-                TilePosition p2 = r2.getCenter().toTilePosition();
-                TilePosition start = RBWListener.game.self().getStartLocation();
-                double d1 = start.getDistance(p1);
-                double d2 = start.getDistance(p2);
-                return Double.compare(d1, d2);
-            });
-        }
+    public static List<Unit> getEnemiesInSight(Unit unit) {
+        Position center = unit.getPosition();
+        List<Unit> units = RBWListener.game.getUnitsInRadius(center, unit.getType().sightRange());
+        List<Unit> enemies = units.stream().filter(u -> u.getPlayer().isEnemy(RBWListener.game.self())).toList();
+        return enemies;
     }
 
     /**
@@ -180,7 +191,7 @@ public class CombatCenter {
      */
     public static int computeFirePower(Squad squad) {
         List<Unit> enemyUnits = getEnemiesInSight(squad);
-        List<DogTag> myUnits = squad.getAliveMembers();
+        List<DogTag> myUnits = squad.getSquadUnits();
 
         int ground = enemyUnits.stream().mapToInt(u -> u.getType().groundWeapon().damageAmount()).sum();
         int air = enemyUnits.stream().mapToInt(u -> u.getType().airWeapon().damageAmount()).sum();
@@ -292,7 +303,7 @@ public class CombatCenter {
     public static List<TilePosition> getBunkerLocations() {
         TilePosition startPosition = RBWListener.game.self().getStartLocation();
         Point2D b = Vec.of(startPosition.x, startPosition.y);
-        List<Point2D> point2ds = Vec.getIntersectionPoints(b, 20 * 32);
+        List<Point2D> point2ds = Vec.getIntersectionPoints(b, 10 * TilePosition.SIZE_IN_PIXELS); // TODO:
         List<TilePosition> positions = new ArrayList<>();
         point2ds.forEach(p -> positions.add(new TilePosition((int) p.getX(), (int) p.getY())));
         return positions;

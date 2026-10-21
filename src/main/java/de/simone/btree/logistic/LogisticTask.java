@@ -28,8 +28,7 @@ public abstract class LogisticTask extends LeafTask<Blackboard> {
 
     /**
      * Get the status of the build order associated with the given key.
-     * - RUNNING if not all orders are completed or the order is marked as a
-     * voucher.
+     * - RUNNING if not all orders are completed.
      * - SUCCEEDED if all are completed.
      * - FAILED if any order has an error.
      * 

@@ -73,11 +73,11 @@ public class LogisticCenter {
          */
         Unit unit = UnitsCenter.getSCVForGather();
         if (unit != null) {
-            // at least 2 gathering gas
             Unit refinery = UnitsCenter.getUnits().stream().filter(u -> u.getType() == UnitType.Terran_Refinery)
-                    .findFirst().orElse(null);
+            .findFirst().orElse(null);
             int gGas = (int) UnitsCenter.getUnits().stream()
-                    .filter(u -> u.getType() == UnitType.Terran_SCV && u.isGatheringGas()).count();
+            .filter(u -> u.getType() == UnitType.Terran_SCV && u.isGatheringGas()).count();
+            // at least 2 gathering gas
             if (gGas < StarCraftConstants.SCV_GATHERING_GAS && refinery != null) {
                 CommandQueue.gather(unit, ResourceType.Gas);
             } else {

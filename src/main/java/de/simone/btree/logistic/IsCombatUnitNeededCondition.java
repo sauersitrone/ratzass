@@ -27,7 +27,7 @@ public class IsCombatUnitNeededCondition extends LogisticTask {
     @Override
     public Status execute() {
         List<DogTag> dogTags = UnitsCenter.getDogTags();
-        int c = (int) dogTags.stream().filter(u -> u.isAlive && u.unitType == unitType && "".equals(u.squadID)).count();
+        int c = (int) dogTags.stream().filter(u -> u.unitType == unitType && "".equals(u.squadID)).count();
         return c < count ? Status.SUCCEEDED : Status.FAILED;
     }
 

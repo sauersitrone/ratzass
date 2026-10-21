@@ -44,19 +44,22 @@ repeat
                 sequence
                     isSquadInCombat
                     focusFire
+                    wait seconds:10
                 sequence
                     isFavorable
                     requestPermition to:"AttackPosition"
                     attack to:"AttackPosition"
+                    wait seconds:10
                 sequence
                     requestPermition to:"CallSupport"
                     requestPermition to:"AttackPosition"
                     attack to:"AttackPosition"
+                    wait seconds:10
         #patrol
         sequence
             requestPermition to:"PatrolPosition"
             attack to:"PatrolPosition"
-            wait seconds:30
+            wait seconds:10
 
 # Tree definition 
 # root

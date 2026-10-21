@@ -8,7 +8,6 @@ import java.util.TreeMap;
 
 import bwapi.Order;
 import bwapi.Pair;
-import bwapi.Position;
 import bwapi.TechType;
 import bwapi.Unit;
 import bwapi.UnitType;
@@ -16,7 +15,7 @@ import bwapi.UpgradeType;
 
 /**
  * Manages and tracks all units, unit events, and combat squads.
- * Provides access to friendly and enemy units and notifies listeners about unit
+ * Provides access to friendly units and notifies listeners about unit
  * event updates.
  */
 public class UnitsCenter {
@@ -29,9 +28,9 @@ public class UnitsCenter {
     }
 
     /**
-     * Call by RBWListener on every x frames to update the status of all units.
+     * Call by RBWListener on every x frames.
      */
-    public static void controlPersonal() {
+    public static void heartBeat() {
         // List<Unit> units = RBWListener.game.getAllUnits();
 
         // remove dead squads
@@ -41,34 +40,41 @@ public class UnitsCenter {
     }
 
     public static void onUnitComplete(Unit unit) {
+        if( RBWListener.game.self().isEnemy(unit.getPlayer()))
+            return;
+
         DogTag tag = new DogTag(unit);
         dogTags.put(tag.unit.getID(), tag);
         listeners.forEach(l -> l.updatePersonal(getDogTags()));
     }
 
     public static void onUnitDiscover(Unit unit) {
+        if( RBWListener.game.self().isEnemy(unit.getPlayer()))
+            return;
+
         DogTag tag = new DogTag(unit);
         dogTags.put(tag.unit.getID(), tag);
         listeners.forEach(l -> l.updatePersonal(getDogTags()));
     }
 
     public static void onUnitDestroy(Unit unit) {
+        if( RBWListener.game.self().isEnemy(unit.getPlayer()))
+            return;
+
         DogTag tag = dogTags.get(unit.getID());
         if (tag != null)
-            tag.isAlive = false;
+            dogTags.remove(unit.getID());
 
         listeners.forEach(l -> l.updatePersonal(getDogTags()));
     }
 
     /**
-     * Get all dog tags of friendly units.
+     * Get all dog tags of all completely built friendly units.
      * 
      * @return - the units
      */
     public static List<DogTag> getDogTags() {
-        List<DogTag> dogTags2 = dogTags.values().stream().filter(u -> !u.isEnemy).toList();
-        dogTags2.stream().filter(d -> d.unit.isCompleted()).toList();
-        // TODO: reviw the code. entweder unodificable list oder nie remove( ausfüren)
+        List<DogTag> dogTags2 = dogTags.values().stream().filter(d -> d.unit.isCompleted()).toList();
         return dogTags2;
     }
 
@@ -79,7 +85,7 @@ public class UnitsCenter {
      * @return - the units
      */
     public static List<DogTag> getDogTags(UnitType unitType) {
-        return getDogTags().stream().filter(u -> !u.isEnemy && u.unitType == unitType).toList();
+        return getDogTags().stream().filter(u -> u.unitType == unitType).toList();
     }
 
     //
@@ -89,18 +95,6 @@ public class UnitsCenter {
             return units.getFirst();
 
         return null;
-    }
-
-    public static List<DogTag> getEnemies() {
-        return dogTags.values().stream().filter(u -> u.isEnemy).toList();
-    }
-
-    public static int getEnemyUnitCount(UnitType unitType) {
-        return (int) getEnemies().stream().filter(u -> u.unitType == unitType).count();
-    }
-
-    public static List<DogTag> getEnemyUnits(UnitType unitType) {
-        return getEnemies().stream().filter(u -> u.unitType == unitType).toList();
     }
 
     public static void addSquad(Squad squad) {
@@ -123,9 +117,9 @@ public class UnitsCenter {
             return null;
         }
         // reverse
-        squads.sort((s1, s2) -> Integer.compare(s2.getAliveMembers().size(), s1.getAliveMembers().size()));
+        squads.sort((s1, s2) -> Integer.compare(s2.getSquadUnits().size(), s1.getSquadUnits().size()));
 
-        squads.removeIf(s -> s.getAliveMembers().size() > size);
+        squads.removeIf(s -> s.getSquadUnits().size() > size);
         return squads.isEmpty() ? null : squads.get(0);
     }
 
@@ -186,7 +180,7 @@ public class UnitsCenter {
 
     /**
      * Get a list of all units controlled by the player. the method returns only
-     * units that are completed and not dead.
+     * units that are completed
      * 
      * @return the list
      */
@@ -232,32 +226,6 @@ public class UnitsCenter {
     public static int getUnitCount(UnitType unitType) {
         int count = (int) getUnits().stream().filter(u -> u.getType() == unitType).count();
         return count;
-    }
-
-    /**
-     * Return a list of enemy units currently in sight of the given unit.
-     * 
-     * @param unit - the unit
-     * @return - the enemies
-     */
-    public static List<Unit> getEnemyUnits(Unit unit) {
-        Position center = unit.getPosition();
-        List<Unit> units = RBWListener.game.getUnitsInRadius(center, unit.getType().sightRange());
-        List<Unit> enemies = units.stream().filter(u -> u.getPlayer().isEnemy(RBWListener.game.self())).toList();
-        return enemies;
-    }
-
-    // public static List<Unit> getEnemyUnits(Position center, int radious) {
-    // boolean isEnemy = RBWListener.game.self().isEnemy(RBWListener.game.self());
-    // List<Unit> units = RBWListener.game.getUnitsInRadius(center, radious);
-    // List<Unit> enemies = units.stream().filter(u -> isEnemy).toList();
-    // return enemies;
-    // }
-
-    public static List<Unit> getEnemyUnits() {
-        List<Unit> units = RBWListener.game.getAllUnits().stream()
-                .filter(u -> u.getPlayer().isEnemy(RBWListener.game.self())).toList();
-        return units;
     }
 
     /**

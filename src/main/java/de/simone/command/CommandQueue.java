@@ -12,6 +12,8 @@ import bwapi.UnitCommandType;
 import bwapi.UnitFilter;
 import bwapi.UnitType;
 import bwapi.UpgradeType;
+import de.simone.StarCraftException;
+import de.simone.command.StarCraftConstants.Cause;
 import de.simone.command.StarCraftConstants.OrderStatus;
 
 /**
@@ -73,7 +75,7 @@ public class CommandQueue {
                     break;
                 case UnitCommandType.Train:
                     if (unit.getTrainingQueueCount() == 5) {
-                        command.message = "Trainer is full";
+                        command.cause = Cause.Trainer_Full;
                         ignored = true;
                     } else {
                         success = unit.train(command.unitType); // <-----------------------
@@ -197,7 +199,7 @@ public class CommandQueue {
 
             // silent ignore
             if (ignored) {
-                listeners.forEach(listener -> listener.update(commands));
+                listeners.forEach(listener -> listener.commandIssued(commands));
                 return;
             }
 
@@ -210,13 +212,13 @@ public class CommandQueue {
 
             if (command.trys > 20 && !success) {
                 command.status = OrderStatus.Error;
-                listeners.forEach(listener -> listener.update(commands));
+                listeners.forEach(listener -> listener.commandIssued(commands));
                 return;
             }
 
             command.status = success ? OrderStatus.Completed : OrderStatus.Queued;
 
-            listeners.forEach(listener -> listener.update(commands));
+            listeners.forEach(listener -> listener.commandIssued(commands));
         }
     }
 
@@ -233,12 +235,14 @@ public class CommandQueue {
     private static void addCommand(Command command) {
         // fail save to avoid duplicate commands in the queue.
         // Optional<Command> optional = commands.stream()
-        //         .filter(c -> c.order == command.order && c.status == OrderStatus.Queued).findFirst();
+        // .filter(c -> c.order == command.order && c.status ==
+        // OrderStatus.Queued).findFirst();
         // if (optional.isPresent())
-        //     throw new StarCraftException("Duplicate command " + command.order + " in queue. Command: " + command);
+        // throw new StarCraftException("Duplicate command " + command.order + " in
+        // queue. Command: " + command);
 
         commands.add(command);
-        listeners.forEach(listener -> listener.update(commands));
+        listeners.forEach(listener -> listener.commandIssued(commands));
     }
 
     public static Command gather(Unit unit, ResourceType resourceType) {
@@ -292,15 +296,13 @@ public class CommandQueue {
         command.unitType = unitType;
 
         // fail save to forece the corrent pddl domain action
-        if (unitType.isBuilding()) {
-            setFail(command, "the UnitType " + command.unitType + " is not a trainable unit.");
-            return command;
-        }
+        if (unitType.isBuilding())
+            throw new StarCraftException("The UnitType " + command.unitType + " is not a trainable unit.");
 
         // resolve facility
         Unit trainer = UnitsCenter.resolveTrainer(unitType);
         if (trainer == null) {
-            setFail(command, "No Facility available to train " + unitType);
+            setFail(command, Cause.No_Facility_Available);
             return command;
         }
         command.unitId = trainer.getID();
@@ -314,16 +316,13 @@ public class CommandQueue {
         command.unitType = unitType;
 
         // fail save to force the corrent pddl domain action
-        if (!unitType.isBuilding()) {
-            setFail(command, "the UnitType " + command.unitType + " is not a building.");
-            return command;
-        }
+        if (!unitType.isBuilding())
+            throw new StarCraftException("The UnitType " + command.unitType + " is not a building.");
 
         // look for a free SCV to build the unit
         Unit unit = UnitsCenter.getFreeTerranSCV();
         if (unit == null) {
-            // make a note but dont alter the status
-            command.message = "No SCV available to build " + command.unitType;
+            setFail(command, Cause.No_SCV_Available);
             return command;
         }
         command.unitId = unit.getID();
@@ -333,7 +332,7 @@ public class CommandQueue {
             List<Unit> geysers = RBWListener.game.getGeysers();
             Unit closestGeyser = UnitsCenter.getClosestUnit(geysers, unit);
             if (closestGeyser == null) {
-                setFail(command, "No Geyser available to build " + command.unitType);
+                setFail(command, Cause.No_Geyser_Available);
                 return command;
             }
             command.tilePosition = closestGeyser.getTilePosition();
@@ -381,7 +380,7 @@ public class CommandQueue {
         // resolve research facility
         Unit dTag = UnitsCenter.resolveResearch(techType);
         if (dTag == null) {
-            setFail(command, "No Facility available to research " + techType);
+            setFail(command, Cause.No_Facility_Available);
             return command;
         }
         command.unitId = dTag.getID();
@@ -400,7 +399,7 @@ public class CommandQueue {
         // resolve upgrade facility
         Unit dTag = UnitsCenter.resolveUpgrade(upgradeType);
         if (dTag == null) {
-            setFail(command, "No Facility available to upgrade " + upgradeType);
+            setFail(command, Cause.No_Facility_Available);
             return command;
         }
         command.unitId = dTag.getID();
@@ -458,7 +457,7 @@ public class CommandQueue {
         Unit unit = UnitsCenter.getFreeTerranSCV();
         if (unit == null) {
             // make a note but dont alter the status
-            command.message = "No SCV available to build " + command.unitType;
+            command.cause = Cause.No_SCV_Available;
             return command;
         }
         command.unitId = unit.getID();
@@ -688,15 +687,9 @@ public class CommandQueue {
         addCommand(new Command(UnitCommandType.Use_Tech_Unit, unitID, targetID, null));
     }
 
-    private static Command setSuccess(Command command, String message) {
-        command.status = OrderStatus.Completed;
-        command.message = message;
-        return command;
-    }
-
-    private static Command setFail(Command command, String message) {
+    private static Command setFail(Command command, Cause cause) {
         command.status = OrderStatus.Error;
-        command.message = message;
+        command.cause = cause;
         return command;
     }
 }

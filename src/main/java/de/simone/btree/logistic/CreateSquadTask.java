@@ -9,7 +9,6 @@ import com.badlogic.gdx.ai.btree.annotation.TaskAttribute;
 import bwapi.UnitType;
 import de.simone.btree.Blackboard;
 import de.simone.command.Squad;
-import de.simone.command.Squad.SquadStatus;
 import de.simone.command.Squad.SquadType;
 
 /**
@@ -27,7 +26,6 @@ public class CreateSquadTask extends LogisticTask {
     @TaskAttribute(required = true)
     public SquadType type;
 
-    // coma separated list of unitTypes to recruit
     @TaskAttribute(required = true)
     public String members;
 
@@ -44,7 +42,7 @@ public class CreateSquadTask extends LogisticTask {
             currentSquad.recruitMembers();
         }
 
-        return currentSquad.status == SquadStatus.Assembling ? Status.RUNNING : Status.SUCCEEDED;
+        return currentSquad == null || currentSquad.getRequiredUnits().isEmpty() ? Status.SUCCEEDED : Status.RUNNING;
     }
 
     private List<UnitType> parseMembers(String members) {

@@ -7,8 +7,10 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 
+import com.badlogic.gdx.ai.btree.BehaviorTree;
 import com.github.freva.asciitable.AsciiTable;
 import com.github.freva.asciitable.Column;
 
@@ -25,19 +27,26 @@ public class LogisticCenterView extends Form implements LogisticCenterListener {
 
     private JTextArea textArea;
     private JPanel header;
+    private BehaviorTreeTree currentBehaviorTree;
 
     public LogisticCenterView() {
         setLayout(new BorderLayout());
         textArea = UIUtils.getConsoleTextArea();
         header = UIUtils.getHeader("Logistic Center", "Displays the current state of the logistic center.");
-        add(new JScrollPane(textArea), BorderLayout.CENTER);
         LogisticCenter.addListener(this);
+
+        currentBehaviorTree = new BehaviorTreeTree((BehaviorTree<?>) LogisticCenter.behaviorTree);
+
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        splitPane.setLeftComponent(new JScrollPane(currentBehaviorTree));
+        splitPane.setRightComponent(new JScrollPane(textArea));
+        add(splitPane, BorderLayout.CENTER);
 
         textArea.setText("\n\tReady for new build orders.");
     }
 
     @Override
-    public void update(List<BuildOrder> buildOrders) {
+    public void ordersUpdated(List<BuildOrder> buildOrders) {
         textArea.setText(AsciiTable.getTable(AsciiTable.NO_BORDERS, buildOrders, Arrays.asList(
                 new Column().header("Id").with(c -> "" + c.id),
                 new Column().header("Action").with(c -> c.action.toString()),

@@ -1,9 +1,9 @@
 package de.simone.command;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.TreeMap;
 
 import bwapi.Order;
@@ -22,6 +22,7 @@ public class UnitsCenter {
     private static ArrayList<Squad> squads = new ArrayList<Squad>();
     private static Map<Integer, DogTag> dogTags = new TreeMap<>();
     private static List<UnitsCenterListener> listeners = new ArrayList<>();
+    private static Random random = new Random();
 
     public static void addListener(UnitsCenterListener listener) {
         listeners.add(listener);
@@ -36,36 +37,36 @@ public class UnitsCenter {
         // remove dead squads
         squads.removeIf(s -> !s.isAlive());
 
-        listeners.forEach(l -> l.updatePersonal(getDogTags()));
+        listeners.forEach(l -> l.personalUpdated(getDogTags()));
     }
 
     public static void onUnitComplete(Unit unit) {
-        if( RBWListener.game.self().isEnemy(unit.getPlayer()))
+        if (RBWListener.game.self().isEnemy(unit.getPlayer()))
             return;
 
         DogTag tag = new DogTag(unit);
         dogTags.put(tag.unit.getID(), tag);
-        listeners.forEach(l -> l.updatePersonal(getDogTags()));
+        // listeners.forEach(l -> l.updatePersonal(getDogTags()));
     }
 
     public static void onUnitDiscover(Unit unit) {
-        if( RBWListener.game.self().isEnemy(unit.getPlayer()))
+        if (RBWListener.game.self().isEnemy(unit.getPlayer()))
             return;
 
         DogTag tag = new DogTag(unit);
         dogTags.put(tag.unit.getID(), tag);
-        listeners.forEach(l -> l.updatePersonal(getDogTags()));
+        // listeners.forEach(l -> l.updatePersonal(getDogTags()));
     }
 
     public static void onUnitDestroy(Unit unit) {
-        if( RBWListener.game.self().isEnemy(unit.getPlayer()))
+        if (RBWListener.game.self().isEnemy(unit.getPlayer()))
             return;
 
         DogTag tag = dogTags.get(unit.getID());
         if (tag != null)
             dogTags.remove(unit.getID());
 
-        listeners.forEach(l -> l.updatePersonal(getDogTags()));
+        // listeners.forEach(l -> l.updatePersonal(getDogTags()));
     }
 
     /**
@@ -167,8 +168,10 @@ public class UnitsCenter {
      */
     public static Unit getUnit(UnitType unitType) {
         List<Unit> units = getUnits(unitType);
-        Collections.shuffle(units);
-        Unit unit = units.isEmpty() ? null : units.get(0);
+        int r = random.nextInt(units.size());
+        if (units.isEmpty())
+            return null;
+        Unit unit = units.get(r);
         return unit;
     }
 
@@ -198,11 +201,12 @@ public class UnitsCenter {
      */
     public static Unit getSCVForGather() {
         List<Unit> units = getUnits().stream()
-                .filter(u -> u.getType() == UnitType.Terran_SCV && u.isIdle() && u.getOrder() == Order.None)
+                .filter(u -> u.getType() == UnitType.Terran_SCV && u.isIdle() && u.getOrder() != Order.None)
                 .toList();
-        List<Unit> units2 = new ArrayList<>(units);
-        Collections.shuffle(units2);
-        Unit unit = units2.isEmpty() ? null : units2.get(0);
+        if (units.isEmpty())
+            return null;
+        int r = random.nextInt(units.size());
+        Unit unit = units.get(r);
         return unit;
     }
 
@@ -211,9 +215,10 @@ public class UnitsCenter {
                 .filter(u -> u.getType() == UnitType.Terran_SCV
                         && (u.isGatheringGas() || u.isGatheringMinerals() || u.isIdle()))
                 .toList();
-        List<Unit> units2 = new ArrayList<>(units);
-        Collections.shuffle(units2);
-        Unit unit = units2.isEmpty() ? null : units2.get(0);
+        if (units.isEmpty())
+            return null;
+        int r = random.nextInt(units.size());
+        Unit unit = units.get(r);
         return unit;
     }
 

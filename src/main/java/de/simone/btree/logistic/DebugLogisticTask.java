@@ -1,5 +1,7 @@
 package de.simone.btree.logistic;
 
+import java.time.LocalDateTime;
+
 import com.badlogic.gdx.ai.btree.Task;
 
 import de.simone.btree.Blackboard;
@@ -11,9 +13,9 @@ import de.simone.btree.Blackboard;
  * SUCCEEDED.
  */
 public class DebugLogisticTask extends LogisticTask {
-
     @Override
     public Status execute() {
+        System.out.println("DebugLogisticTask execute at "+ LocalDateTime.now());
         return Status.SUCCEEDED;
     }
 

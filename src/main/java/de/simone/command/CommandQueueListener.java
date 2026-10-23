@@ -4,5 +4,5 @@ import java.util.List;
 
 public interface CommandQueueListener {
 
-	public void update(List<Command> command);
+	public void commandIssued(List<Command> command);
 }

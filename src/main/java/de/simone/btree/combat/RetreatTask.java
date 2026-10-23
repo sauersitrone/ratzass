@@ -1,19 +1,22 @@
 package de.simone.btree.combat;
 
+import bwapi.Order;
 import de.simone.command.Squad;
-import de.simone.command.Squad.SquadStatus;
 
 public class RetreatTask extends CombatTask {
 
     @Override
-    public Status execute() {
+    public void start() {
+        super.start();
         Squad squad = getObject();
-
-        if (getStatus() == Status.RUNNING) {
-            return squad.status == SquadStatus.Moving ? Status.RUNNING : Status.SUCCEEDED;
-        }
-        
         squad.retreat();
-        return Status.RUNNING;
+    }
+
+    @Override
+    public Status execute() {
+        if(!isTimeOut())
+            return Status.RUNNING;
+        System.out.println("RetreatTask.execute() " + getObject().getSquadOrder());
+        return getObject().getSquadOrder() == Order.Move ? Status.RUNNING : Status.SUCCEEDED;
     }
 }

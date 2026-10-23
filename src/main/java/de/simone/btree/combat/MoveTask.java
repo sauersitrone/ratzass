@@ -6,7 +6,6 @@ import de.simone.command.CombatCenter;
 import de.simone.command.CombatCenter.RequestName;
 import de.simone.command.CombatRequest;
 import de.simone.command.Squad;
-import de.simone.command.Squad.SquadStatus;
 
 public class MoveTask extends CombatTask {
 
@@ -17,8 +16,8 @@ public class MoveTask extends CombatTask {
     public Status execute() {
         Squad squad = getObject();
  
-        if (getStatus() == Status.RUNNING)
-            return squad.status == SquadStatus.Moving ? Status.RUNNING : Status.SUCCEEDED;
+        // if (getStatus() == Status.RUNNING)
+        //     return squad.status == SquadStatus.Moving ? Status.RUNNING : Status.SUCCEEDED;
 
         CombatRequest request = CombatCenter.getRequest(to);
         // Another squad might have already handled the call

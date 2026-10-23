@@ -5,12 +5,14 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.OptionalInt;
 
 import com.badlogic.gdx.ai.btree.BehaviorTree;
 
+import bwapi.Order;
 import bwapi.Position;
 import bwapi.TilePosition;
-import bwapi.Unit;
 import bwapi.UnitCommandType;
 import bwapi.UnitType;
 import de.simone.RUtils;
@@ -36,7 +38,7 @@ public class Squad {
 
     public String squadID;
     public UnitCommandType currentCommand = UnitCommandType.Unknown;
-    public SquadStatus status = SquadStatus.None;
+    // public SquadStatus status = SquadStatus.None;
     public SquadType type = SquadType.Patrol;
     public BehaviorTree<Squad> behaviorTree;
 
@@ -57,13 +59,13 @@ public class Squad {
     public void updateStatus() {
         // update the status, so the running behavior tree has the correct context.
         if (!isAlive()) {
-            status = SquadStatus.Dead;
             return;
         }
 
         // check if the squad has reached the target position
-        if (targetPosition != null && isSquadInPosition(targetPosition))
-            status = SquadStatus.Ready;
+        if (targetPosition != null && isSquadInPosition(targetPosition)) {
+            System.out.println("Squad.updateStatus() targetPosition reached: " + targetPosition);
+        }
 
     }
 
@@ -95,10 +97,8 @@ public class Squad {
                 unit.squadID = squadID;
             }
         }
-        status = SquadStatus.Assembling;
         requiredUnits = getRequiredUnits();
         if (requiredUnits.isEmpty()) {
-            status = SquadStatus.Ready;
             UnitsCenter.addSquad(this);
         }
     }
@@ -154,7 +154,6 @@ public class Squad {
         targetPosition = positionsTracking.remove(positionsTracking.size() - 1);
         CommandQueue.addCommand(UnitCommandType.Right_Click_Position, this, targetPosition);
         CombatCenter.sendCommunication(this, UnitCommandType.Right_Click_Position);
-        status = SquadStatus.Moving;
     }
 
     public void move(Position position) {
@@ -162,7 +161,6 @@ public class Squad {
         targetPosition = new Position(position.x, position.y);
         CommandQueue.addCommand(UnitCommandType.Right_Click_Position, this, targetPosition);
         CombatCenter.sendCommunication(this, UnitCommandType.Right_Click_Position);
-        status = SquadStatus.Moving;
     }
 
     public void attack(Position position) {
@@ -170,7 +168,23 @@ public class Squad {
         targetPosition = new Position(position.x, position.y);
         CommandQueue.addCommand(UnitCommandType.Attack_Move, this, targetPosition);
         CombatCenter.sendCommunication(this, UnitCommandType.Attack_Move);
-        status = SquadStatus.Moving;
+    }
+
+    /**
+     * Return the order that the majority of th units are doing. e.g if a squad has
+     * 3 member and 2 of them are AttackUnit, an the 3r are AttackMove, this method
+     * will return AttackUnit.
+     * 
+     * @return the current order
+     */
+    public Order getSquadOrder() {
+        List<DogTag> units = getSquadUnits();
+        OptionalInt optionalInt = units.stream().mapToInt(u -> u.unit.getOrder().id).max();
+        if (!optionalInt.isPresent())
+            return Order.Unknown;
+
+        Order order = Order.values()[optionalInt.getAsInt()];
+        return order;
     }
 
     public boolean canAttackAir() {
@@ -184,8 +198,7 @@ public class Squad {
     }
 
     public int getSpread() {
-        List<Unit> units = getSquadUnits().stream().map(d -> d.unit).toList();
-        Rectangle2D box = CombatCenter.getBox(units);
+        Rectangle2D box = CombatCenter.getBox(this);
         double spread = Math.hypot(box.getX(), box.getY());
 
         return (int) spread;
@@ -202,8 +215,7 @@ public class Squad {
     }
 
     public Position getPosition() {
-        List<Unit> units = getSquadUnits().stream().map(d -> d.unit).toList();
-        Rectangle2D box = CombatCenter.getBox(units);
+        Rectangle2D box = CombatCenter.getBox(this);
         Position position = new Position((int) box.getCenterX(), (int) box.getCenterY());
 
         return position;
@@ -283,33 +295,34 @@ public class Squad {
      * now i explore region center with path. this method must retunr only the
      * nearest point of the already explored path.
      * 
-    private static Position getRetreatPosition(Squad squad) {
-        List<Point2D> positions = new ArrayList<>(squad.positionsTracking);
-        // positions = SimplifyPolyline.simplify(positions, Squad.patrolRadius, false);
-        positions = SimplifyPolyline.simplify(positions, 100, false);
-
-        Path2D path = new Path2D.Double();
-        for (int i = 0; i < positions.size(); i++) {
-            Point2D point2d = positions.get(i);
-            if (i == 0)
-                path.moveTo(point2d.getX(), point2d.getY());
-
-            path.lineTo(point2d.getX(), point2d.getY());
-        }
-
-        // look for the point more close to the distance
-        double count = 0D;
-        Point2D prevPoint = positions.get(positions.size() - 1);
-        for (int i = positions.size() - 1; i >= 0; i--) {
-            Point2D point2d = positions.get(i);
-            count += point2d.distance(prevPoint);
-            prevPoint = point2d;
-            if (count >= 100)
-                break;
-        }
-
-        return new Position((int) prevPoint.getX(), (int) prevPoint.getY());
-    }
+     * private static Position getRetreatPosition(Squad squad) {
+     * List<Point2D> positions = new ArrayList<>(squad.positionsTracking);
+     * // positions = SimplifyPolyline.simplify(positions, Squad.patrolRadius,
+     * false);
+     * positions = SimplifyPolyline.simplify(positions, 100, false);
+     * 
+     * Path2D path = new Path2D.Double();
+     * for (int i = 0; i < positions.size(); i++) {
+     * Point2D point2d = positions.get(i);
+     * if (i == 0)
+     * path.moveTo(point2d.getX(), point2d.getY());
+     * 
+     * path.lineTo(point2d.getX(), point2d.getY());
+     * }
+     * 
+     * // look for the point more close to the distance
+     * double count = 0D;
+     * Point2D prevPoint = positions.get(positions.size() - 1);
+     * for (int i = positions.size() - 1; i >= 0; i--) {
+     * Point2D point2d = positions.get(i);
+     * count += point2d.distance(prevPoint);
+     * prevPoint = point2d;
+     * if (count >= 100)
+     * break;
+     * }
+     * 
+     * return new Position((int) prevPoint.getX(), (int) prevPoint.getY());
+     * }
      */
 
 }

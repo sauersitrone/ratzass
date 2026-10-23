@@ -4,5 +4,5 @@ import java.util.List;
 
 public interface LogisticCenterListener {
 
-    public void update(List<BuildOrder> buildOrders);
+    public void ordersUpdated(List<BuildOrder> buildOrders);
 }

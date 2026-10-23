@@ -42,7 +42,6 @@ public class RBWListener extends DefaultBWListener {
     private RBWListener() {
         bwClient = new BWClient(this);
         bwClient.startGame();
-        CameraModule.init();
     }
 
     public static void init() {
@@ -117,9 +116,10 @@ public class RBWListener extends DefaultBWListener {
 
         // heartbeat for units center, logistic center, and command queue.
         if (gameSeconds - lastTick >= 0.1) {
-            lastTick = gameSeconds;
             long t1 = System.currentTimeMillis();
-            GdxAI.getTimepiece().update((float) gameSeconds);
+            float deltaTime = (float) (gameSeconds - lastTick);
+            GdxAI.getTimepiece().update(deltaTime);
+            lastTick = gameSeconds;
 
             UnitsCenter.heartBeat();
             InformationCenter.heartBeat();

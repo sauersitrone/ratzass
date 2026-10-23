@@ -17,7 +17,7 @@ public class IsDangerousCondition extends CombatTask {
         Status status = firepower < 0 ? Status.SUCCEEDED : Status.FAILED;
 
         if (status == Status.SUCCEEDED)
-            sendCommunication("We are in dangerous situation !!");
+            sendCommunication("We are in dangerous situation !! our firepower is " + firepower);
 
         return status;
     }

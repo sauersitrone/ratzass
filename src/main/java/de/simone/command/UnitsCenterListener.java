@@ -5,5 +5,5 @@ import java.util.List;
 
 public interface UnitsCenterListener {
 
-    public void updatePersonal(List<DogTag> units);
+    public void personalUpdated(List<DogTag> units);
 }

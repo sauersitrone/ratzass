@@ -23,6 +23,7 @@ import de.simone.RUtils;
 import de.simone.StarCraftException;
 import de.simone.btree.Blackboard;
 import de.simone.command.CommandQueue.ResourceType;
+import de.simone.command.StarCraftConstants.Cause;
 import de.simone.command.StarCraftConstants.OrderStatus;
 import de.simone.command.StarCraftConstants.PlannedAction;
 
@@ -37,11 +38,19 @@ public class LogisticCenter {
     private static ExecutorService executorService;
     public static Map<String, List<BuildOrder>> orders = new TreeMap<>();
     public final static BehaviorTree<Blackboard> behaviorTree;
+    private final static Map<UpgradeType, Integer> upgradeLevels = new TreeMap<>();
+    private final static Map<TechType, Boolean> techTypes = new TreeMap<>();
 
     static {
         Blackboard blackboard = new Blackboard();
         behaviorTree = RUtils.getBehaviorTree("logistic.tree", blackboard);
         executorService = Executors.newSingleThreadExecutor();
+        // for (UpgradeType upgradeType : UpgradeType.values()) {
+        // upgradeLevels.putIfAbsent(upgradeType, 0);
+        // }
+        // for (TechType techType : TechType.values()) {
+        // techTypes.putIfAbsent(techType, false);
+        // }
     }
 
     public static void onUnitComplete(Unit unit) {
@@ -74,9 +83,9 @@ public class LogisticCenter {
         Unit unit = UnitsCenter.getSCVForGather();
         if (unit != null) {
             Unit refinery = UnitsCenter.getUnits().stream().filter(u -> u.getType() == UnitType.Terran_Refinery)
-            .findFirst().orElse(null);
+                    .findFirst().orElse(null);
             int gGas = (int) UnitsCenter.getUnits().stream()
-            .filter(u -> u.getType() == UnitType.Terran_SCV && u.isGatheringGas()).count();
+                    .filter(u -> u.getType() == UnitType.Terran_SCV && u.isGatheringGas()).count();
             // at least 2 gathering gas
             if (gGas < StarCraftConstants.SCV_GATHERING_GAS && refinery != null) {
                 CommandQueue.gather(unit, ResourceType.Gas);
@@ -99,7 +108,7 @@ public class LogisticCenter {
             if (RBWListener.currentMinerals >= buildOrder.quantity) {
                 buildOrder.setStatus(OrderStatus.Completed);
             } else {
-                listeners.forEach(l -> l.update(buildOrders));
+                listeners.forEach(l -> l.ordersUpdated(buildOrders));
                 return;
             }
         }
@@ -118,7 +127,7 @@ public class LogisticCenter {
             if (RBWListener.currentGas >= buildOrder.quantity) {
                 buildOrder.setStatus(OrderStatus.Completed);
             } else {
-                listeners.forEach(l -> l.update(buildOrders));
+                listeners.forEach(l -> l.ordersUpdated(buildOrders));
                 return;
             }
         }
@@ -144,9 +153,12 @@ public class LogisticCenter {
             if (optional.isPresent()) {
                 BuildOrder trainOrder = optional.get();
                 if (buildOrders.indexOf(buildOrder) != buildOrders.indexOf(trainOrder) + 1) {
-                    listeners.forEach(l -> l.update(buildOrders));
+                    listeners.forEach(l -> l.ordersUpdated(buildOrders));
                     return;
                 }
+            } else {
+                listeners.forEach(l -> l.ordersUpdated(buildOrders));
+                return;
             }
         }
 
@@ -162,8 +174,12 @@ public class LogisticCenter {
             BuildOrder buildOrder = optional.get();
             Command command = null;
             // train
-            if (buildOrder.action == StarCraftConstants.PlannedAction.train)
+            if (buildOrder.action == StarCraftConstants.PlannedAction.train) {
                 command = CommandQueue.train(buildOrder.unitType);
+                // silent ignore
+                if (command.status == OrderStatus.Error && command.cause == Cause.Trainer_Full)
+                    return;
+            }
 
             // build
             if (buildOrder.action == StarCraftConstants.PlannedAction.build)
@@ -171,7 +187,7 @@ public class LogisticCenter {
 
             buildOrder.message = command.message;
             buildOrder.setStatus(OrderStatus.Running);
-            listeners.forEach(l -> l.update(buildOrders));
+            listeners.forEach(l -> l.ordersUpdated(buildOrders));
             return;
         }
 
@@ -198,8 +214,44 @@ public class LogisticCenter {
             buildOrder.setStatus(OrderStatus.Running);
         }
 
+        /**
+         * update upgrades
+         */
+        for (UpgradeType upgradeType : UpgradeType.values()) {
+            int prev = upgradeLevels.getOrDefault(upgradeType, 0);
+            int newLvl = RBWListener.game.self().getUpgradeLevel(upgradeType);
+            if (newLvl > prev) {
+                for (List<BuildOrder> buildOrders : orders.values()) {
+                    for (BuildOrder buildOrder : buildOrders) {
+                        if (buildOrder.upgradeType == upgradeType && buildOrder.getStatus() == OrderStatus.Running) {
+                            buildOrder.setStatus(OrderStatus.Completed);
+                            upgradeLevels.put(upgradeType, newLvl);
+                        }
+                    }
+                }
+            }
+        }
+
+        /**
+         * update researchs
+         */
+        for (TechType techType : TechType.values()) {
+            boolean prev = techTypes.getOrDefault(techType, false);
+            boolean newLvl = RBWListener.game.self().hasResearched(techType);
+            if (newLvl && !prev) {
+                for (List<BuildOrder> buildOrders : orders.values()) {
+                    for (BuildOrder buildOrder : buildOrders) {
+                        if (buildOrder.techType == techType && buildOrder.getStatus() == OrderStatus.Running) {
+                            buildOrder.setStatus(OrderStatus.Completed);
+                            techTypes.put(techType, newLvl);
+                        }
+                    }
+                }
+            }
+        }
+
         // notify all listeners about the updated build orders
-        listeners.forEach(l -> l.update(buildOrders));
+        listeners.forEach(l -> l.ordersUpdated(buildOrders));
     }
 
     /**
@@ -291,7 +343,7 @@ public class LogisticCenter {
         buildOrders.addAll(planOrders);
 
         for (LogisticCenterListener listener : listeners) {
-            listener.update(buildOrders);
+            listener.ordersUpdated(buildOrders);
         }
         return planOrders;
     }

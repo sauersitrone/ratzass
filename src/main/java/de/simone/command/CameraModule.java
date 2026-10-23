@@ -22,21 +22,22 @@ public class CameraModule {
     private static Unit cameraFocusUnit = null;
     private static boolean followUnit = false;
     private static Game game;
+    private static boolean isInit = false;
 
     private CameraModule() {
         //
     }
-    
-    public static void init() {
-        TilePosition startPos = RBWListener.game.self().getStartLocation();
-        myStartLocation = startPos.toPosition();
-        cameraFocusPosition = startPos.toPosition();
-        currentCameraPosition = startPos.toPosition();
-        game = RBWListener.game;
-    }
 
     public static void onFrame() {
         if (Config.autoCamera) {
+            if (!isInit) {
+                TilePosition startPos = RBWListener.game.self().getStartLocation();
+                myStartLocation = startPos.toPosition();
+                cameraFocusPosition = startPos.toPosition();
+                currentCameraPosition = startPos.toPosition();
+                game = RBWListener.game;
+                isInit = true;
+            }
             moveCameraFallingNuke();
             moveCameraIsUnderAttack();
             moveCameraIsAttacking();

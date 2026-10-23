@@ -46,7 +46,7 @@ public class UnitsCenterView extends Form implements UnitsCenterListener {
     }
 
     @Override
-    public void updatePersonal(List<DogTag> units) {
+    public void personalUpdated(List<DogTag> units) {
         List<DogTag> list = new ArrayList<>(units);
         if (!Config.showResources)
             list = units.stream().filter(dogTag -> !dogTag.unitType.toString().startsWith("Resource_")).toList();

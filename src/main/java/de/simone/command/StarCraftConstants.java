@@ -25,6 +25,14 @@ public class StarCraftConstants {
         Completed
     }
 
+        public enum Cause {
+        None,
+        Unknown,
+        No_SCV_Available,
+        No_Geyser_Available,
+        No_Facility_Available,
+        Trainer_Full,
+        }
     public enum OrderPriority {
         Normal,
         High

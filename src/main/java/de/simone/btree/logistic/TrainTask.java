@@ -11,7 +11,7 @@ import de.simone.command.LogisticCenter;
 import de.simone.command.UnitsCenter;
 
 /**
- * Task for build/training/upgrade/tech units. the general fields are
+ * Task for build/training/upgrade-tech units. the general fields are
  * self-explanatory except for 'increase' and 'total'.
  * - increase: the number of additional units to produce beyond the current
  * count.
@@ -20,7 +20,7 @@ import de.simone.command.UnitsCenter;
  * "what i exactly want to produce". for total, i use it when i want to maintain
  * a specific number of units consistently.
  * e.g:
- * i what to train 1 Terran_SCV but i already have 1.
+ * i want to train 1 Terran_SCV but i already have 1.
  * - train unitType:"Terran_SCV" increase:1 -> total on the ground: 2
  * - train unitType:"Terran_SCV" total:1 -> total on the ground: 1
  */
@@ -52,41 +52,38 @@ public class TrainTask extends LogisticTask {
             throw new IllegalArgumentException("Either increase or total must be specified.");
 
         super.start();
-    }
 
-    @Override
-    public Status execute() {
+        voucher = null;
         int exist = UnitsCenter.getUnitCount(unitType);
 
         // mantain the total number of units specified
         int toProduction = total;
-        if (total > 0 && exist >= total) {
-            return Status.SUCCEEDED;
-        }
+        if (total > 0 && exist >= total)
+            return;
 
-        // increase the total of units
-        if (increase > 0) {
+        // increase the total of units; the target is fixed once, when the task starts
+        if (increase > 0)
             toProduction = exist + increase;
-            if (exist >= toProduction)
-                return Status.SUCCEEDED;
-        }
 
-        if (getStatus() == Status.RUNNING) {
-            Status status = getBuildOrderStatus(voucher);
-            return status;
-        }
-
-        // no previous, create a new build order
+        // create a new build order
         if (unitType != null)
-            voucher = LogisticCenter.addBuildOrder(unitType, total);
+            voucher = LogisticCenter.addBuildOrder(unitType, toProduction);
 
         if (upgradeType != null)
-            voucher = LogisticCenter.addBuildOrder(upgradeType, total);
+            voucher = LogisticCenter.addBuildOrder(upgradeType, toProduction);
 
         if (techType != null)
             voucher = LogisticCenter.addBuildOrder(techType);
+    }
 
-        return Status.RUNNING;
+    @Override
+    public Status execute() {
+        // nothing to produce, the goal was already reached when the task started
+        if (voucher == null)
+            return Status.SUCCEEDED;
+
+        Status status = getBuildOrderStatus(voucher);
+        return status;
     }
 
     @Override
@@ -117,6 +114,7 @@ public class TrainTask extends LogisticTask {
         trainTask.upgradeType = upgradeType;
         trainTask.techType = techType;
         trainTask.increase = increase;
+        trainTask.total = total;
         return trainTask;
     }
 }

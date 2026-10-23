@@ -3,9 +3,9 @@ package de.simone.command;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -36,6 +36,7 @@ public class CombatCenter {
     private static List<CombatCenterListener> listeners = new ArrayList<>();
     private static StringBuilder comms = new StringBuilder();
     private static List<CombatRequest> squadRequests = new ArrayList<>();
+    private static Random random = new Random();
 
     public static boolean requestPermition(Squad squad, RequestName request) {
         if (request == RequestName.PatrolPosition) {
@@ -102,21 +103,21 @@ public class CombatCenter {
      */
     public static void update() {
         String logs = comms.toString();
-        listeners.forEach(l -> l.update(logs));
+        listeners.forEach(l -> l.commsUpdated(logs));
     }
 
     public static void sendCommunication(Squad squad, String text) {
         comms.append(squad.type + " unit " + squad.squadID + ": " + text);
         comms.append("\n");
-        listeners.forEach(listener -> listener.update(comms.toString()));
+        listeners.forEach(listener -> listener.commsUpdated(comms.toString()));
     }
 
     public static void sendCommunication(Squad squad, UnitCommandType command) {
         List<String> quotes = StarCraftConstants.quotes.stream()
                 .filter(pair -> pair.getLeft() == command)
                 .map(Pair::getRight).toList();
-        Collections.shuffle(quotes);
-        sendCommunication(squad, quotes.get(0));
+        int r = random.nextInt(quotes.size());
+        sendCommunication(squad, quotes.get(r));
     }
 
     public static void addListener(CombatCenterListener listener) {
@@ -207,10 +208,11 @@ public class CombatCenter {
     /**
      * return a bounding box that contains all the given units.
      * 
-     * @param units - the units
+     * @param squad - the squad
      * @return the bounding box
      */
-    public static Rectangle2D getBox(List<Unit> units) {
+    public static Rectangle2D getBox(Squad squad) {
+        List<Unit> units = squad.getSquadUnits().stream().map(d -> d.unit).toList();
         List<Point2D> points = units.stream()
                 .<Point2D>map(u -> new Point2D.Double(u.getPosition().x, u.getPosition().y))
                 .toList();

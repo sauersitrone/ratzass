@@ -12,7 +12,6 @@ import javax.swing.UIManager;
 import com.formdev.flatlaf.FlatClientProperties;
 
 import de.simone.Main;
-import de.simone.ui.forms.BehaviorTreeView;
 import de.simone.ui.forms.CombatCenterView;
 import de.simone.ui.forms.CommandQueueView;
 import de.simone.ui.forms.FormSetting;
@@ -109,11 +108,10 @@ public class MyDrawerBuilder extends SimpleDrawerBuilder {
         MenuItem[] items = new MenuItem[] {
                 new Item.Label("Ratzass"),
                 new Item("Logistic center", "local_shipping.svg", LogisticCenterView.class),
-                new Item("Units center", "people_size_decrease.svg", UnitsCenterView.class),
-                new Item("Behavior Tree", "account_tree.svg", BehaviorTreeView.class),
-                new Item("StarCraft Map", "map.svg", StarCraftMapView.class),
                 new Item("Combat Center", "swords.svg", CombatCenterView.class),
+                new Item("Units center", "people_size_decrease.svg", UnitsCenterView.class),
                 new Item("Command Queue", "record_voice_over.svg", CommandQueueView.class),
+                new Item("StarCraft Map", "map.svg", StarCraftMapView.class),
                 new Item("Setting", "setting.svg", FormSetting.class),
                 new Item("About", "about.svg"),
                 new Item("Logout", "logout.svg")
@@ -177,7 +175,7 @@ public class MyDrawerBuilder extends SimpleDrawerBuilder {
         // map because dont draw :/)
         starcraftForms.add(new LogisticCenterView());
         starcraftForms.add(new UnitsCenterView());
-        starcraftForms.add(new BehaviorTreeView());
+        starcraftForms.add(new CombatCenterView());
         // starcraftForms.add(new StarCraftMapView());
         starcraftForms.add(new CombatCenterView());
         starcraftForms.add(new CommandQueueView());

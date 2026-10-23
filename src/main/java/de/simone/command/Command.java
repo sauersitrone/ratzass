@@ -6,6 +6,7 @@ import bwapi.TilePosition;
 import bwapi.UnitCommandType;
 import bwapi.UnitType;
 import bwapi.UpgradeType;
+import de.simone.command.StarCraftConstants.Cause;
 import de.simone.command.StarCraftConstants.OrderStatus;
 
 public class Command {
@@ -23,7 +24,9 @@ public class Command {
     public OrderStatus status = OrderStatus.Queued;
 
     // optional message to provide more information about the command execution
-    public String message = "";
+    public Cause cause = Cause.None;
+
+    public String message;
 
     public UnitCommandType order = UnitCommandType.Unknown;
     public UnitType unitType = UnitType.None;

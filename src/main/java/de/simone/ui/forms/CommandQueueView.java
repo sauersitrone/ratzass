@@ -16,6 +16,7 @@ import de.simone.UIUtils;
 import de.simone.command.Command;
 import de.simone.command.CommandQueue;
 import de.simone.command.CommandQueueListener;
+import de.simone.command.StarCraftConstants.Cause;
 import de.simone.ui.system.Form;
 
 public class CommandQueueView extends Form implements CommandQueueListener {
@@ -25,7 +26,7 @@ public class CommandQueueView extends Form implements CommandQueueListener {
 
     public CommandQueueView() {
         setLayout(new BorderLayout());
-        header = UIUtils.getHeader("Command Queue", "Displays the command queue in real-time.");
+        header = UIUtils.getHeader("Command Queue", "Displays all the commands dispatched to StarCraft.");
         textArea = UIUtils.getConsoleTextArea();
         add(new JScrollPane(textArea), BorderLayout.CENTER);
         CommandQueue.addListener(this);
@@ -34,7 +35,7 @@ public class CommandQueueView extends Form implements CommandQueueListener {
     }
 
     @Override
-    public void update(List<Command> commands) {
+    public void commandIssued(List<Command> commands) {
         textArea.setText(AsciiTable.getTable(AsciiTable.NO_BORDERS, commands, Arrays.asList(
                 new Column().header("Id").with(c -> "" + c.id),
                 new Column().header("UnitId").with(c -> "" + c.unitId),
@@ -45,6 +46,7 @@ public class CommandQueueView extends Form implements CommandQueueListener {
                 new Column().header("Tile Position").with(c -> "" + c.tilePosition),
                 new Column().header("Status").with(c -> c.status.toString()),
                 new Column().header("Trys").with(c -> "" + c.trys),
+                new Column().header("Cause").with(c -> c.cause == Cause.None ? "" : c.cause.toString()),
                 new Column().header("Message").with(c -> c.message))));
     }
 

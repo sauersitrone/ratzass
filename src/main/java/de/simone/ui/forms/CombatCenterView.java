@@ -63,7 +63,8 @@ public class CombatCenterView extends Form implements UnitsCenterListener, Comba
         placehloder = UIUtils.getConsoleTextArea();
         placehloder.setText("\n\tSquads Tree: No Squads.");
 
-        splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, placehloder, new JScrollPane(textArea));
+        JScrollPane right = new JScrollPane(textArea);
+        splitPane = UIUtils.getSplitPane(getClass().getSimpleName(), placehloder, right, JSplitPane.HORIZONTAL_SPLIT);
         add(splitPane, BorderLayout.CENTER);
         UnitsCenter.addListener(this);
     }

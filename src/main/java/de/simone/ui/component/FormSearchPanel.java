@@ -8,7 +8,7 @@ import de.simone.ui.icons.SVGIconUIColor;
 import de.simone.ui.menu.MyMenuValidation;
 import de.simone.ui.system.Form;
 import de.simone.ui.system.FormSearch;
-import de.simone.ui.utils.DemoPreferences;
+import de.simone.ui.utils.TPreferences;
 import de.simone.ui.utils.SystemForm;
 import net.miginfocom.swing.MigLayout;
 import raven.modal.Drawer;
@@ -247,7 +247,7 @@ public class FormSearchPanel extends JPanel {
     }
 
     private List<Item> getRecentSearch(boolean favorite) {
-        String[] recentSearch = DemoPreferences.getRecentSearch(favorite);
+        String[] recentSearch = TPreferences.getRecentSearch(favorite);
         if (recentSearch == null) {
             return null;
         }
@@ -397,7 +397,7 @@ public class FormSearchPanel extends JPanel {
             ModalDialog.closeModal(FormSearch.ID);
             Drawer.setSelectedItemClass(form);
             if (!isFavorite) {
-                DemoPreferences.addRecentSearch(data.name(), false);
+                TPreferences.addRecentSearch(data.name(), false);
             }
         }
 
@@ -447,7 +447,7 @@ public class FormSearchPanel extends JPanel {
         }
 
         protected void removeRecent() {
-            DemoPreferences.removeRecentSearch(data.name(), isFavorite);
+            TPreferences.removeRecentSearch(data.name(), isFavorite);
             panelResult.remove(this);
             listItems.remove(this);
             if (listItems.isEmpty()) {
@@ -466,7 +466,7 @@ public class FormSearchPanel extends JPanel {
         }
 
         protected void addFavorite() {
-            DemoPreferences.addRecentSearch(data.name(), true);
+            TPreferences.addRecentSearch(data.name(), true);
             int[] index = getFirstFavoriteIndex();
             panelResult.remove(this);
             listItems.remove(this);

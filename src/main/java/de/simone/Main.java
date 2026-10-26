@@ -20,11 +20,10 @@ import de.simone.command.CombatCenter;
 import de.simone.command.CommandQueue;
 import de.simone.command.InformationCenter;
 import de.simone.command.LogisticCenter;
-import de.simone.command.RBWListener;
 import de.simone.command.UnitsCenter;
 import de.simone.ui.menu.MyDrawerBuilder;
 import de.simone.ui.system.FormManager;
-import de.simone.ui.utils.DemoPreferences;
+import de.simone.ui.utils.TPreferences;
 import raven.modal.Drawer;
 
 public class Main extends JFrame {
@@ -53,6 +52,7 @@ public class Main extends JFrame {
         FormManager.install(this);
         setSize(new Dimension(1210, 820));
         setLocationRelativeTo(null);
+        TPreferences.bindWindowState(this);
     }
 
     public static void main(String[] args) {
@@ -67,16 +67,15 @@ public class Main extends JFrame {
         testBehaviorTree("logistic.tree");
         testBehaviorTree("squad.tree");
 
-        DemoPreferences.init();
+        TPreferences.init();
         FlatRobotoFont.install();
         FlatLaf.registerCustomDefaultsSource("ui.themes");
         UIManager.put("defaultFont", FontUtils.getCompositeFont(FlatRobotoFont.FAMILY, Font.PLAIN, 13));
-        DemoPreferences.setupLaf();
+        TPreferences.setupLaf();
         EventQueue.invokeLater(() -> new Main().setVisible(true));
 
-        RUtils.startStarcraftProcess();
-        RBWListener.init();
-
+        // RUtils.startStarcraftProcess();
+        // RBWListener.init();
     }
 
     /**

@@ -37,9 +37,9 @@ public class LogisticCenterView extends Form implements LogisticCenterListener {
 
         currentBehaviorTree = new BehaviorTreeTree((BehaviorTree<?>) LogisticCenter.behaviorTree);
 
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        splitPane.setLeftComponent(new JScrollPane(currentBehaviorTree));
-        splitPane.setRightComponent(new JScrollPane(textArea));
+        JScrollPane left = new JScrollPane(currentBehaviorTree);
+        JScrollPane right = new JScrollPane(textArea);
+        JSplitPane splitPane = UIUtils.getSplitPane(getClass().getSimpleName(), left, right, JSplitPane.HORIZONTAL_SPLIT);
         add(splitPane, BorderLayout.CENTER);
 
         textArea.setText("\n\tReady for new build orders.");

@@ -11,7 +11,7 @@ import de.simone.ui.component.AccentColorIcon;
 import de.simone.ui.system.Form;
 import de.simone.ui.system.FormManager;
 import de.simone.ui.themes.PanelThemes;
-import de.simone.ui.utils.DemoPreferences;
+import de.simone.ui.utils.TPreferences;
 import de.simone.ui.utils.SystemForm;
 import net.miginfocom.swing.MigLayout;
 import raven.color.ColorPicker;
@@ -210,7 +210,7 @@ public class FormSetting extends Form {
             toolBar.add(accentColorButtons[i]);
             group.add(accentColorButtons[i]);
             if (!selected) {
-                if (DemoPreferences.accentColor == null) {
+                if (TPreferences.accentColor == null) {
                     if (i == 0) {
                         accentColorButtons[i].setSelected(true);
                         oldSelected = accentColorButtons[i];
@@ -218,7 +218,7 @@ public class FormSetting extends Form {
                     }
                 } else {
                     Color color = UIManager.getColor(accentColorKeys[i]);
-                    if (DemoPreferences.accentColor.equals(color)) {
+                    if (TPreferences.accentColor.equals(color)) {
                         accentColorButtons[i].setSelected(true);
                         oldSelected = accentColorButtons[i];
                         selected = true;
@@ -233,7 +233,7 @@ public class FormSetting extends Form {
             accentColorCustomButton.setSelected(true);
         }
 
-        FlatLaf.setSystemColorGetter(name -> name.equals("accent") ? DemoPreferences.accentColor : null);
+        FlatLaf.setSystemColorGetter(name -> name.equals("accent") ? TPreferences.accentColor : null);
         UIManager.addPropertyChangeListener(e -> {
             if ("lookAndFeel".equals(e.getPropertyName())) {
                 updateAccentColorButtons();
@@ -247,13 +247,13 @@ public class FormSetting extends Form {
     private JToggleButton createCustomAccentColor() {
         JToggleButton button = new JToggleButton(new FlatSVGIcon("ui/icons/color.svg", 16, 16));
         button.addActionListener(e -> {
-            ColorPicker colorPicker = new ColorPicker(DemoPreferences.accentColor);
+            ColorPicker colorPicker = new ColorPicker(TPreferences.accentColor);
             colorPicker.setBorder(new ScaledEmptyBorder(0, 20, 0, 20));
             Option option = ModalDialog.createOption();
             option.setAnimationEnabled(false);
             ModalDialog.showModal(this, new SimpleModalBorder(colorPicker, "Select Color", SimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
                 if (action == SimpleModalBorder.YES_OPTION) {
-                    DemoPreferences.accentColor = colorPicker.getSelectedColor();
+                    TPreferences.accentColor = colorPicker.getSelectedColor();
                     oldSelected = null;
                     applyAccentColor();
                 } else if (action == SimpleModalBorder.CLOSE_OPTION) {
@@ -366,7 +366,7 @@ public class FormSetting extends Form {
                 break;
             }
         }
-        DemoPreferences.accentColor = (accentColorKey != null && accentColorKey != accentColorKeys[0])
+        TPreferences.accentColor = (accentColorKey != null && accentColorKey != accentColorKeys[0])
                 ? UIManager.getColor(accentColorKey)
                 : null;
         applyAccentColor();
@@ -375,7 +375,7 @@ public class FormSetting extends Form {
     private void applyAccentColor() {
         Class<? extends LookAndFeel> lafClass = UIManager.getLookAndFeel().getClass();
         try {
-            DemoPreferences.updateAccentColor(DemoPreferences.accentColor);
+            TPreferences.updateAccentColor(TPreferences.accentColor);
             FlatLaf.setup(lafClass.getDeclaredConstructor().newInstance());
             FlatLaf.updateUI();
         } catch (Exception ex) {

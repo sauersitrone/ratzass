@@ -10,6 +10,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.border.TitledBorder;
@@ -20,6 +21,7 @@ import com.formdev.flatlaf.FlatClientProperties;
 import de.simone.ui.layout.ResponsiveLayout;
 import de.simone.ui.layout.ResponsiveLayout.JustifyContent;
 import de.simone.ui.system.Form;
+import de.simone.ui.utils.TPreferences;
 import net.miginfocom.swing.MigLayout;
 import raven.modal.Toast;
 import raven.modal.option.Location;
@@ -99,7 +101,7 @@ public class UIUtils {
                 .setShowLabel(true)
                 .setShowCloseButton(true)
                 .getBorderStyle()
-                .setBorderType(borderType)        ;
+                .setBorderType(borderType);
 
         Toast.show(form, type, text, option);
     }
@@ -123,6 +125,21 @@ public class UIUtils {
         panel.add(title);
         panel.add(text, "width 500");
         return panel;
+    }
+
+    public static JSplitPane getSplitPane(String name, JComponent left, JComponent right) {
+        return getSplitPane(name, left, right, JSplitPane.HORIZONTAL_SPLIT);
+    }
+
+    public static JSplitPane getSplitPane(String name, JComponent left, JComponent right, int orientation) {
+        JSplitPane splitPane = new JSplitPane(orientation, left, right);
+        int saved = TPreferences.getDividerLocation(name);
+        if (saved >= 0) {
+            splitPane.setDividerLocation(saved);
+        }
+        splitPane.addPropertyChangeListener(JSplitPane.DIVIDER_LOCATION_PROPERTY,
+                e -> TPreferences.saveDividerLocation(name, splitPane.getDividerLocation()));
+        return splitPane;
     }
 
 }

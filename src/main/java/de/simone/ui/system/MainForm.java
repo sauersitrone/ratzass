@@ -19,8 +19,10 @@ import de.simone.ui.component.MemoryBar;
 import de.simone.ui.component.RefreshLine;
 import de.simone.ui.forms.ControlPanel;
 import de.simone.ui.icons.SVGIconUIColor;
+import de.simone.ui.utils.TPreferences;
 import net.miginfocom.swing.MigLayout;
 import raven.modal.Drawer;
+import raven.modal.drawer.menu.MenuOption.MenuOpenMode;
 
 public class MainForm extends JPanel {
 
@@ -35,6 +37,8 @@ public class MainForm extends JPanel {
         add(createMain());
         add(new JSeparator(), "height 2!");
         add(createFooter());
+        MenuOpenMode mode = TPreferences.getDrawerOpenMode();
+        Drawer.setDrawerOpenMode(mode);
     }
 
     private JPanel createHeader() {
@@ -56,11 +60,8 @@ public class MainForm extends JPanel {
                 "arc:10;");
 
         buttonDrawer.addActionListener(e -> {
-            if (Drawer.isOpen()) {
-                Drawer.showDrawer();
-            } else {
-                Drawer.toggleMenuOpenMode();
-            }
+            Drawer.toggleMenuOpenMode();
+            TPreferences.setDrawerOpenMode(Drawer.getDrawerOpenMode());
         });
         buttonUndo.addActionListener(e -> FormManager.undo());
         buttonRedo.addActionListener(e -> FormManager.redo());

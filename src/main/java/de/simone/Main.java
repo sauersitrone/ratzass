@@ -20,6 +20,7 @@ import de.simone.command.CombatCenter;
 import de.simone.command.CommandQueue;
 import de.simone.command.InformationCenter;
 import de.simone.command.LogisticCenter;
+import de.simone.command.RBWListener;
 import de.simone.command.UnitsCenter;
 import de.simone.ui.menu.MyDrawerBuilder;
 import de.simone.ui.system.FormManager;
@@ -74,8 +75,8 @@ public class Main extends JFrame {
         TPreferences.setupLaf();
         EventQueue.invokeLater(() -> new Main().setVisible(true));
 
-        // RUtils.startStarcraftProcess();
-        // RBWListener.init();
+        RUtils.startStarcraftProcess();
+        RBWListener.init();
     }
 
     /**

@@ -1,13 +1,13 @@
 package de.simone.btree.combat;
 
-import java.time.LocalTime;
-
+import com.badlogic.gdx.ai.btree.Task;
 import com.badlogic.gdx.ai.btree.annotation.TaskAttribute;
 
 import bwapi.Order;
 import de.simone.command.CombatCenter;
 import de.simone.command.CombatCenter.RequestName;
 import de.simone.command.CombatRequest;
+import de.simone.command.Squad;
 
 public class AttackTask extends CombatTask {
 
@@ -27,6 +27,13 @@ public class AttackTask extends CombatTask {
             return Status.RUNNING;
 
         return getObject().getSquadOrder() == Order.AttackMove ? Status.RUNNING : Status.SUCCEEDED;
+    }
+
+    @Override
+    protected Task<Squad> copyTo(Task<Squad> task) {
+        AttackTask copy = (AttackTask) task;
+        copy.to = to;
+        return copy;
     }
 
     @Override

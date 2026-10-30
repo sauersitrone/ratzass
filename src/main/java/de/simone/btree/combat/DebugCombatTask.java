@@ -1,7 +1,4 @@
 package de.simone.btree.combat;
-import com.badlogic.gdx.ai.btree.Task;
-
-import de.simone.command.Squad;
 
 /**
  * This task is used for debugging purposes. you can use it to test the
@@ -14,11 +11,5 @@ public class DebugCombatTask extends CombatTask {
     @Override
     public Status execute() {
         return Status.SUCCEEDED;
-    }
-
-    @Override
-    protected Task<Squad> copyTo(Task<Squad> task) {
-        DebugCombatTask debugT = (DebugCombatTask) task;
-        return debugT;
     }
 }

@@ -1,5 +1,6 @@
 package de.simone.btree.combat;
 
+import com.badlogic.gdx.ai.btree.Task;
 import com.badlogic.gdx.ai.btree.annotation.TaskAttribute;
 
 import de.simone.command.CombatCenter;
@@ -29,6 +30,12 @@ public class MoveTask extends CombatTask {
             sendCommunication("Hold on brothers! we are coming !");
 
         return Status.RUNNING;
+    }
+    @Override
+    protected Task<Squad> copyTo(Task<Squad> task) {
+        MoveTask copy = (MoveTask) task;
+        copy.to = to;
+        return copy;
     }
 
     @Override

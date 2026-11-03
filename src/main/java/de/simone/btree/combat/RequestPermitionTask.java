@@ -1,5 +1,6 @@
 package de.simone.btree.combat;
 
+import com.badlogic.gdx.ai.btree.Task;
 import com.badlogic.gdx.ai.btree.annotation.TaskAttribute;
 
 import de.simone.command.CombatCenter;
@@ -22,4 +23,19 @@ public class RequestPermitionTask extends CombatTask {
 
         return Status.FAILED;
     }
+
+    @Override
+    protected Task<Squad> copyTo(Task<Squad> task) {
+        RequestPermitionTask copy = (RequestPermitionTask) task;
+        copy.to = to;
+        return copy;
+    }
+
+    @Override
+    public String toString() {
+        String string = super.toString();
+        string += " to: " + to;
+        return string;
+    }
+
 }

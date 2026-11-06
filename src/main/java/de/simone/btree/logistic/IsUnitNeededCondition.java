@@ -8,7 +8,6 @@ import de.simone.btree.Blackboard;
 import de.simone.command.UnitsCenter;
 
 public class IsUnitNeededCondition extends LogisticTask {
-
     @TaskAttribute(required = true)
     public UnitType unitType;
 

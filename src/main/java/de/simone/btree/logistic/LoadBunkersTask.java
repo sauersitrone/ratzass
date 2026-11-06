@@ -14,9 +14,10 @@ public class LoadBunkersTask extends LogisticTask {
 
     @Override
     public Status execute() {
-        List<Unit> marines = UnitsCenter.getUnits().stream().filter(u -> u.getType() == UnitType.Terran_Marine)
+        List<Unit> marines = UnitsCenter.getFreeUnits().stream()
+                .filter(u -> (u.getType() == UnitType.Terran_Marine || u.getType() == UnitType.Terran_Firebat)
+                        && !u.isLoaded())
                 .toList();
-        marines = marines.stream().filter(u -> !u.isLoaded()).toList();
         marines = new ArrayList<>(marines);
 
         List<Unit> bunkers = UnitsCenter.getUnits().stream().filter(u -> u.getType() == UnitType.Terran_Bunker)

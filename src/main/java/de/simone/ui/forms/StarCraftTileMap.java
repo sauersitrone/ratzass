@@ -11,7 +11,7 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
-import java.util.HashMap;
+import java.awt.geom.Line2D;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -34,6 +34,7 @@ import bwapi.WalkPosition;
 import bwem.ChokePoint;
 import de.simone.Config;
 import de.simone.command.CombatCenter;
+import de.simone.command.InformationCenter;
 import de.simone.command.RBWListener;
 
 /**
@@ -49,7 +50,6 @@ public class StarCraftTileMap extends JPanel
 
     private int tileSize = 32;
     private int textSize = 20;
-    private boolean influenceMap = false;
 
     // pan / zoom
     private double scale = 1.0;
@@ -59,7 +59,6 @@ public class StarCraftTileMap extends JPanel
     private int hoveredTileX = -1;
     private int hoveredTileY = -1;
     private final Timer repaintTimer;
-    private long lastRedraw = 0;
     double scaleAmount = 0.9;
 
     private Map tiledMap;
@@ -94,7 +93,7 @@ public class StarCraftTileMap extends JPanel
     private ObjectGroup enemyUnitsGroup;
     private ObjectGroup allyUnitsGroup;
     private ObjectGroup neutralUnitsGroup;
-    private TilePosition bunkerLocation;
+    private List<TilePosition> bunkerLocations;
     private boolean mapInitialized = false;
     private boolean initialFitApplied = false;
 
@@ -206,16 +205,12 @@ public class StarCraftTileMap extends JPanel
     }
 
     private void updateTiledMap() {
-        try {
-            if (!mapInitialized)
-                initTiledMap();
+        if (!mapInitialized)
+            initTiledMap();
 
-            refreshTerrainLayer();
-            refreshObjectGroups();
-            bunkerLocation = CombatCenter.getBunkerLocation();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        refreshTerrainLayer();
+        refreshObjectGroups();
+        bunkerLocations = InformationCenter.getBunkerLocations();
     }
 
     /**
@@ -277,7 +272,7 @@ public class StarCraftTileMap extends JPanel
         for (ChokePoint cp : RBWListener.bwMap.getChokePoints()) {
             // Center is a WalkPosition (8px units); 4 walk tiles = 1 map tile
             WalkPosition center = cp.getCenter();
-            int radius = CombatCenter.getChokePointRadious(cp);
+            int radius = InformationCenter.getChokePointRadious(cp);
             double cx = (double) center.x / 4 * tileSize - radius;
             double cy = (double) center.y / 4 * tileSize - radius;
             int diameter = radius * 2;
@@ -366,11 +361,6 @@ public class StarCraftTileMap extends JPanel
 
     @Override
     public void paint(Graphics g) {
-        if (System.currentTimeMillis() > (1000 + lastRedraw)) {
-
-        }
-        lastRedraw = System.currentTimeMillis();
-
         Graphics2D g2 = (Graphics2D) g;
         g2.setBackground(Color.BLACK);
         g2.clearRect(0, 0, getWidth(), getHeight());
@@ -378,42 +368,38 @@ public class StarCraftTileMap extends JPanel
         g2.translate(tx, ty);
         g2.scale(scale, scale);
 
-        if (!influenceMap) {
-            if (mapInitialized) {
-                paintTerrainLayer(g2);
-                if (Config.drawRegions)
-                    paintObjectGroupOutline(g2, regionsGroup);
+        if (mapInitialized) {
+            paintTerrainLayer(g2);
+            paintBunkerLocation(g2);
 
-                if (Config.drawChokepoints)
-                    paintObjectGroupEllipses(g2, chokepointsGroup);
+            if (Config.drawRegions)
+                paintObjectGroupOutline(g2, regionsGroup);
 
-                if (Config.drawStartSpots)
-                    paintObjectGroupFilled(g2, startSpotsGroup);
-            }
-            if (Config.drawResources && mapInitialized) {
+            if (Config.drawChokepoints)
+                paintObjectGroupEllipses(g2, chokepointsGroup);
+
+            if (Config.drawStartSpots)
+                paintObjectGroupFilled(g2, startSpotsGroup);
+
+            if (Config.drawResources) {
                 paintObjectGroupFilled(g2, mineralsGroup);
                 paintObjectGroupFilled(g2, geysersGroup);
             }
 
-            if (Config.drawEnemyUnits && mapInitialized)
+            if (Config.drawEnemyUnits)
                 paintObjectGroupFilled(g2, enemyUnitsGroup);
 
-            if (Config.drawPlayerUnits && mapInitialized)
+            if (Config.drawPlayerUnits)
                 paintObjectGroupFilled(g2, allyUnitsGroup);
 
-            if (Config.drawNeutralUnits && mapInitialized)
+            if (Config.drawNeutralUnits)
                 paintObjectGroupFilled(g2, neutralUnitsGroup);
 
-            if (Config.drawIDs && mapInitialized)
+            if (Config.drawIDs)
                 paintUnitLabels(g2);
-
-        } else {
-            paintInfluenceMap(g2);
         }
 
-        paintBunkerLocation(g2);
         paintHoveredTile(g2);
-
         g2.scale(1.0 / scale, 1.0 / scale);
         g2.translate(-tx, -ty);
     }
@@ -441,16 +427,21 @@ public class StarCraftTileMap extends JPanel
     }
 
     private void paintBunkerLocation(Graphics2D g2) {
-        if (game == null || bunkerLocation == null || bunkerLocation.x < 0 || bunkerLocation.y < 0
-                || bunkerLocation.x >= game.mapWidth() || bunkerLocation.y >= game.mapHeight())
-            return;
-
-        int x = bunkerLocation.x * tileSize;
-        int y = bunkerLocation.y * tileSize;
-        g2.setColor(new Color(255, 0, 0, 55));
-        g2.fillRect(x, y, tileSize, tileSize);
+        // draw the line representing the bunker placement direction
+        Line2D[] bunkerLine = InformationCenter.getBunkerLines();
         g2.setColor(Color.RED);
-        g2.drawRect(x, y, tileSize, tileSize);
+        for (Line2D line : bunkerLine) {
+            g2.draw(line);
+        }
+
+        for (TilePosition bunkerLocation : bunkerLocations) {
+            int x = bunkerLocation.x * tileSize;
+            int y = bunkerLocation.y * tileSize;
+            g2.setColor(new Color(255, 0, 0, 55));
+            g2.fillRect(x, y, tileSize, tileSize);
+            g2.setColor(Color.RED);
+            g2.drawRect(x, y, tileSize, tileSize);
+        }
     }
 
     /**
@@ -519,43 +510,6 @@ public class StarCraftTileMap extends JPanel
                     g2.drawString(label, (int) mo.getX() + 2,
                             (int) mo.getY() + 2 + textSize);
                 }
-            }
-        }
-    }
-
-    /** Simple two-faction influence map rendered without the libtiled model. */
-    private void paintInfluenceMap(Graphics2D g2) {
-        int w = game.mapWidth();
-        int h = game.mapHeight();
-        HashMap<Integer, Double> playerInf = new HashMap<>();
-        HashMap<Integer, Double> enemyInf = new HashMap<>();
-
-        for (Unit unit : game.getAllUnits()) {
-            accumulateInfluence(playerInf, unit.getX() / tileSize, unit.getY() / tileSize, w);
-        }
-        for (Unit unit : game.getAllUnits()) {
-            accumulateInfluence(enemyInf, unit.getX() / tileSize, unit.getY() / tileSize, w);
-        }
-        for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                int pos = y * w + x;
-                double pi = playerInf.getOrDefault(pos, 0.0);
-                double ei = enemyInf.getOrDefault(pos, 0.0);
-                g2.setColor(new Color((float) ei, (float) pi, 0f));
-                g2.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
-            }
-        }
-    }
-
-    private void accumulateInfluence(HashMap<Integer, Double> map, int cx, int cy, int mapW) {
-        for (int dy = -5; dy <= 5; dy++) {
-            for (int dx = -5; dx <= 5; dx++) {
-                double dist = Math.sqrt(dx * dx + dy * dy);
-                double delta = dist == 0 ? 0.5 : (dist < 5 ? 0.5 / dist : 0);
-                if (delta == 0)
-                    continue;
-                int key = (cy + dy) * mapW + (cx + dx);
-                map.put(key, Math.min(1.0, map.getOrDefault(key, 0.0) + delta));
             }
         }
     }

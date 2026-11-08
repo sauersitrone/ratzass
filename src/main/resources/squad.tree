@@ -13,7 +13,6 @@ import focusFire:"de.simone.btree.combat.FocusFireTask"
 import retreat:"de.simone.btree.combat.RetreatTask"
 import debug:"de.simone.btree.combat.DebugCombatTask"
 
-# a idea of random position is to create a raious with center on the command center, patrol the area and increase radious if the are is visible
 # subtree name:"patrol"
 repeat
     #selector can be used to check the behaviors from highest to lowest priority.

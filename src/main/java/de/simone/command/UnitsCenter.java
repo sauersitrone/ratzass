@@ -194,6 +194,13 @@ public class UnitsCenter {
         return units;
     }
 
+    public static List<Unit> getFreeUnits() {
+        List<Unit> units = getUnits();
+        List<Unit> dogTags = getDogTags().stream().filter(d -> !"".equals(d.squadID)).map(d -> d.unit).toList();
+        units = units.stream().filter(u -> !dogTags.contains(u)).toList();
+        return units;
+    }
+
     /**
      * Get a free SCV that is idle and not currently executing any orders.
      * 
@@ -210,13 +217,19 @@ public class UnitsCenter {
         return unit;
     }
 
-    public static Unit getFreeTerranSCV() {
-        List<Unit> units = getUnits().stream()
+    public static List<Unit> getFreeTerranSCVs() {
+        List<Unit> units = getFreeUnits().stream()
                 .filter(u -> u.getType() == UnitType.Terran_SCV
                         && (u.isGatheringGas() || u.isGatheringMinerals() || u.isIdle()))
                 .toList();
+        return units;
+    }
+
+    public static Unit getFreeTerranSCV() {
+        List<Unit> units = getFreeTerranSCVs();
         if (units.isEmpty())
             return null;
+
         int r = random.nextInt(units.size());
         Unit unit = units.get(r);
         return unit;

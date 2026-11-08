@@ -2,6 +2,9 @@ package de.simone.command;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
+import org.checkerframework.checker.units.qual.t;
 
 import bwapi.Game;
 import bwapi.Position;
@@ -320,17 +323,17 @@ public class CommandQueue {
             throw new StarCraftException("The UnitType " + command.unitType + " is not a building.");
 
         // look for a free SCV to build the unit
-        Unit unit = UnitsCenter.getFreeTerranSCV();
-        if (unit == null) {
+        Unit scv = UnitsCenter.getFreeTerranSCV();
+        if (scv == null) {
             setFail(command, Cause.No_SCV_Available);
             return command;
         }
-        command.unitId = unit.getID();
+        command.unitId = scv.getID();
 
         // if the unit to build is a refinery, find the closest geyser
         if (unitType == UnitType.Terran_Refinery) {
             List<Unit> geysers = RBWListener.game.getGeysers();
-            Unit closestGeyser = UnitsCenter.getClosestUnit(geysers, unit);
+            Unit closestGeyser = UnitsCenter.getClosestUnit(geysers, scv);
             if (closestGeyser == null) {
                 setFail(command, Cause.No_Geyser_Available);
                 return command;
@@ -342,12 +345,21 @@ public class CommandQueue {
 
         // if the unit to build is a bunker, find a suitable location.
         if (unitType == UnitType.Terran_Bunker) {
-            TilePosition buildPosition = CombatCenter.getBunkerLocation();
-            if (buildPosition != null) {
-                command.tilePosition = buildPosition;
-                addCommand(command);
+            List<TilePosition> positions = InformationCenter.getBunkerLocations();
+            if (positions == null ) {
+                setFail(command, Cause.No_Bunker_Location);
                 return command;
             }
+
+            Optional<TilePosition> optionalPos = positions.stream().filter(pos -> RBWListener.game.canBuildHere(pos, unitType)).findFirst();
+            if (optionalPos.isEmpty()) {
+                // silent return
+                command.message = "Defences up to date.";
+                return command;
+            }
+            command.tilePosition = optionalPos.get();;
+            addCommand(command);
+            return command;
         }
 
         // standard build location if no special location is found
@@ -456,8 +468,7 @@ public class CommandQueue {
         // look for a free SCV to build the unit
         Unit unit = UnitsCenter.getFreeTerranSCV();
         if (unit == null) {
-            // make a note but dont alter the status
-            command.cause = Cause.No_SCV_Available;
+            setFail(command, Cause.No_SCV_Available);
             return command;
         }
         command.unitId = unit.getID();

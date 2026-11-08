@@ -5,7 +5,6 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.OptionalInt;
 
 import com.badlogic.gdx.ai.btree.BehaviorTree;
@@ -150,6 +149,9 @@ public class Squad {
     }
 
     public void retreat() {
+        // silent return if no more retreat. 
+        if (positionsTracking.isEmpty())
+            return;
         // targetPosition = getRetreatPosition(this);
         targetPosition = positionsTracking.remove(positionsTracking.size() - 1);
         CommandQueue.addCommand(UnitCommandType.Right_Click_Position, this, targetPosition);

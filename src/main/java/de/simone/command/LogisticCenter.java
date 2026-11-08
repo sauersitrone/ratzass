@@ -9,12 +9,10 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import com.badlogic.gdx.ai.btree.BehaviorTree;
 import com.hstairs.ppmajal.transition.TransitionGround;
-
 import bwapi.TechType;
 import bwapi.Unit;
 import bwapi.UnitType;
@@ -33,11 +31,13 @@ import de.simone.command.StarCraftConstants.PlannedAction;
  * desired state.
  */
 public class LogisticCenter {
+    public final static BehaviorTree<Blackboard> behaviorTree;
+    public static Map<String, List<BuildOrder>> orders = new TreeMap<>();
+
     private static List<LogisticCenterListener> listeners = new ArrayList<>();
     private static List<BuildOrder> buildOrders = new ArrayList<>();
     private static ExecutorService executorService;
-    public static Map<String, List<BuildOrder>> orders = new TreeMap<>();
-    public final static BehaviorTree<Blackboard> behaviorTree;
+    private static long lastRepairCheck;
     private final static Map<UpgradeType, Integer> upgradeLevels = new TreeMap<>();
     private final static Map<TechType, Boolean> techTypes = new TreeMap<>();
 
@@ -91,6 +91,31 @@ public class LogisticCenter {
                 CommandQueue.gather(unit, ResourceType.Gas);
             } else {
                 CommandQueue.gather(unit, ResourceType.Mineral);
+            }
+        }
+
+        /**
+         * reparir damaged buildings.
+         * this code is executed every x sec. to ensure time to previous repairs order
+         * reach destination.
+         */
+        Long now = System.currentTimeMillis();
+        if (now - lastRepairCheck >= 2000) {
+            lastRepairCheck = now;
+            List<Unit> units = UnitsCenter.getUnits();
+            List<Unit> builds = units.stream().filter(u -> u.getType().isBuilding()).toList();
+            List<Unit> damagedBuilds = builds.stream()
+                    .filter(u -> u.getHitPoints() < u.getType().maxHitPoints() && !u.isBeingHealed())
+                    .toList();
+            if (!damagedBuilds.isEmpty()) {
+                units = UnitsCenter.getFreeTerranSCVs();
+                units = units.stream().filter(u -> !u.isRepairing()).toList();
+                if (!units.isEmpty()) {
+                    Unit target = damagedBuilds.get(0);
+                    CommandQueue.repair(target.getID());
+                    listeners.forEach(l -> l.ordersUpdated(buildOrders));
+                    return;
+                }
             }
         }
 
@@ -176,7 +201,7 @@ public class LogisticCenter {
             // train
             if (buildOrder.action == StarCraftConstants.PlannedAction.train) {
                 command = CommandQueue.train(buildOrder.unitType);
-                // silent ignore
+                // silent ignore TODO: check. i dont remember this code :D
                 if (command.status == OrderStatus.Error && command.cause == Cause.Trainer_Full)
                     return;
             }

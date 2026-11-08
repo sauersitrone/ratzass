@@ -16,6 +16,7 @@ import bwapi.TilePosition;
 import bwem.ChokePoint;
 import de.simone.RUtils;
 import de.simone.command.CombatCenter;
+import de.simone.command.InformationCenter;
 import de.simone.command.RBWListener;
 
 public class MilitaryAiController {
@@ -89,12 +90,12 @@ public class MilitaryAiController {
         facts.put("mapCenter", mCenter);
         facts.put("baseToMapCenterDistance", startLoc.toPosition().getDistance(mCenter));
 
-        ChokePoint chokePoint = CombatCenter.getChokePoint(startLoc);
+        ChokePoint chokePoint = InformationCenter.getChokePoint(startLoc);
         if (chokePoint != null) {
             facts.put("chokePointCenter", chokePoint.getCenter().toPosition());
             double dis = chokePoint.getCenter().getDistance(startLoc.toWalkPosition());
             facts.put("distanceToChokePoint", dis);
-            int cpRadious = CombatCenter.getChokePointRadious(chokePoint);
+            int cpRadious = InformationCenter.getChokePointRadious(chokePoint);
             facts.put("chokePointRadious", cpRadious);
         }
 

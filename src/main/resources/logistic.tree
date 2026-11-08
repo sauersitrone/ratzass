@@ -1,9 +1,9 @@
 import train:"de.simone.btree.logistic.TrainTask"
 import createSquad:"de.simone.btree.logistic.CreateSquadTask"
 import loadBunkers:"de.simone.btree.logistic.LoadBunkersTask"
-import buildBunker:"de.simone.btree.logistic.BuildBunkerTask"
 import repairUnit:"de.simone.btree.logistic.RepairUnitTask"
 import isSquadNeeded:"de.simone.btree.logistic.IsSquadNeededCondition"
+import isBunkerNeeded:"de.simone.btree.logistic.IsBunkerNeededCondition"
 import debugLogistic:"de.simone.btree.logistic.DebugLogisticTask"
 import reSupplySquad:"de.simone.btree.logistic.ReSupplySquadTask"
 
@@ -13,14 +13,28 @@ repeat
         train unitType:"Terran_SCV" total:5
         train unitType:"Terran_Refinery" total:1
         train unitType:"Terran_SCV" total:7
-        train unitType:"Terran_Barracks" total:2
-
-        # create defensive bunkers and load them with marines (train marine first)
-        buildBunker
-
+        # train unitType:"Terran_Barracks" total:2
+        train unitType:"Terran_Barracks" total:1
         # train upgradeType:"U_238_Shells" total:1
+        train techType:"Stim_Packs" total:1
+
+        # create defensive bunkers and load them
+        # isBunkerNeeded
+        # train unitType:"Terran_Bunker" total:1
+        # train unitType:"Terran_Marine" total:4
+        # loadBunkers
+        # train unitType:"Terran_Bunker" total:2
+        # train unitType:"Terran_Marine" total:8
+        # loadBunkers
+        # train unitType:"Terran_Bunker" total:3
+        # train unitType:"Terran_Marine" total:12
+        # loadBunkers
+
 
         # Create a patrol squad
+        train unitType:"Terran_Firebat" total:4
+        createSquad type:"Patrol" members:"4*Terran_Firebat"
+
         train unitType:"Terran_Firebat" total:8
         createSquad type:"Patrol" members:"8*Terran_Firebat"
 
@@ -31,10 +45,7 @@ repeat
         # train unitType:"Terran_Siege_Tank_Tank_Mode" total:2
         # createSquad type:"Strike" members:"Terran_Medic,2*Terran_Firebat,Terran_SCV,2*Terran_Siege_Tank_Tank_Mode"
 
-        # create defensive bunkers and load them with marines (train marine first)
-        # buildBunker
-
         ## repair infrastructure
-        repairUnit
-        reSupplySquad
+        # repairUnit
+        # reSupplySquad
         wait seconds:1

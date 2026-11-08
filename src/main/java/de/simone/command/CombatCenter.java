@@ -12,13 +12,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import com.badlogic.gdx.ai.btree.BehaviorTree;
 
 import bwapi.Position;
-import bwapi.TilePosition;
 import bwapi.Unit;
 import bwapi.UnitCommandType;
-import bwapi.UnitType;
-import bwapi.WalkPosition;
-import bwem.ChokePoint;
-import de.simone.Vec;
 import de.simone.command.StarCraftConstants.OrderStatus;
 
 /**
@@ -231,83 +226,4 @@ public class CombatCenter {
         return box;
     }
 
-    /**
-     * Returns the closest chokepoint to the given start position.
-     * 
-     * @param startPosition - the start position
-     * @return the chokepoint
-     */
-    public static ChokePoint getChokePoint(TilePosition startPosition) {
-        List<ChokePoint> chokePoints = RBWListener.bwMap.getChokePoints();
-        ChokePoint chokePoint = null;
-        double distance = Integer.MAX_VALUE;
-        for (ChokePoint cp : chokePoints) {
-            TilePosition cpPosition = cp.getCenter().toTilePosition();
-            double dist = startPosition.getDistance(cpPosition);
-            if (dist < distance) {
-                chokePoint = cp;
-                distance = dist;
-            }
-        }
-        return chokePoint;
-    }
-
-    /**
-     * compute radius from the center of the chokepoint
-     * 
-     * @param chokePoint - the chokepoint
-     * @return the radious
-     */
-    public static int getChokePointRadious(ChokePoint chokePoint) {
-        WalkPosition center = chokePoint.getCenter();
-        List<WalkPosition> geom = chokePoint.getGeometry();
-        int extentWalk = geom.stream()
-                .mapToInt(p -> Math.max(Math.abs(p.x - center.x), Math.abs(p.y - center.y)))
-                .max().orElse(4);
-        int radius = Math.max(1, extentWalk / 4) * TilePosition.SIZE_IN_PIXELS;
-        return radius;
-    }
-
-    public static TilePosition getBunkerLocation() {
-        TilePosition startPosition = RBWListener.game.self().getStartLocation();
-        ChokePoint chokePoint = CombatCenter.getChokePoint(startPosition);
-        TilePosition buildPosition = null;
-        // is there choke point nearby?
-        if (chokePoint != null) {
-            TilePosition chokePosition = chokePoint.getCenter().toTilePosition();
-            Point2D a = Vec.of(chokePosition.x, chokePosition.y);
-            Point2D b = Vec.of(startPosition.x, startPosition.y);
-            double len = Math.sqrt(a.distanceSq(b));
-            int steps = (int) Math.ceil(len);
-            for (int i = 1; i <= steps; i++) {
-                Point2D point = Vec.lerp(a, b, (double) i / steps);
-                buildPosition = new TilePosition((int) point.getX(), (int) point.getY());
-                if (RBWListener.game.canBuildHere(buildPosition, UnitType.Terran_Bunker))
-                    return buildPosition;
-            }
-        }
-
-        // no choke point nearby, find a position around the start position
-        List<TilePosition> positions = getBunkerLocations();
-        positions.removeIf(p -> !RBWListener.game.canBuildHere(p, UnitType.Terran_Bunker));
-        if (!positions.isEmpty())
-            buildPosition = positions.get(0);
-
-        return buildPosition;
-    }
-
-    /**
-     * return a list of possible bunker locations around the start position. The
-     * list is ordered by distance to the start position.
-     * 
-     * @return the list
-     */
-    public static List<TilePosition> getBunkerLocations() {
-        TilePosition startPosition = RBWListener.game.self().getStartLocation();
-        Point2D b = Vec.of(startPosition.x, startPosition.y);
-        List<Point2D> point2ds = Vec.getIntersectionPoints(b, 10 * TilePosition.SIZE_IN_PIXELS); // TODO:
-        List<TilePosition> positions = new ArrayList<>();
-        point2ds.forEach(p -> positions.add(new TilePosition((int) p.getX(), (int) p.getY())));
-        return positions;
-    }
 }

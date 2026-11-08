@@ -32,6 +32,7 @@ public class StarCraftConstants {
         No_Geyser_Available,
         No_Facility_Available,
         Trainer_Full,
+        No_Bunker_Location,
         }
     public enum OrderPriority {
         Normal,

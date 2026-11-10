@@ -41,6 +41,9 @@ public class TrainTask extends LogisticTask {
     @TaskAttribute
     public int total;
 
+    @TaskAttribute
+    public boolean wall;
+
     private String voucher;
 
     @Override
@@ -52,6 +55,11 @@ public class TrainTask extends LogisticTask {
             throw new IllegalArgumentException("Either increase or total must be specified.");
 
         super.start();
+
+        if(wall) {
+            LogisticTask.wall = true;
+            LogisticTask.wallUnitType = unitType;
+        }
 
         voucher = null;
         int exist = UnitsCenter.getUnitCount(unitType);
@@ -104,6 +112,9 @@ public class TrainTask extends LogisticTask {
         if (increase > 0)
             name += " Increase: " + increase;
 
+        if(wall)
+            name += " Wall: " + wall;
+
         return name;
     }
 
@@ -115,6 +126,7 @@ public class TrainTask extends LogisticTask {
         trainTask.techType = techType;
         trainTask.increase = increase;
         trainTask.total = total;
+        trainTask.wall = wall;
         return trainTask;
     }
 }

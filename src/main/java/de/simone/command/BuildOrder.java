@@ -19,7 +19,7 @@ public class BuildOrder {
     public int quantity;
     private OrderStatus status = OrderStatus.Queued;
     public String message = "";
-    public int id = StarCraftConstants.idGenerator++;
+    public int id = StarCraftConstants.getNextId();
     public PlannedAction action;
 
     public BuildOrder(UnitType unitType, int quantity) {

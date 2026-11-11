@@ -1,5 +1,6 @@
 package de.simone.command;
 
+import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -16,6 +17,7 @@ import bwapi.UnitFilter;
 import bwapi.UnitType;
 import bwapi.UpgradeType;
 import de.simone.StarCraftException;
+import de.simone.btree.logistic.LogisticTask;
 import de.simone.command.StarCraftConstants.Cause;
 import de.simone.command.StarCraftConstants.OrderStatus;
 
@@ -346,20 +348,30 @@ public class CommandQueue {
         // if the unit to build is a bunker, find a suitable location.
         if (unitType == UnitType.Terran_Bunker) {
             List<TilePosition> positions = InformationCenter.getBunkerLocations();
-            if (positions == null ) {
-                setFail(command, Cause.No_Bunker_Location);
-                return command;
-            }
-
-            Optional<TilePosition> optionalPos = positions.stream().filter(pos -> RBWListener.game.canBuildHere(pos, unitType)).findFirst();
+            Optional<TilePosition> optionalPos = positions.stream()
+                    .filter(pos -> RBWListener.game.canBuildHere(pos, unitType)).findFirst();
             if (optionalPos.isEmpty()) {
                 // silent return
                 command.message = "Defences up to date.";
                 return command;
             }
-            command.tilePosition = optionalPos.get();;
+            command.tilePosition = optionalPos.get();
+            ;
             addCommand(command);
             return command;
+        }
+
+        // if wall & wallUnitType match the current unit type, find a suitable wall
+        // location
+        if (LogisticTask.isWall(unitType)) {
+            List<TilePosition> wallPositions = InformationCenter.getDefenceLocations(unitType, UnitType.Terran_Bunker);
+            // silent ignore if no wall positions are available
+            if (!wallPositions.isEmpty()) {
+                TilePosition wallPosition = wallPositions.get(0);
+                command.tilePosition = wallPosition;
+                addCommand(command);
+                return command;
+            }
         }
 
         // standard build location if no special location is found

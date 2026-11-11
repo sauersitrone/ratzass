@@ -10,7 +10,7 @@ import de.simone.command.StarCraftConstants.Cause;
 import de.simone.command.StarCraftConstants.OrderStatus;
 
 public class Command {
-    public int id = StarCraftConstants.idGenerator++;
+    public int id = StarCraftConstants.getNextId();
 
     // unit that must this commmand execute
     public int unitId = -1;

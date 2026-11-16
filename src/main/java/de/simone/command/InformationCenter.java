@@ -32,7 +32,7 @@ public class InformationCenter {
      */
     public static void heartBeat() {
         initRegions();
-        initBunkerLocations();
+        initDefenceLocations();
         listeners.forEach(l -> l.informationUpdated(getEnemyUnits()));
     }
 
@@ -119,6 +119,40 @@ public class InformationCenter {
         });
     }
 
+    public static Line2D getDefenceLine() {
+        TilePosition startPosition = RBWListener.game.self().getStartLocation();
+        ChokePoint chokePoint = getChokePoint(startPosition);
+        if (chokePoint == null)
+            return null;
+        TilePosition chokePosition = chokePoint.getCenter().toTilePosition();
+        Line2D line = new Line2D.Double(chokePosition.toPosition().x, chokePosition.toPosition().y,
+                startPosition.toPosition().x, startPosition.toPosition().y);
+        return line;
+    }
+
+    private static void initDefenceLocations() {
+        if (!bunkerPositions.isEmpty())
+            return;
+
+        bunkerPositions = getDefenceLocations(UnitType.Terran_Bunker, UnitType.Terran_Bunker);
+    }
+
+    public static List<TilePosition> getDefenceLocations(UnitType leftUnit, UnitType rightUnit) {
+        List<TilePosition> buildPositions = new ArrayList<>();
+        Line2D center = getDefenceLine();
+        if (center == null)
+            return buildPositions;
+
+        Line2D[] lines = getParallelLines(center, leftUnit, rightUnit);
+        TilePosition buildLocation = getBuildLocation(lines[0], leftUnit);
+        if (buildLocation != null)
+            buildPositions.add(buildLocation);
+        buildLocation = getBuildLocation(lines[1], rightUnit);
+        if (buildLocation != null)
+            buildPositions.add(buildLocation);
+        return buildPositions;
+    }
+
     /**
      * return the locations of the bunkers. this method always returns a list of 3
      * bunkers and only if there is a choke point in the vicinities. if this
@@ -126,30 +160,6 @@ public class InformationCenter {
      * 
      * @return 3 bunker list or empty list
      */
-    public static void initBunkerLocations() {
-        if (!bunkerPositions.isEmpty())
-            return;
-
-        TilePosition startPosition = RBWListener.game.self().getStartLocation();
-        ChokePoint chokePoint = getChokePoint(startPosition);
-        if (chokePoint == null)
-            return;
-
-        TilePosition chokePosition = chokePoint.getCenter().toTilePosition();
-        // if (startPosition.getDistance(chokePosition) > 20) // TODO: example max
-        // distance
-        // return null;
-
-        Line2D center = new Line2D.Double(chokePosition.toPosition().x, chokePosition.toPosition().y,
-                startPosition.toPosition().x, startPosition.toPosition().y);
-        Line2D[] lines = getParallelLine(center, UnitType.Terran_Bunker);
-        for (Line2D line : lines) {
-            TilePosition buildLocation = getBuildLocation(line, UnitType.Terran_Bunker);
-            if (buildLocation != null)
-                bunkerPositions.add(buildLocation);
-        }
-    }
-
     public static List<TilePosition> getBunkerLocations() {
         return bunkerPositions;
     }
@@ -167,36 +177,28 @@ public class InformationCenter {
     }
 
     public static Line2D[] getBunkerLines() {
-        TilePosition startPosition = RBWListener.game.self().getStartLocation();
-        ChokePoint chokePoint = getChokePoint(startPosition);
-        TilePosition chokePosition = chokePoint.getCenter().toTilePosition();
-        Line2D line1 = new Line2D.Double(chokePosition.toPosition().x, chokePosition.toPosition().y,
-                startPosition.toPosition().x, startPosition.toPosition().y);
-        Line2D[] lines = getParallelLine(line1, UnitType.Terran_Bunker);
-        return lines;
+        Line2D line = getDefenceLine();
+        Line2D[] lines = getParallelLines(line, UnitType.Terran_Bunker, UnitType.Terran_Bunker);
+        return new Line2D[] { lines[0], line, lines[1] };
     }
 
-    /**
-     * Returns the parallel lines in left, center, right order.
-     *
-     * @param center   the center line
-     * @param distance the perpendicular distance from the center line
-     * @return the left parallel line, the center line, and the right parallel line
-     */
-    public static Line2D[] getParallelLine(Line2D center, UnitType unitType) {
+    private static Line2D[] getParallelLines(Line2D center, UnitType leftUnitType, UnitType rightUnitType) {
         double dx = center.getX2() - center.getX1();
         double dy = center.getY2() - center.getY1();
         double length = Math.hypot(dx, dy);
-        double distance = unitType.tileWidth() * TilePosition.SIZE_IN_PIXELS;
+        double distance = leftUnitType.tileHeight() * TilePosition.SIZE_IN_PIXELS;
         double offsetX = -dy / length * distance;
         double offsetY = dx / length * distance;
         Line2D left = new Line2D.Double(
                 center.getX1() + offsetX, center.getY1() + offsetY,
                 center.getX2() + offsetX, center.getY2() + offsetY);
+        double rightDistance = rightUnitType.tileHeight() * TilePosition.SIZE_IN_PIXELS;
+        double rightOffsetX = -dy / length * rightDistance;
+        double rightOffsetY = dx / length * rightDistance;
         Line2D right = new Line2D.Double(
-                center.getX1() - offsetX, center.getY1() - offsetY,
-                center.getX2() - offsetX, center.getY2() - offsetY);
-        return new Line2D[] { left, center, right };
+                center.getX1() - rightOffsetX, center.getY1() - rightOffsetY,
+                center.getX2() - rightOffsetX, center.getY2() - rightOffsetY);
+        return new Line2D[] { left, right };
     }
 
     /**
@@ -234,18 +236,5 @@ public class InformationCenter {
                 .max().orElse(4);
         int radius = Math.max(1, extentWalk / 4) * TilePosition.SIZE_IN_PIXELS;
         return radius;
-    }
-
-    /**
-     * @deprecated use getBunkerLocations() from InformationCenter instead
-     * @return the list
-     */
-    public static List<TilePosition> getOpenBunkerLocations() {
-        TilePosition startPosition = RBWListener.game.self().getStartLocation();
-        Point2D b = Vec.of(startPosition.x, startPosition.y);
-        List<Point2D> point2ds = Vec.getIntersectionPoints(b, 10 * TilePosition.SIZE_IN_PIXELS); // TODO:
-        List<TilePosition> positions = new ArrayList<>();
-        point2ds.forEach(p -> positions.add(new TilePosition((int) p.getX(), (int) p.getY())));
-        return positions;
     }
 }

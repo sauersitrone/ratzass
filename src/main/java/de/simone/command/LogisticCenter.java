@@ -299,7 +299,7 @@ public class LogisticCenter {
             throw new StarCraftException("An order for " + quantity + " of " + unitType + " is already in.");
         }
 
-        String voucher = "B-" + StarCraftConstants.idGenerator++;
+        String voucher = "B-" + StarCraftConstants.getNextId();
         RPDDLProblem pddlProblem = new RPDDLProblem("Build goal for " + unitType + " x" + quantity);
         pddlProblem.setBuildGoal(unitType, quantity);
 
@@ -313,7 +313,7 @@ public class LogisticCenter {
     public static String addBuildOrder(UpgradeType upgradeType, int quantity) {
         RPDDLProblem pddlProblem = new RPDDLProblem("Upgrade goal for " + upgradeType);
         pddlProblem.setUpgradeGoal(upgradeType, quantity);
-        String voucher = "U-" + StarCraftConstants.idGenerator++;
+        String voucher = "U-" + StarCraftConstants.getNextId();
 
         executorService.submit(() -> solve(voucher, pddlProblem));
 
@@ -323,7 +323,7 @@ public class LogisticCenter {
     }
 
     public static String addBuildOrder(TechType techType) {
-        String voucher = "R-" + StarCraftConstants.idGenerator++;
+        String voucher = "R-" + StarCraftConstants.getNextId();
         RPDDLProblem pddlProblem = new RPDDLProblem("Research goal for " + techType);
         pddlProblem.setResearchGoal(techType);
 

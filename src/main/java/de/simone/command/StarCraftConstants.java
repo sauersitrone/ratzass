@@ -13,10 +13,16 @@ public class StarCraftConstants {
     public static final int SCV_GATHERING_GAS = 2;
     public static final int MINERAL_LOAD = 5;
     public static final int GAS_LOAD = 4;
-    public static int idGenerator = 1;
+
+    private static int idGenerator = 1;
+
     static int scrWidth = 640; // Default width ChaosLauncher with WMODE plugin
     static int scrHeight = 480; // Default height ChaosLauncher with WMODE plugin
 
+    public static int getNextId() {
+        return idGenerator++;
+    }
+    
     // general status of a order (eg. buildOrder or combatOrder)
     public enum OrderStatus {
         Queued,

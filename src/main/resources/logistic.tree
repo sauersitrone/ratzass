@@ -13,16 +13,17 @@ repeat
         train unitType:"Terran_SCV" total:5
         train unitType:"Terran_Refinery" total:1
         train unitType:"Terran_SCV" total:7
-        # train unitType:"Terran_Barracks" total:2
         train unitType:"Terran_Barracks" total:1
         # train upgradeType:"U_238_Shells" total:1
-        train techType:"Stim_Packs" total:1
+        # train techType:"Stim_Packs" total:1
 
         # create defensive bunkers and load them
         # isBunkerNeeded
-        # train unitType:"Terran_Bunker" total:1
-        # train unitType:"Terran_Marine" total:4
-        # loadBunkers
+        train unitType:"Terran_Bunker" total:2
+        train unitType:"Terran_Marine" total:4
+        loadBunkers
+        train unitType:"Terran_Marine" total:4
+        loadBunkers
         # train unitType:"Terran_Bunker" total:2
         # train unitType:"Terran_Marine" total:8
         # loadBunkers

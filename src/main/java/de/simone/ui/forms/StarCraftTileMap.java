@@ -33,7 +33,6 @@ import bwapi.Unit;
 import bwapi.WalkPosition;
 import bwem.ChokePoint;
 import de.simone.Config;
-import de.simone.command.CombatCenter;
 import de.simone.command.InformationCenter;
 import de.simone.command.RBWListener;
 

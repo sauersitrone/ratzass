@@ -8,13 +8,14 @@ import bwapi.TilePosition;
 import bwapi.UnitType;
 import de.simone.btree.Blackboard;
 import de.simone.command.InformationCenter;
+import de.simone.command.InformationCenter.Defence;
 import de.simone.command.UnitsCenter;
 
 public class IsBunkerNeededCondition extends LogisticTask {
 
     @Override
     public Status execute() {
-    List<TilePosition> bunkers = InformationCenter.getBunkerLocations();
+    List<Defence> bunkers = InformationCenter.getBunkerLocations();
         int c = UnitsCenter.getUnitCount(UnitType.Terran_Bunker);
         return bunkers != null && c == bunkers.size() ? Status.SUCCEEDED : Status.FAILED;
     }

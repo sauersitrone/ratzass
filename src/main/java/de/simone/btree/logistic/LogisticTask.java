@@ -5,7 +5,6 @@ import java.util.List;
 import com.badlogic.gdx.ai.btree.LeafTask;
 import com.badlogic.gdx.ai.btree.Task;
 
-import bwapi.UnitType;
 import de.simone.StarCraftException;
 import de.simone.btree.Blackboard;
 import de.simone.command.BuildOrder;
@@ -13,9 +12,6 @@ import de.simone.command.LogisticCenter;
 import de.simone.command.StarCraftConstants.OrderStatus;
 
 public abstract class LogisticTask extends LeafTask<Blackboard> {
-
-      static boolean wall;
-      static UnitType wallUnitType;
 
     // that the GUI can highlight it
     public Task<Blackboard> getControl() {
@@ -28,10 +24,6 @@ public abstract class LogisticTask extends LeafTask<Blackboard> {
         name = name.replace("Task", "");
         name = name.replace("Condition", "");
         return name;
-    }
-
-    public static boolean isWall(UnitType unitType) {
-        return wall && wallUnitType == unitType;
     }
 
     /**

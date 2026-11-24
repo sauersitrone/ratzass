@@ -1,8 +1,11 @@
 package de.simone.command;
 
+import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import org.checkerframework.checker.units.qual.t;
 
 import bwapi.Game;
 import bwapi.Position;
@@ -15,6 +18,7 @@ import bwapi.UnitType;
 import bwapi.UpgradeType;
 import de.simone.StarCraftException;
 import de.simone.btree.logistic.LogisticTask;
+import de.simone.command.InformationCenter.Defence;
 import de.simone.command.StarCraftConstants.Cause;
 import de.simone.command.StarCraftConstants.OrderStatus;
 
@@ -274,23 +278,25 @@ public class CommandQueue {
     }
 
     /**
-     * Tells the unit to right click (move) to the specified location
+     * Tells the squad to right click (move) to the specified position.
      * 
+     * @param squad    - the squad
+     * @param position - the position
      */
     public static void rightClick(Squad squad, Position position) {
         for (DogTag tag : squad.getSquadUnits()) {
-            addCommand(new Command(UnitCommandType.Right_Click_Position, tag.unit.getID(), -1, position));
+            rightClick(tag.unit.getID(), position);
         }
     }
 
     /**
-     * Tells the unit to right click (move) on the specified target unit
-     * (Includes resources).
+     * Tell the unit to move to the specified position.
      * 
-     * // virtual bool rightClick(Unit* target) = 0;
+     * @param unitId   - the unit
+     * @param position - the position
      */
-    public static void rightClick(int unitID, int targetID) {
-        addCommand(new Command(UnitCommandType.Right_Click_Unit, unitID, targetID, null));
+    public static void rightClick(int unitId, Position position) {
+        addCommand(new Command(UnitCommandType.Right_Click_Position, unitId, -1, position));
     }
 
     public static Command train(UnitType unitType) {
@@ -342,33 +348,21 @@ public class CommandQueue {
             return command;
         }
 
-        // if the unit to build is a bunker, find a suitable location.
-        if (unitType == UnitType.Terran_Bunker) {
-            List<TilePosition> positions = InformationCenter.getBunkerLocations();
-            Optional<TilePosition> optionalPos = positions.stream()
-                    .filter(pos -> RBWListener.game.canBuildHere(pos, unitType)).findFirst();
-            if (optionalPos.isEmpty()) {
+        // if the unit to build is a bunker or a wall unit, build it at a designated
+        // location if available
+        List<Defence> positions = InformationCenter.getBunkerLocations();
+        Optional<Defence> optional = positions.stream().filter(pos -> pos.unitType() == unitType).findFirst();
+        if (optional.isPresent()) {
+            optional = positions.stream()
+                    .filter(pos -> RBWListener.game.canBuildHere(pos.tilePosition(), unitType)).findFirst();
+            if (optional.isEmpty()) {
                 // silent return
                 command.message = "Defences up to date.";
                 return command;
             }
-            command.tilePosition = optionalPos.get();
-            ;
+            command.tilePosition = optional.get().tilePosition();
             addCommand(command);
             return command;
-        }
-
-        // if wall & wallUnitType match the current unit type, find a suitable wall
-        // location
-        if (LogisticTask.isWall(unitType)) {
-            List<TilePosition> wallPositions = InformationCenter.getDefenceLocations(unitType, UnitType.Terran_Bunker);
-            // silent ignore if no wall positions are available
-            if (!wallPositions.isEmpty()) {
-                TilePosition wallPosition = wallPositions.get(0);
-                command.tilePosition = wallPosition;
-                addCommand(command);
-                return command;
-            }
         }
 
         // standard build location if no special location is found

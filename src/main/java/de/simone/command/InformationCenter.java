@@ -21,7 +21,7 @@ public class InformationCenter {
     private static List<InformationCenterListener> listeners = new ArrayList<>();
     private static Map<Integer, Unit> enemyUnits = new TreeMap<>();
     private static List<Position> regions = new ArrayList<>();
-    private static List<TilePosition> bunkerPositions = new ArrayList<>();
+    private static List<Defence> defencePositions = new ArrayList<>();
 
     public static void addListener(InformationCenterListener listener) {
         listeners.add(listener);
@@ -131,25 +131,32 @@ public class InformationCenter {
     }
 
     private static void initDefenceLocations() {
-        if (!bunkerPositions.isEmpty())
+        if (!defencePositions.isEmpty())
             return;
 
-        bunkerPositions = getDefenceLocations(UnitType.Terran_Bunker, UnitType.Terran_Bunker);
+        defencePositions = getDefenceLocations(UnitType.Terran_Bunker, UnitType.Terran_Bunker);
     }
 
-    public static List<TilePosition> getDefenceLocations(UnitType leftUnit, UnitType rightUnit) {
-        List<TilePosition> buildPositions = new ArrayList<>();
+    public static record Defence(UnitType unitType, TilePosition tilePosition) {
+    }
+
+    public static List<Defence> getDefenceLocations(UnitType leftUnit, UnitType rightUnit) {
+        List<Defence> buildPositions = new ArrayList<>();
         Line2D center = getDefenceLine();
         if (center == null)
             return buildPositions;
 
-        Line2D[] lines = getParallelLines(center, leftUnit, rightUnit);
-        TilePosition buildLocation = getBuildLocation(lines[0], leftUnit);
+        int offsetL = leftUnit.tileHeight() * TilePosition.SIZE_IN_PIXELS;
+        offsetL = -((int) offsetL / 2);
+        TilePosition buildLocation = getBuildLocation(center, leftUnit, offsetL);
         if (buildLocation != null)
-            buildPositions.add(buildLocation);
-        buildLocation = getBuildLocation(lines[1], rightUnit);
+            buildPositions.add(new Defence(leftUnit, buildLocation));
+
+        int offsetR = rightUnit.tileHeight() * TilePosition.SIZE_IN_PIXELS;
+        offsetR = ((int) offsetR / 2);
+        buildLocation = getBuildLocation(center, rightUnit, offsetR);
         if (buildLocation != null)
-            buildPositions.add(buildLocation);
+            buildPositions.add(new Defence(rightUnit, buildLocation));
         return buildPositions;
     }
 
@@ -160,45 +167,19 @@ public class InformationCenter {
      * 
      * @return 3 bunker list or empty list
      */
-    public static List<TilePosition> getBunkerLocations() {
-        return bunkerPositions;
+    public static List<Defence> getBunkerLocations() {
+        return defencePositions;
     }
 
-    private static TilePosition getBuildLocation(Line2D line, UnitType unitType) {
+    private static TilePosition getBuildLocation(Line2D line, UnitType unitType, int offset) {
         double len = line.getP1().distance(line.getP2());
-        int steps = (int) Math.ceil(len / TilePosition.SIZE_IN_PIXELS);
-        for (int i = 0; i <= steps; i++) {
-            Point2D point = Vec.lerp(line.getP1(), line.getP2(), (double) i / steps);
-            TilePosition bp = new Position((int) point.getX(), (int) point.getY()).toTilePosition();
+        for (int i = 0; i <= len; i++) {
+            Point2D point = Vec.lerp(line.getP1(), line.getP2(), (double) i / len);
+            TilePosition bp = new Position((int) point.getX() + offset, (int) point.getY() + offset).toTilePosition();
             if (RBWListener.game.canBuildHere(bp, unitType))
                 return bp;
         }
         return null;
-    }
-
-    public static Line2D[] getBunkerLines() {
-        Line2D line = getDefenceLine();
-        Line2D[] lines = getParallelLines(line, UnitType.Terran_Bunker, UnitType.Terran_Bunker);
-        return new Line2D[] { lines[0], line, lines[1] };
-    }
-
-    private static Line2D[] getParallelLines(Line2D center, UnitType leftUnitType, UnitType rightUnitType) {
-        double dx = center.getX2() - center.getX1();
-        double dy = center.getY2() - center.getY1();
-        double length = Math.hypot(dx, dy);
-        double distance = leftUnitType.tileHeight() * TilePosition.SIZE_IN_PIXELS;
-        double offsetX = -dy / length * distance;
-        double offsetY = dx / length * distance;
-        Line2D left = new Line2D.Double(
-                center.getX1() + offsetX, center.getY1() + offsetY,
-                center.getX2() + offsetX, center.getY2() + offsetY);
-        double rightDistance = rightUnitType.tileHeight() * TilePosition.SIZE_IN_PIXELS;
-        double rightOffsetX = -dy / length * rightDistance;
-        double rightOffsetY = dx / length * rightDistance;
-        Line2D right = new Line2D.Double(
-                center.getX1() - rightOffsetX, center.getY1() - rightOffsetY,
-                center.getX2() - rightOffsetX, center.getY2() - rightOffsetY);
-        return new Line2D[] { left, right };
     }
 
     /**

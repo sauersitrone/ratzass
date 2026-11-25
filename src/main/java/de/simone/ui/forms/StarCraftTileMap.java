@@ -11,7 +11,6 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
-import java.awt.geom.Line2D;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -34,6 +33,7 @@ import bwapi.WalkPosition;
 import bwem.ChokePoint;
 import de.simone.Config;
 import de.simone.command.InformationCenter;
+import de.simone.command.InformationCenter.Defence;
 import de.simone.command.RBWListener;
 
 /**
@@ -92,7 +92,7 @@ public class StarCraftTileMap extends JPanel
     private ObjectGroup enemyUnitsGroup;
     private ObjectGroup allyUnitsGroup;
     private ObjectGroup neutralUnitsGroup;
-    private List<TilePosition> bunkerLocations;
+    private List<Defence> bunkerLocations;
     private boolean mapInitialized = false;
     private boolean initialFitApplied = false;
 
@@ -426,16 +426,9 @@ public class StarCraftTileMap extends JPanel
     }
 
     private void paintBunkerLocation(Graphics2D g2) {
-        // draw the line representing the bunker placement direction
-        Line2D[] bunkerLine = InformationCenter.getBunkerLines();
-        g2.setColor(Color.RED);
-        for (Line2D line : bunkerLine) {
-            g2.draw(line);
-        }
-
-        for (TilePosition bunkerLocation : bunkerLocations) {
-            int x = bunkerLocation.x * tileSize;
-            int y = bunkerLocation.y * tileSize;
+        for (Defence bunkerLocation : bunkerLocations) {
+            int x = bunkerLocation.tilePosition().getX() * tileSize;
+            int y = bunkerLocation.tilePosition().getY() * tileSize;
             g2.setColor(new Color(255, 0, 0, 55));
             g2.fillRect(x, y, tileSize, tileSize);
             g2.setColor(Color.RED);

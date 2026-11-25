@@ -143,7 +143,7 @@ public class UnitsCenter {
         Pair<UnitType, Integer> whatBuilds = unitType.whatBuilds();
         List<Unit> units = new ArrayList<>(UnitsCenter.getUnits(whatBuilds.getKey()));
         units.removeIf(u -> u.isTraining() && u.getTrainingQueueCount() == 5);
-        Unit trainer = units.isEmpty() ? null : units.get(0);
+        Unit trainer = units.isEmpty() ? null : units.get(random.nextInt(units.size()));
         return trainer;
     }
 

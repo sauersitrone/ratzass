@@ -12,12 +12,14 @@ import bwapi.Flag;
 import bwapi.Game;
 import bwapi.Player;
 import bwapi.Race;
+import bwapi.Text;
 import bwapi.TilePosition;
 import bwapi.Unit;
 import bwapi.UnitType;
 import bwem.BWEM;
 import bwem.BWMap;
 import de.simone.Config;
+import de.simone.command.InformationCenter.Defence;
 
 public class RBWListener extends DefaultBWListener {
 
@@ -99,6 +101,20 @@ public class RBWListener extends DefaultBWListener {
             lastPaintedCommand = lastCommand;
         }
 
+        List<Defence> defences = InformationCenter.getBunkerLocations();
+        if(!defences.isEmpty()) {
+            for (Defence defence : defences) {
+                TilePosition tilePosition = defence.tilePosition();
+                int left = tilePosition.x * TilePosition.SIZE_IN_PIXELS;
+                int top = tilePosition.y * TilePosition.SIZE_IN_PIXELS;
+                int right = left + defence.unitType().tileWidth() * TilePosition.SIZE_IN_PIXELS;
+                int bottom = top + defence.unitType().tileHeight() * TilePosition.SIZE_IN_PIXELS;
+                Color color = RBWListener.game.self().getColor();                
+                RBWListener.game.drawBoxMap(left, top, right, bottom, color);
+                RBWListener.game.drawTextMap(left, top, tilePosition.x + "," + tilePosition.y, Text.Blue);
+            }
+        }
+
         if (Config.autoCamera && lastCommand != null && lastCommand.tilePosition != null) {
             // The target tilePosition is a build footprint’s top-left tile.
             TilePosition tilePosition = lastCommand.tilePosition;
@@ -114,7 +130,7 @@ public class RBWListener extends DefaultBWListener {
         // RBWListener.game.drawText(CoordinateType.Screen, 8, 16, "FPS: " +
         // game.getFPS(), Text.Blue);
 
-        // heartbeat for units center, logistic center, and command queue.
+        // heartbeat for all departments and squads
         if (gameSeconds - lastTick >= 0.1) {
             long t1 = System.currentTimeMillis();
             float deltaTime = (float) (gameSeconds - lastTick);

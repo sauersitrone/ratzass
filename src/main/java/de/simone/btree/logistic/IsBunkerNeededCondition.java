@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.badlogic.gdx.ai.btree.Task;
 
-import bwapi.TilePosition;
 import bwapi.UnitType;
 import de.simone.btree.Blackboard;
 import de.simone.command.InformationCenter;

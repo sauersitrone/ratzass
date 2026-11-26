@@ -15,7 +15,6 @@ import bwapi.Position;
 import bwapi.TilePosition;
 import bwem.ChokePoint;
 import de.simone.RUtils;
-import de.simone.command.CombatCenter;
 import de.simone.command.InformationCenter;
 import de.simone.command.RBWListener;
 

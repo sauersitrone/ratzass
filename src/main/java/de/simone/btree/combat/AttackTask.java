@@ -13,17 +13,22 @@ public class AttackTask extends CombatTask {
 
     @TaskAttribute(required = true)
     public RequestName to;
+    private CombatRequest request;
 
     @Override
     public void start() {
         super.start();
-        CombatRequest request = CombatCenter.getRequest(to);
-        getObject().attack(request.position);
+        request = CombatCenter.getRequest(to, true);
+        if (request != null)
+            getObject().attack(request.position);
     }
 
     @Override
     public Status execute() {
-        if(!isTimeOut())
+        if(request == null)
+            return Status.FAILED;
+
+        if (!isTimeOut())
             return Status.RUNNING;
 
         return getObject().getSquadOrder() == Order.AttackMove ? Status.RUNNING : Status.SUCCEEDED;

@@ -9,7 +9,7 @@ import de.simone.command.Squad;
 
 public abstract class CombatTask extends LeafTask<Squad> {
     float startTime;
-    float timeout = 1;
+    float timeout = 1; // 1 sec
 
     // i need some how fire an event to the GUI that this task is being executed, so
     // that the GUI can highlight it

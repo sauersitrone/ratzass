@@ -1,9 +1,5 @@
 package de.simone.btree.combat;
 
-import bwapi.Unit;
-import bwapi.UnitCommandType;
-import de.simone.command.CombatCenter;
-import de.simone.command.CommandQueue;
 import de.simone.command.Squad;
 
 /**
@@ -15,12 +11,7 @@ public class FocusFireTask extends CombatTask {
     @Override
     public Status execute() {
         Squad squad = getObject();
-        Unit target = CombatCenter.getTarget(squad);
-        if (target != null) {
-            CommandQueue.addCommand(UnitCommandType.Attack_Unit, squad, target.getPosition());
-            return Status.SUCCEEDED;
-        }
-
-        return Status.FAILED;
+        boolean firing = squad.focusFire();
+        return firing ? Status.SUCCEEDED : Status.FAILED;
     }
 }
